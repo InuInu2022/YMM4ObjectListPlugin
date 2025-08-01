@@ -3,10 +3,23 @@
     <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <AssemblyName>ObjectListTest</AssemblyName>
+    <AssemblyName>ObjectList</AssemblyName>
+
+    <!-- 依存関係を確実に出力フォルダにコピー -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Epoxy.Wpf" Version="1.16.0" />
+    <PackageReference Include="Epoxy.Wpf" Version="1.16.0">
+      <Private>true</Private>
+      <CopyLocal>true</CopyLocal>
+      <IncludeAssets>compile;runtime;build</IncludeAssets>
+      <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
+    <PackageReference Include="Epoxy.Core.Wpf" Version="1.16.0">
+      <Private>true</Private>
+      <CopyLocal>true</CopyLocal>
+    </PackageReference>
     <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.43">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -16,6 +29,14 @@
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="$(YMM4_PATH)\ReactiveProperty.Core.dll">
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Controls.dll">
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Plugin.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>

@@ -10,9 +10,9 @@ using YukkuriMovieMaker.Plugin;
 namespace YmmeUtil.Sandbox.ObjectListTest;
 
 [PluginDetails(AuthorName = "InuInu", ContentId = "")]
-public class ObjectListTest : IToolPlugin
+public class ObjectList : IToolPlugin
 {
-	public string Name { get; } = "Sandbox.ObjectListTest";
+	public string Name { get; } = "YMM4 オブジェクトリスト";
 	public PluginDetailsAttribute Details =>
 		GetType().GetCustomAttribute<PluginDetailsAttribute>() ?? new();
 
@@ -21,7 +21,7 @@ public class ObjectListTest : IToolPlugin
 
 	private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-	public ObjectListTest()
+	public ObjectList()
 	{
 		var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
 
