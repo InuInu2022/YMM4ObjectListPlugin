@@ -17,17 +17,17 @@
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
 
     <!-- info -->
-    <Product>YMM4MyPlugin</Product>
-    <Description>YMM4 Plugin</Description>
+    <Product>YMM4 ObjectList Plugin</Product>
+    <Description>YMM4 ObjectList Plugin</Description>
     <Copyright></Copyright>
     <NeutralLanguage>ja-JP</NeutralLanguage>
     <Version>0.1.0.0</Version>
 
-    <RepositoryUrl>https://github.com/</RepositoryUrl>
+    <RepositoryUrl>https://github.com/InuInu2022/YMM4ObjectListPlugin</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- AssemblyInfo プロパティ -->
-    <AssemblyTitle>YMM4MyPlugin</AssemblyTitle>
+    <AssemblyTitle>YMM4 ObjectList Plugin</AssemblyTitle>
     <SupportedCultures>en-US;ja</SupportedCultures>
     <!-- MinVer -->
     <MinVerTagPrefix>v</MinVerTagPrefix>

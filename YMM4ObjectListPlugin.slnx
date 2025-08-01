@@ -1,1 +1,12 @@
-<Solution />
+<Solution>
+  <Folder Name="/libs/" />
+  <Folder Name="/libs/YmmeUtil/" />
+  <Folder Name="/libs/YmmeUtil/src/">
+    <Project Path="libs/YmmeUtil/src/YmmeUtil.Bridge/YmmeUtil.Bridge.csproj" />
+    <Project Path="libs/YmmeUtil/src/YmmeUtil.Ymm4/YmmeUtil.Ymm4.csproj" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/YMM4ObjectListPlugin/">
+    <Project Path="src/YMM4ObjectListPlugin/ObjectList.csproj" />
+  </Folder>
+</Solution>

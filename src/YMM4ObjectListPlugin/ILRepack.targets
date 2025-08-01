@@ -1,0 +1,61 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="ILRepacker" AfterTargets="Build;AfterRebuild" BeforeTargets="PostBuildEvent"
+    Condition="'$(ILRepackExecuted)' != 'true' And Exists('$(OutputPath)\YmmeUtil.Bridge.dll')" >
+
+    <!-- 実行フラグを設定 -->
+    <PropertyGroup>
+      <ILRepackExecuted>true</ILRepackExecuted>
+    </PropertyGroup>
+
+    <!-- 元のファイルをバックアップ -->
+    <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="$(OutputPath)\$(AssemblyName).dll.orig" />
+
+    <ItemGroup>
+      <!-- プライマリアセンブリを最初に配置 -->
+      <InputAssemblies Include="$(OutputPath)\$(AssemblyName).dll" />
+      <InputAssemblies Include="$(OutputPath)\YmmeUtil.Bridge.dll" />
+      <InputAssemblies Include="$(OutputPath)\YmmeUtil.Ymm4.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <DoNotInternalizeAssemblies Include="System" />
+      <DoNotInternalizeAssemblies Include="YukkuriMovieMaker" />
+      <DoNotInternalizeAssemblies Include="YukkuriMovieMaker.Plugin" />
+      <DoNotInternalizeAssemblies Include="YukkuriMovieMaker.Controls" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <LibraryPath Include="$(YMM4_PATH)" />
+      <LibraryPath Include="$(OutputPath)" />
+    </ItemGroup>
+
+    <!-- 一時的な出力ファイルを使用 -->
+    <ILRepack
+      Parallel="true"
+      Internalize="false"
+      InternalizeExclude="@(DoNotInternalizeAssemblies)"
+      InputAssemblies="@(InputAssemblies)"
+      LibraryPath="@(LibraryPath)"
+      TargetKind="Dll"
+      OutputFile="$(OutputPath)\$(AssemblyName).dll"
+      Union="true"
+      XmlDocumentation="false"
+      LogFile="$(OutputPath)\ILRepack.log"
+      DebugInfo="true"
+      AllowDuplicateResources="true"
+      />
+
+    <!-- マージされたDLLファイルを削除 -->
+    <Delete Files="$(OutputPath)\YmmeUtil.Bridge.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\YmmeUtil.Ymm4.dll" ContinueOnError="true" />
+
+    <!-- マージが成功したかを確認 -->
+    <Message Text="ILRepack completed. Merged assemblies removed." Importance="high" />
+
+  </Target>
+
+  <!-- 重複実行を防ぐためのプロパティ設定 -->
+  <PropertyGroup>
+    <ILRepackExecuted Condition="'$(ILRepackExecuted)' == ''">false</ILRepackExecuted>
+  </PropertyGroup>
+</Project>

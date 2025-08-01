@@ -1,0 +1,231 @@
+<UserControl
+  x:Class="YmmeUtil.Sandbox.ObjectListTest.View.MainView"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:epoxy="https://github.com/kekyo/Epoxy"
+  xmlns:local="clr-namespace:YmmeUtil.Sandbox.ObjectListTest.View"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
+  xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
+  d:DesignHeight="450"
+  d:DesignWidth="800"
+  mc:Ignorable="d"
+  >
+  <epoxy:EventBinder.Events>
+    <epoxy:Event Command="{Binding Ready}" EventName="Loaded" />
+  </epoxy:EventBinder.Events>
+
+  <UserControl.Resources>
+    <!-- DrawingImageをリソースとして定義 -->
+    <DrawingImage x:Key="MyIcon">
+      <DrawingImage.Drawing>
+        <GeometryDrawing
+          Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
+          Geometry="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
+      </DrawingImage.Drawing>
+    </DrawingImage>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+
+    <DockPanel Grid.Row="0">
+      <Button
+        DockPanel.Dock="Right"
+        Margin="5,5,5,0"
+        Width="24"
+        Height="24"
+        Command="{Binding ReloadCommand}"
+        ToolTip="{x:Static loc:Texts.Reload}"
+        >
+        <Image Source="{StaticResource MyIcon}"
+          Margin="2" />
+      </Button>
+      <!--  検索テキストボックス  -->
+      <TextBox
+        DockPanel.Dock="Left"
+        Margin="5,5,5,0"
+        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+        >
+        <TextBox.Style>
+          <Style TargetType="TextBox">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                  <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    >
+                    <Grid>
+                      <ScrollViewer x:Name="PART_ContentHost" />
+                      <TextBlock
+                        Margin="5,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="Gray"
+                        IsHitTestVisible="False"
+                        Text="タイトルで検索..."
+                        >
+                        <TextBlock.Style>
+                          <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                              <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                <Setter Property="Visibility" Value="Visible" />
+                              </DataTrigger>
+                            </Style.Triggers>
+                          </Style>
+                        </TextBlock.Style>
+                      </TextBlock>
+                    </Grid>
+                  </Border>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </TextBox.Style>
+      </TextBox>
+
+    </DockPanel>
+
+    <!--  DataGrid  -->
+    <DataGrid
+      x:Name="CustomerDataGrid"
+      Grid.Row="1"
+      Margin="0,5,0,0"
+      AutoGenerateColumns="False"
+      CanUserAddRows="False"
+      CanUserDeleteRows="True"
+      CanUserReorderColumns="True"
+      HeadersVisibility="Column"
+      ItemsSource="{Binding FilteredItems}"
+      SelectionMode="Extended"
+      >
+      <epoxy:EventBinder.Events>
+        <epoxy:Event Command="{Binding SelectionChangedCommand}" EventName="SelectionChanged" />
+      </epoxy:EventBinder.Events>
+      <DataGrid.Resources>
+        <Style TargetType="DataGridCell">
+          <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="TextBlock">
+          <Setter Property="VerticalAlignment" Value="Center" />
+          <Setter Property="TextAlignment" Value="Center" />
+        </Style>
+      </DataGrid.Resources>
+      <DataGrid.Columns>
+
+        <DataGridTemplateColumn>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Rectangle
+                Width="10"
+                Height="20"
+                VerticalAlignment="Center"
+                Fill="{Binding ColorBrush}"
+                />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn
+          Width="SizeToCells"
+          MinWidth="50"
+          Binding="{Binding Category}"
+          CanUserSort="True"
+          Header="カテゴリ"
+          SortDirection="Ascending"
+          IsReadOnly="True"
+          />
+        <DataGridTextColumn
+          Width="*"
+          Binding="{Binding Label}"
+          CanUserSort="True"
+          Header="{x:Static loc:Texts.SearchResultItemColumnHeader}"
+          SortDirection="Ascending"
+          IsReadOnly="True"
+          />
+        <DataGridTextColumn
+          Width="SizeToHeader"
+          Binding="{Binding Layer}"
+          CanUserSort="True"
+          Header="{x:Static loc:Texts.SearchResultLayerColumnHeader}"
+          SortDirection="Ascending"
+          SortMemberPath="Layer"
+          IsReadOnly="True"
+          />
+        <DataGridTextColumn
+          Width="SizeToHeader"
+          Binding="{Binding Group}"
+          CanUserSort="True"
+          Header="{x:Static loc:Texts.GroupLabel}"
+          SortDirection="Ascending"
+          SortMemberPath="Group"
+          IsReadOnly="True"
+          />
+        <DataGridTemplateColumn
+          Width="SizeToCells"
+          MinWidth="25"
+          CanUserSort="True"
+          Header="🔒"
+          SortMemberPath="IsLocked"
+          >
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <c:ToggleSlider
+                Value="{Binding IsLocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn
+          Width="SizeToCells"
+          MinWidth="25"
+          CanUserSort="True"
+          Header="👁️"
+          SortMemberPath="IsHidden"
+          >
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <c:ToggleSlider
+                Value="{Binding IsHidden, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <!--  Footer  -->
+    <DockPanel Grid.Row="2"
+      Visibility="Collapsed">
+      <WrapPanel DockPanel.Dock="Right"
+        HorizontalAlignment="Right"
+        Margin="5,0,5,0"
+        >
+        <TextBlock
+          Text="※シーン名" />
+        <Border
+          Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+          Width="1" Margin="5,2" />
+        <TextBlock
+          Text="※シーンFPS" />
+        <Border
+          Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+          Width="1" Margin="5,2" />
+        <TextBlock
+          Text="※シーンHz" />
+      </WrapPanel>
+    </DockPanel>
+  </Grid>
+
+</UserControl>
