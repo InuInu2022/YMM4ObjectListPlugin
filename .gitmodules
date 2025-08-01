@@ -1,0 +1,3 @@
+[submodule "libs/YmmeUtil"]
+	path = libs/YmmeUtil
+	url = https://github.com/InuInu2022/YmmeUtil.git
