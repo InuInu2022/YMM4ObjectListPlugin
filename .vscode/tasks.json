@@ -10,11 +10,13 @@
 				// Ask dotnet build to generate full paths for file names.
 				"/property:GenerateFullPaths=true",
 				// Do not generate summary otherwise it leads to duplicate errors in Problems panel
-				"/consoleloggerparameters:NoSummary"
+                //"/consoleloggerparameters:NoSummary"
+                "/property:Configuration=Debug",
+                "/terminalLogger:off"
 			],
 			"group": "build",
 			"presentation": {
-				"reveal": "silent"
+                "reveal": "always"
 			},
 			"problemMatcher": "$msCompile"
 		},
