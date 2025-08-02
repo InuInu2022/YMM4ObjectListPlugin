@@ -15,6 +15,7 @@
             "stopAtEntry": false,
             "console": "internalConsole",
             "justMyCode": false,
+            "requireExactSource": false,
             "logging": {
                 "moduleLoad": false
             }
