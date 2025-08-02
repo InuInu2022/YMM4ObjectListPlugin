@@ -2,12 +2,12 @@
   x:Class="ObjectList.View.MainView"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
+  xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   xmlns:local="clr-namespace:ObjectList.View"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
-  xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   d:DesignHeight="450"
   d:DesignWidth="800"
   mc:Ignorable="d"
@@ -17,14 +17,13 @@
   </epoxy:EventBinder.Events>
 
   <UserControl.Resources>
-    <!-- DrawingImageをリソースとして定義 -->
+    <!--  DrawingImageをリソースとして定義  -->
     <DrawingImage x:Key="MyIcon">
       <DrawingImage.Drawing>
-        <GeometryDrawing
-          Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-          Geometry="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
+        <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
       </DrawingImage.Drawing>
     </DrawingImage>
+
   </UserControl.Resources>
 
   <Grid>
@@ -37,20 +36,19 @@
 
     <DockPanel Grid.Row="0">
       <Button
-        DockPanel.Dock="Right"
-        Margin="5,5,5,0"
         Width="24"
         Height="24"
+        Margin="5,5,5,0"
         Command="{Binding ReloadCommand}"
+        DockPanel.Dock="Right"
         ToolTip="{x:Static loc:Texts.Reload}"
         >
-        <Image Source="{StaticResource MyIcon}"
-          Margin="2" />
+        <Image Margin="2" Source="{StaticResource MyIcon}" />
       </Button>
       <!--  検索テキストボックス  -->
       <TextBox
-        DockPanel.Dock="Left"
         Margin="5,5,5,0"
+        DockPanel.Dock="Left"
         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
         >
         <TextBox.Style>
@@ -106,6 +104,7 @@
       HeadersVisibility="Column"
       ItemsSource="{Binding FilteredItems}"
       SelectionMode="Extended"
+      AlternationCount="2"
       >
       <epoxy:EventBinder.Events>
         <epoxy:Event Command="{Binding SelectionChangedCommand}" EventName="SelectionChanged" />
@@ -119,6 +118,20 @@
           <Setter Property="TextAlignment" Value="Center" />
         </Style>
       </DataGrid.Resources>
+      <!-- 行スタイルを追加 -->
+      <DataGrid.RowStyle>
+        <Style TargetType="DataGridRow">
+          <Style.Triggers>
+            <Trigger Property="AlternationIndex" Value="1">
+              <Setter Property="Background">
+                <Setter.Value>
+                  <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlTextColorKey}}" Opacity="0.05" />
+                </Setter.Value>
+              </Setter>
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </DataGrid.RowStyle>
       <DataGrid.Columns>
 
         <DataGridTemplateColumn>
@@ -135,42 +148,42 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn
           Width="SizeToCells"
-          MinWidth="50"
+          MinWidth="70"
           Binding="{Binding Category}"
           CanUserSort="True"
           Header="カテゴリ"
-          SortDirection="Ascending"
           IsReadOnly="True"
+          SortDirection="Ascending"
           />
         <DataGridTextColumn
           Width="*"
           Binding="{Binding Label}"
           CanUserSort="True"
           Header="{x:Static loc:Texts.SearchResultItemColumnHeader}"
-          SortDirection="Ascending"
           IsReadOnly="True"
+          SortDirection="Ascending"
           />
         <DataGridTextColumn
           Width="SizeToHeader"
           Binding="{Binding Layer}"
           CanUserSort="True"
           Header="{x:Static loc:Texts.SearchResultLayerColumnHeader}"
+          IsReadOnly="True"
           SortDirection="Ascending"
           SortMemberPath="Layer"
-          IsReadOnly="True"
           />
         <DataGridTextColumn
           Width="SizeToHeader"
           Binding="{Binding Group}"
           CanUserSort="True"
           Header="{x:Static loc:Texts.GroupLabel}"
+          IsReadOnly="True"
           SortDirection="Ascending"
           SortMemberPath="Group"
-          IsReadOnly="True"
           />
         <DataGridTemplateColumn
           Width="SizeToCells"
-          MinWidth="25"
+          MinWidth="30"
           CanUserSort="True"
           Header="🔒"
           SortMemberPath="IsLocked"
@@ -178,16 +191,16 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <c:ToggleSlider
-                Value="{Binding IsLocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                VerticalAlignment="Center"
                 HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Value="{Binding IsLocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTemplateColumn
           Width="SizeToCells"
-          MinWidth="25"
+          MinWidth="30"
           CanUserSort="True"
           Header="👁️"
           SortMemberPath="IsHidden"
@@ -195,9 +208,9 @@
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <c:ToggleSlider
-                Value="{Binding IsHidden, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                VerticalAlignment="Center"
                 HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Value="{Binding IsHidden, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
@@ -206,24 +219,25 @@
     </DataGrid>
 
     <!--  Footer  -->
-    <DockPanel Grid.Row="2"
-      Visibility="Collapsed">
-      <WrapPanel DockPanel.Dock="Right"
-        HorizontalAlignment="Right"
+    <DockPanel Grid.Row="2" Visibility="Collapsed">
+      <WrapPanel
         Margin="5,0,5,0"
+        HorizontalAlignment="Right"
+        DockPanel.Dock="Right"
         >
-        <TextBlock
-          Text="※シーン名" />
+        <TextBlock Text="※シーン名" />
         <Border
+          Width="1"
+          Margin="5,2"
           Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-          Width="1" Margin="5,2" />
-        <TextBlock
-          Text="※シーンFPS" />
+          />
+        <TextBlock Text="※シーンFPS" />
         <Border
+          Width="1"
+          Margin="5,2"
           Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-          Width="1" Margin="5,2" />
-        <TextBlock
-          Text="※シーンHz" />
+          />
+        <TextBlock Text="※シーンHz" />
       </WrapPanel>
     </DockPanel>
   </Grid>
