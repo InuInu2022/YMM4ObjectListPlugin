@@ -6,7 +6,7 @@ using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YukkuriMovieMaker.Resources.Localization;
 
-namespace ObjectList.View;
+namespace ObjectList.ViewModel;
 
 //[ViewModel]
 public class ObjectListItem : INotifyPropertyChanged

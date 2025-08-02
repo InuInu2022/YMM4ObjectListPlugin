@@ -1,0 +1,311 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Threading;
+using Epoxy;
+using YmmeUtil.Bridge;
+using YmmeUtil.Bridge.Wrap;
+using YmmeUtil.Bridge.Wrap.ViewModels;
+using YmmeUtil.Common;
+using YukkuriMovieMaker.ViewModels;
+
+namespace ObjectList.ViewModel;
+
+[ViewModel]
+public class MainViewModel
+{
+	public Command? Ready { get; set; }
+	public Command? ReloadCommand { get; set; }
+	public Command? SelectionChangedCommand { get; set; }
+
+	public string SearchText { get; set; } = string.Empty;
+
+	public ObservableCollection<ObjectListItem> Items
+	{
+		get;
+		private set;
+	} = [];
+
+	public ICollectionView? FilteredItems
+	{
+		get;
+		private set;
+	}
+
+	public string SceneName { get; set; } = string.Empty;
+	public string SceneHz { get; set; } = string.Empty;
+	public string SceneFps { get; set; } = string.Empty;
+
+	IDisposable? sceneSubscription;
+
+	public MainViewModel()
+	{
+		Ready = Command.Factory.Create(
+			InitializeApplicationAsync
+		);
+
+		ReloadCommand = Command.Factory.Create(() =>
+		{
+			if (
+				TimelineUtil.TryGetTimeline(
+					out var timeLine
+				) && timeLine is not null
+			)
+			{
+				UpdateItems(timeLine);
+				UpdateSceneInfo(timeLine);
+			}
+
+			return default;
+		});
+		SelectionChangedCommand =
+			Command.Factory.Create<SelectionChangedEventArgs>(
+				SelectionUpdateAsync
+			);
+	}
+
+	ValueTask InitializeApplicationAsync()
+	{
+		//set Title
+		List<dynamic> windows =
+		[
+			.. Application.Current.Windows,
+		];
+		var win = windows
+			.OfType<Window>()
+			.FirstOrDefault(w =>
+				w.DataContext is MainViewModel
+			);
+		if (win is not null)
+		{
+			var ver = AssemblyUtil.GetVersionString(
+				typeof(Ymm4ObjectListPlugin)
+			);
+			if (string.IsNullOrEmpty(ver))
+			{
+				ver = "バージョン不明";
+			}
+			win.Title =
+				$"YMM4 オブジェクトリスト プラグイン v{ver}";
+		}
+
+		// App loaded event
+		var timer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(500),
+		};
+		void TickEvent(object? s, EventArgs e)
+		{
+			foreach (
+				Window win in Application.Current.Windows
+			)
+			{
+				// スプラッシュではなく、実ウィンドウかを判定
+				if (IsRealUiWindow(win) && win.IsLoaded)
+				{
+					timer.Stop();
+					OnHostUiReady(win);
+					timer.Tick -= TickEvent;
+					return;
+				}
+			}
+		}
+		timer.Tick += TickEvent;
+		timer.Start();
+
+		return default;
+	}
+
+	static ValueTask SelectionUpdateAsync(
+		SelectionChangedEventArgs e
+	)
+	{
+		if (
+			!TimelineUtil.TryGetTimeline(out var timeLine)
+			|| timeLine is null
+		)
+		{
+			return default;
+		}
+
+		var items = e.AddedItems;
+		if (items is null)
+			return default;
+
+		var wItems = items
+			.OfType<ObjectListItem>()
+			.Select(item => item.ConvertToItemViewModel())
+			.Where(item => item is not null)
+			.OfType<WrapTimelineItemViewModel>()
+			.ToList();
+
+		foreach (
+			ref var item in CollectionsMarshal.AsSpan(
+				wItems
+			)
+		)
+		{
+			try
+			{
+				var cmd = item.SelectCommand;
+				if (cmd?.CanExecute(null) == true)
+				{
+					cmd.Execute(null);
+				}
+			}
+			catch (System.Exception ex)
+			{
+				Debug.WriteLine(
+					$"Failed to select item: {item}, {ex.Message}"
+				);
+			}
+		}
+
+		return default;
+	}
+
+	static bool IsRealUiWindow(Window window)
+	{
+		return !string.IsNullOrWhiteSpace(window.Title)
+			&& !string.Equals(
+				window.Title,
+				"Splash",
+				StringComparison.Ordinal
+			)
+			&& window.DataContext is IMainViewModel;
+	}
+
+	void OnHostUiReady(Window mainWindow)
+	{
+		var hasTL = TimelineUtil.TryGetTimeline(
+			out var timeLine
+		);
+
+		if (!hasTL || timeLine is null)
+			return;
+
+		var raw = timeLine.RawTimeline;
+
+		if (raw is INotifyPropertyChanged target)
+		{
+			//監視する
+			target.PropertyChanged += OnTimelineChanged;
+			// ここでタイムラインの変更を反映させる
+			UpdateItems(timeLine);
+			UpdateSceneInfo(timeLine);
+		}
+
+		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
+			out var timeLineVm
+		);
+		if (hasSceneVm && timeLineVm is not null)
+		{
+			sceneSubscription =
+				timeLineVm.SelectedScene.Subscribe(x =>
+				{
+					var tl = x?.Timeline;
+					if (tl is not null)
+					{
+						UpdateItems(tl);
+						UpdateSceneInfo(tl);
+					}
+				});
+		}
+	}
+
+	void FilterItems()
+	{
+		if (FilteredItems is null)
+		{
+			return;
+		}
+
+		FilteredItems.Filter = item =>
+		{
+			return item is ObjectListItem yourItem
+				&& (
+					string.IsNullOrEmpty(SearchText)
+					|| yourItem.Label.Contains(
+						SearchText,
+						StringComparison.OrdinalIgnoreCase
+					)
+				);
+		};
+	}
+
+	void OnTimelineChanged(
+		object? sender,
+		PropertyChangedEventArgs e
+	)
+	{
+		//Debug.WriteLine($"Property changed: {e.PropertyName}");
+
+		if (
+			!TimelineUtil.TryGetTimeline(out var timeLine)
+			|| timeLine is null
+		)
+			return;
+
+		switch (e.PropertyName)
+		{
+			case "Items":
+				UpdateItems(timeLine);
+				break;
+			case nameof(WrapTimeLine.Name):
+				UpdateSceneInfo(timeLine);
+				break;
+
+			default:
+				break;
+		}
+	}
+
+	void UpdateItems(WrapTimeLine timeLine)
+	{
+		if (
+			!TimelineUtil.TryGetItemViewModels(
+				out var itemViewModels
+			) || itemViewModels is null
+		)
+		{
+			return;
+		}
+		// アイテムビューのモデルが取得できた場合は、アイテムを更新する
+		Items = new ObservableCollection<ObjectListItem>(
+			itemViewModels.Select(
+				item => new ObjectListItem(item)
+			)
+		);
+		OnItemsChanged();
+	}
+
+	[PropertyChanged(nameof(SearchText))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask SearchTextChangedAsync(string value)
+	{
+		FilterItems();
+		return default;
+	}
+
+	void OnItemsChanged()
+	{
+		FilteredItems = CollectionViewSource.GetDefaultView(
+			Items
+		);
+		FilterItems();
+	}
+
+	void UpdateSceneInfo(WrapTimeLine timeLine)
+	{
+		SceneName = timeLine.Name;
+		SceneHz = $"{timeLine.VideoInfo.Hz} Hz";
+		SceneFps = $"{timeLine.VideoInfo.FPS} FPS";
+	}
+}

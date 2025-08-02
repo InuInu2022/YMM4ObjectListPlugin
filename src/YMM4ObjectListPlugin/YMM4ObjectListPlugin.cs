@@ -4,6 +4,8 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
 using ObjectList.View;
+using ObjectList.ViewModel;
+
 using YmmeUtil.Bridge;
 using YukkuriMovieMaker.Plugin;
 
