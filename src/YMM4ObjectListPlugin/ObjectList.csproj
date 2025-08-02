@@ -4,8 +4,7 @@
     <TargetFramework>net9.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <AssemblyName>ObjectList</AssemblyName>
-
+    <AssemblyName>Ymm4ObjectListPlugin</AssemblyName>
     <!-- 依存関係を確実に出力フォルダにコピー -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

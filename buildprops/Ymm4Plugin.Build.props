@@ -46,7 +46,7 @@
   <!-- MS Build settings -->
 
   <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
-    <!-- <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />-->
+    <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
     <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
   </Target>
   <Target Name="CopyDebugDlls" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">

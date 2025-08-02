@@ -10,7 +10,7 @@ using YukkuriMovieMaker.Plugin;
 namespace ObjectList;
 
 [PluginDetails(AuthorName = "InuInu", ContentId = "")]
-public class ObjectList : IToolPlugin
+public class Ymm4ObjectListPlugin : IToolPlugin
 {
 	public string Name { get; } = "YMM4 オブジェクトリスト";
 	public PluginDetailsAttribute Details =>
@@ -21,7 +21,7 @@ public class ObjectList : IToolPlugin
 
 	private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
 
-	public ObjectList()
+	public Ymm4ObjectListPlugin()
 	{
 		var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
 
