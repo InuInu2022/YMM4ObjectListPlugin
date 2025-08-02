@@ -31,6 +31,7 @@
     <!-- exclude -->
     <ExcludeFromPublish Include="**\*.pdb" />
     <ExcludeFromPublish Include="**\*.xml" />
+    <ExcludeFromPublish Include="**\*.log" />
     <!-- YMM4 plugins -->
     <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Plugin.dll">
       <Private>false</Private>
@@ -45,24 +46,37 @@
   <!-- MS Build settings -->
 
   <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
-    <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
+    <!-- <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />-->
     <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
   </Target>
-  <Target Name="CopyDebugDlls" BeforeTargets="AfterBuild" Condition="'$(Configuration)' == 'Debug'">
+  <Target Name="CopyDebugDlls" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <!-- デバッグ出力を追加 -->
+    <Message Text="=== CopyDebugDlls is RUNNING ===" Importance="high" />
+    <Message Text="OutputPath: $(OutputPath)" Importance="high" />
+    <Message Text="YMM4_PATH: $(YMM4_PATH)" Importance="high" />
+    <Message Text="AssemblyName: $(AssemblyName)" Importance="high" />
+
+    <!-- 環境変数チェック -->
+    <Error Text="YMM4_PATH environment variable is not set!" Condition="'$(YMM4_PATH)' == ''" />
+
     <ItemGroup>
-      <CommonPaths Include="$(OutputPath)../../Debug/$(TargetFramework)/publish" />
-      <MissingDlls Include="$(CommonPaths)/*.dll" Exclude="$(CommonPaths)/$(AssemblyName).dll" />
-      <MissingPdbs Include="$(CommonPaths)/*.pdb" Exclude="$(CommonPaths)/$(AssemblyName).pdb" />
+      <CommonPaths Include="$(OutputPath)" />
+      <MissingDlls Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(AssemblyName).dll" />
+      <MissingPdbs Include="$(OutputPath)*.pdb" Exclude="$(OutputPath)$(AssemblyName).pdb" />
     </ItemGroup>
-    <Copy SourceFiles="@(MissingDlls)" DestinationFiles="@(MissingDlls->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(MissingPdbs)" DestinationFiles="@(MissingPdbs->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+
+    <!-- コピー先ディレクトリの作成 -->
+    <MakeDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)" />
+
     <ItemGroup>
       <SourceFiles Include="$(OutputPath)**/*.*" />
     </ItemGroup>
+
     <Copy SourceFiles="@(SourceFiles)" DestinationFiles="@(SourceFiles->'$(YMM4_PATH)\user\plugin\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
     <Message Text="Dlls @(MissingDlls)" Importance="high" />
     <Message Text="PDBs @(MissingPdbs)" Importance="high" />
+    <Message Text="★Copy completed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
   </Target>
   <Target Name="CleanBeforePublish" BeforeTargets="BeforePublish">
     <RemoveDir Directories="$(OutputPath)/publish/" />
@@ -112,5 +126,19 @@
     <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
 
     <Unzip SourceFiles="$(OutputPath)/../../../../../publish/$(ZipFileName)" DestinationFolder="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
+  </Target>
+  <!-- Release構成でも直接コピーできるようにする -->
+  <Target Name="CopyReleaseDlls" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+    <Warning Text="=== CopyReleaseDlls is RUNNING ===" />
+
+    <ItemGroup>
+      <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(PublishFiles)"
+      DestinationFiles="@(PublishFiles->'$(YMM4_PATH)\user\plugin\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <Warning Text="Files copied directly to YMM4 plugin folder" />
   </Target>
 </Project>
