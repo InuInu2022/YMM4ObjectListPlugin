@@ -1,10 +1,10 @@
 <UserControl
-  x:Class="YmmeUtil.Sandbox.ObjectListTest.View.MainView"
+  x:Class="ObjectList.View.MainView"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
-  xmlns:local="clr-namespace:YmmeUtil.Sandbox.ObjectListTest.View"
+  xmlns:local="clr-namespace:ObjectList.View"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
   xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"

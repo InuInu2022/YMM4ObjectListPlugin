@@ -2,12 +2,11 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
-
 using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YukkuriMovieMaker.Resources.Localization;
 
-namespace YmmeUtil.Sandbox.ObjectListTest.View;
+namespace ObjectList.View;
 
 //[ViewModel]
 public class ObjectListItem : INotifyPropertyChanged

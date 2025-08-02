@@ -16,7 +16,7 @@ using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Ymm4;
 
-namespace YmmeUtil.Sandbox.ObjectListTest.View;
+namespace ObjectList.View;
 
 [ViewModel]
 public class MainViewModel

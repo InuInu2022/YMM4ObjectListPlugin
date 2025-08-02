@@ -3,11 +3,11 @@ using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Threading;
+using ObjectList.View;
 using YmmeUtil.Bridge;
-using YmmeUtil.Sandbox.ObjectListTest.View;
 using YukkuriMovieMaker.Plugin;
 
-namespace YmmeUtil.Sandbox.ObjectListTest;
+namespace ObjectList;
 
 [PluginDetails(AuthorName = "InuInu", ContentId = "")]
 public class ObjectList : IToolPlugin
