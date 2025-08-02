@@ -32,6 +32,10 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
+    <Reference Include="$(YMM4_PATH)\System.Reactive.dll">
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
     <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Controls.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
@@ -44,5 +48,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Bridge\YmmeUtil.Bridge.csproj" />
     <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Ymm4\YmmeUtil.Ymm4.csproj" />
+    <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Common\YmmeUtil.Common.csproj" />
   </ItemGroup>
 </Project>

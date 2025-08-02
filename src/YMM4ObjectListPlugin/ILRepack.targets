@@ -15,6 +15,7 @@
       <InputAssemblies Include="$(OutputPath)\$(AssemblyName).dll" />
       <InputAssemblies Include="$(OutputPath)\YmmeUtil.Bridge.dll" />
       <InputAssemblies Include="$(OutputPath)\YmmeUtil.Ymm4.dll" />
+      <InputAssemblies Include="$(OutputPath)\YmmeUtil.Common.dll" />
 
 
       <!-- Epoxyと関連ライブラリもマージ -->
@@ -59,6 +60,7 @@
     <!-- マージされたDLLファイルを削除 -->
     <Delete Files="$(OutputPath)\YmmeUtil.Bridge.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\YmmeUtil.Ymm4.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\YmmeUtil.Common.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Epoxy.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Epoxy.Core.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Epoxy.Wpf.dll" ContinueOnError="true" />

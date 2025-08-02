@@ -3,6 +3,7 @@
   <Folder Name="/libs/YmmeUtil/" />
   <Folder Name="/libs/YmmeUtil/src/">
     <Project Path="libs/YmmeUtil/src/YmmeUtil.Bridge/YmmeUtil.Bridge.csproj" />
+    <Project Path="libs/YmmeUtil/src/YmmeUtil.Common/YmmeUtil.Common.csproj" />
     <Project Path="libs/YmmeUtil/src/YmmeUtil.Ymm4/YmmeUtil.Ymm4.csproj" />
   </Folder>
   <Folder Name="/src/" />

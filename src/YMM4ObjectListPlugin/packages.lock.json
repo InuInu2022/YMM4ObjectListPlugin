@@ -114,6 +114,16 @@
         "resolved": "9.16.0.82469",
         "contentHash": "Lt8Ogx+O3fowiELb9Km/5LRW0GjgIccompIv8gOK8PDdAgh2ycWTfe/9RORmym2dsqmFNR3GqcB42vx7lLaqJg=="
       },
+      "BigHelp.Http": {
+        "type": "Transitive",
+        "resolved": "0.3.2",
+        "contentHash": "Upn0GJkdvlUD/qjPjRvHRCnzxyPQh7NPhveXx/uDGvRY0CsHBZz+i94rtp8+r31N3DVIkDONzOb2M0JWZja+6g=="
+      },
+      "ByteSize": {
+        "type": "Transitive",
+        "resolved": "2.1.1",
+        "contentHash": "D+Y3NpbHrW21vZwwegeWf/8iAg2Mr0s7n1su8Ysho+O9dctJ5/EkWUi19QVxc6+nZl080gGTXBP/Nz0twSI3dA=="
+      },
       "Dynamitey": {
         "type": "Transitive",
         "resolved": "3.0.3",
@@ -128,6 +138,16 @@
         "resolved": "1.16.0",
         "contentHash": "PNvp8mptRJRD/00psJEArvX2D6njofPVSqWrJlTgU3r2s1Kpauv4+GcO1Mg7AwXdbRqKtzXVSey7Xo/CGgU64g=="
       },
+      "GithubReleaseDownloader": {
+        "type": "Transitive",
+        "resolved": "1.0.0",
+        "contentHash": "NECWXaqKzIld+UvKLbPYtzfhNsnwJTAIuKnDzgrUO95wFxOrAJzmUMWUOUkDCweFmMsTE+HwslpR8RWTZ4ISTg==",
+        "dependencies": {
+          "BigHelp.Http": "0.3.2",
+          "ByteSize": "2.1.1",
+          "Newtonsoft.Json": "13.0.3"
+        }
+      },
       "ImpromptuInterface": {
         "type": "Transitive",
         "resolved": "8.0.6",
@@ -137,6 +157,11 @@
           "Microsoft.CSharp": "4.7.0",
           "System.Reflection.Emit": "4.7.0"
         }
+      },
+      "Mayerch1.GithubUpdateCheck": {
+        "type": "Transitive",
+        "resolved": "1.2.1",
+        "contentHash": "NFeGkvEJFwQaOmgQWcC3pte9U3TKCFHrs193RegADVsr/BwvlCdbKnUOjZ9abvgbxxzsdKLidKNiltQxJvwW5A=="
       },
       "Microsoft.CSharp": {
         "type": "Transitive",
@@ -152,6 +177,11 @@
         "type": "Transitive",
         "resolved": "1.1.0",
         "contentHash": "aOZA3BWfz9RXjpzt0sRJJMjAscAUm3Hoa4UWAfceV9UTYxgwZ1lZt5nO2myFf+/jetYQo4uTP7zS8sJY67BBxg=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "13.0.3",
+        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "System.ComponentModel": {
         "type": "Transitive",
@@ -180,6 +210,13 @@
         "dependencies": {
           "ImpromptuInterface": "[8.0.6, )",
           "YmmeUtil.Ymm4": "[0.1.0, )"
+        }
+      },
+      "ymmeutil.common": {
+        "type": "Project",
+        "dependencies": {
+          "GithubReleaseDownloader": "[1.0.0, )",
+          "Mayerch1.GithubUpdateCheck": "[1.2.1, )"
         }
       },
       "ymmeutil.ymm4": {
