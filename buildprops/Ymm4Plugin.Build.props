@@ -85,10 +85,9 @@
   <Target Name="MakeZipPackage" AfterTargets="Publish">
     <PropertyGroup>
       <ZipFileName>$(AssemblyName).v.$(Version).ymme</ZipFileName>
-      <!-- 正しいパスに修正 -->
       <PublishRootDir>$(MSBuildProjectDirectory)\..\..\publish\</PublishRootDir>
       <ZipDestination>$(PublishRootDir)$(ZipFileName)</ZipDestination>
-      <PackageFolder>$(OutputPath)/ymme/$(AssemblyName)</PackageFolder>
+      <PackageFolder>$(OutputPath)/ymme</PackageFolder>
       <ZipSource>$(OutputPath)/ymme</ZipSource>
     </PropertyGroup>
 
@@ -119,10 +118,10 @@
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.pdb" />
 
-      <!-- 追加: PDBファイルの削除 -->
+      <!-- PDBファイルの削除 -->
       <FilesToDelete Include="$(OutputPath)\publish\*.pdb" />
 
-      <!-- 追加: ILRepackでマージされたDLLの削除 (メインDLL以外) -->
+      <!-- ILRepackでマージされたDLLの削除 (メインDLL以外) -->
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Bridge.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Ymm4.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Common.dll" />
@@ -164,7 +163,8 @@
 
     <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
 
-    <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
+    <!-- ルートディレクトリに直接展開 -->
+    <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\" />
   </Target>
   <!-- Release構成でも直接コピーできるようにする -->
   <Target Name="CopyReleaseDlls" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">

@@ -11,7 +11,7 @@
 				"/property:GenerateFullPaths=true",
 				// Do not generate summary otherwise it leads to duplicate errors in Problems panel
                 //"/consoleloggerparameters:NoSummary"
-                "/property:Configuration=Debug",
+                //"/property:Configuration=Debug",
                 "/terminalLogger:off"
 			],
 			"group": "build",
