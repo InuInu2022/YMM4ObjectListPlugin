@@ -103,7 +103,7 @@
     <MakeDir Directories="$(PackageFolder)" />
 
     <ItemGroup>
-      <!-- 既存の削除対象ファイル -->
+      <!-- 削除対象ファイルをpublishフォルダから指定 -->
       <FilesToDelete Include="$(OutputPath)\publish\Vortice.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\NCalc.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\Newtonsoft.Json.dll" />
@@ -118,11 +118,7 @@
       <FilesToDelete Include="$(OutputPath)\publish\runtimes\win\lib\**\System.Management.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.pdb" />
-
-      <!-- PDBファイルの削除 -->
       <FilesToDelete Include="$(OutputPath)\publish\*.pdb" />
-
-      <!-- ILRepackでマージされたDLLの削除 (メインDLL以外) -->
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Bridge.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Ymm4.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Common.dll" />
@@ -131,20 +127,20 @@
       <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Wpf.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\Dynamitey.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\ImpromptuInterface.dll" />
-
-      <!-- YmmeUtilの依存関係も削除 -->
       <FilesToDelete Include="$(OutputPath)\publish\BigHelp.Http.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\ByteSize.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\GithubReleaseDownloader.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\Mayerch1.GithubUpdateCheck.dll" />
-
       <FilesToDelete Include="$(OutputPath)\publish\*.deps.json" />
     </ItemGroup>
-    <Delete Files="@(FilesToDelete)">
+
+    <!-- 不要ファイルを削除 -->
+    <Delete Files="@(FilesToDelete)" ContinueOnError="true">
       <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
     </Delete>
 
     <ItemGroup>
+      <!-- 削除後のファイル一覧を取得 -->
       <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
     </ItemGroup>
 
@@ -164,21 +160,15 @@
 
     <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
 
-    <!-- plugin/フォルダに展開（2段階のフォルダ構造が維持される） -->
+    <!-- YMM4プラグインフォルダをクリーンアップしてからZIPを展開 -->
+    <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)" ContinueOnError="true" />
     <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\" />
+
+    <Message Text="Plugin deployed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
   </Target>
-  <!-- Release構成でも直接コピーできるようにする -->
+
+  <!-- CopyReleaseDllsを無効化（MakeZipPackageで処理するため） -->
   <Target Name="CopyReleaseDlls" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
-    <Warning Text="=== CopyReleaseDlls is RUNNING ===" />
-
-    <ItemGroup>
-      <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
-    </ItemGroup>
-
-    <Copy
-      SourceFiles="@(PublishFiles)"
-      DestinationFiles="@(PublishFiles->'$(YMM4_PATH)\user\plugin\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
-
-    <Warning Text="Files copied directly to YMM4 plugin folder" />
+    <Message Text="CopyReleaseDlls is disabled - using MakeZipPackage instead" Importance="high" />
   </Target>
 </Project>
