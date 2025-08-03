@@ -1,51 +1,135 @@
-# ymme-vscode-boilerplate
+# YMM4 オブジェクトリスト プラグイン
 
-YMM4 plugin boilerplate template repository
+![スクリーンショット](./docs/ymm4_objectlist_v0.1_ss.png)
 
-- githubのtemplate repositoryで使えるリポジトリです。
- 	- [テンプレートリポジトリを作成する - GitHub Docs](https://docs.github.com/ja/repositories/creating-and-managing-repositories/creating-a-template-repository)
-- VSCode用ですが、タスクやデバッガの設定以外はVSやRiderなどでも使えます
+YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン上のオブジェクトを一覧表示し、素早く選択・操作できるプラグインです。
 
-## このテンプレートでできること
+- ⚠️ **このプラグインはYMM4の非公開APIを使用しているため、YMM4のアップデートで動作しなくなる可能性があります**
+- その前提で使ってください！動かなくなったら連絡してね！
 
-### 設定済み
+## 🎯 このプラグインでできること
 
-- `src/Sample`以下に何もしないサンプルプラグインが設定済みです
-  - これをもとにしても、公式のサンプルを元にしてもOK
-  - ソリューションファイル：`Sample.sln`も設定済みです
-- `dotnet publish`コマンドでymmeファイルを`publish`以下に作成＆YMM4のプラグインフォルダ以下に展開できます
-- Code Analyzerを色々有効にしています
-- ビルド時に `LICENSE` や `README.md` がdllやymmeに含まれるように設定済
-- `licenses`フォルダ以下のファイルもdllやymmeに含まれるように
-- [MinVer](https://github.com/adamralph/minver)ライブラリでgitのタグから自動でSemVerが付きます
-  - 出力されるymmeファイル名にバージョン番号を含むようになりました `YourPluginName.v.0.x.x.ymme`
-  - 展開すると内部にバージョン番号を含まない`YourPluginName`ができるためバージョンアップ時も問題ありません
-- VSCode: VSCodeの`publish`タスクでも上記ができるようにしています
-- VSCode: プラグインをYMM4ごとデバッガ接続で起動することができます
-- gitignore, editorconfig設定済み
+- **アイテム一覧表示**：タイムライン上のすべてのアイテム（テキスト、画像、音声など）を見やすい一覧で表示
+- **クイック選択**：一覧からクリックするだけで該当アイテムをタイムライン上で選択&アイテムエディタで表示
+- **検索&ソート機能**：アイテム名での絞り込み検索、ソート機能
+- **整理された表示**：レイヤー、グループ、ラベル情報で整理された見やすい表示
 
-### 設定が必要なこと
+### アイテム一覧表示
 
-- **環境変数：`YMM4_PATH`に「開発用YMM4」の置いてあるフォルダへのパスを通してください**
-  - ※普段使い用YMM4とは別にするのをオススメ
-- `LICENSE`：MITライセンスになっているのでお好きなライセンスに書き換えて下さい
-- nuget以外のライブラリ：`lib`以下において参照してください
-- ドキュメント: `docs`フォルダを用意しています
-- ユニットテスト: `tests`フォルダだけ用意しています
-  - お好きなテストフレームワークをお使いください
+![アイテム一覧](./docs/ymm4_objectlist_v0.1_ss.png)
 
-### バージョン
+タイムライン上のすべてのアイテム（テキスト、画像、音声など）を見やすい一覧で表示できます。
 
-- YMM v4.35.xx 以降
-- ※YMM v4.34.xx 以前は [tags](https://github.com/InuInu2022/ymme-vscode-boilerplate/releases/tag/v4.34) から旧バージョンを利用することができます
+### クイック選択
 
-## Reference
+![selection](./docs/func_select_items_on_timeline.png)
 
-YMM4のプラグイン開発は以下を参照してください。
+一覧からクリックするだけで該当アイテムをタイムライン上で選択します。
+またサイドパネルのアイテムエディタで詳細が表示されます。
 
-- [プラグインを作成する | 饅頭遣いのおもちゃ箱](https://manjubox.net/ymm4/faq/plugin/how_to_make/)
-- [manju-summoner/YukkuriMovieMaker4PluginSamples: YMM4用プラグインのサンプル集です](https://github.com/manju-summoner/YukkuriMovieMaker4PluginSamples)
-- [manju-summoner/YukkuriMovieMaker.Plugin.Community: YMM4コミュニティで開発するYMM4プラグインです。 プラグインのサンプルも兼ねています。 ここで開発されたプラグインはYMM4にデフォルトで組み込まれます。](https://github.com/manju-summoner/YukkuriMovieMaker.Plugin.Community)
-- [manju-summoner/SampleReversePlaybackAudioEffectPlugin: キャッシュ機構を備えたYMM4音声エフェクトの実装サンプルです。音声の逆再生機能を提供します。ただし、仮実装のため実用には適しません。](https://github.com/manju-summoner/SampleReversePlaybackAudioEffectPlugin)
-- [manju-summoner/YukkuriMovieMaker.Generator](https://github.com/manju-summoner/YukkuriMovieMaker.Generator)
-- [YMM4 API Documentation](https://ymm-api.pages.dev/#ymm4)
+複数アイテム選択もできます。
+
+![lock_hidden](./docs/func_lock_and_hidden_buttons.png)
+
+「ロック」と「非表示」ボタンはオブジェクトリストプラグインからも操作できます（連動します）。
+
+### 検索&ソート機能
+
+![search](./docs/func_search_filter.png)
+
+アイテム名での絞り込み検索ができます。
+※アイテム名は備考のテキストも含まれます。
+
+![sort](./docs/func_sort_by_column.png)
+
+列のヘッダー部分をクリックするとアイテム表示をソートできます。
+同じレイヤーのアイテム、とかを並べる時に便利です。
+
+### 整理された表示
+
+レイヤー、グループ、ラベル情報で整理された見やすい表示ができます。
+
+![setting](./docs/objectlist_setting.png)
+
+オプションで表示内容を変更できます。アイテム名だけのリストにする、とかもできます。
+
+> 設定方法：YMM4のメニューの「設定」から「YMM4オブジェクトリスト」を選ぶ。
+
+- 列
+  - アイテムの色
+  - アイテムカテゴリ
+  - レイヤー
+  - グループ
+  - （開始）フレーム
+  - 長さ
+  - ロック
+  - 非表示
+
+- フッター
+  - （表示している）シーン名
+  - シーンの画面サイズ
+  - シーンのFPS（フレームレート）
+  - シーンの音声サンプリングレート
+
+
+## 📋 使い方
+
+1. YMM4で動画編集プロジェクトを開く
+2. メニューの「ツール」→「YMM4 オブジェクトリスト」を選択
+  ![tool_menu](./docs/ymm4_tool_menu.png)
+3. 別ウィンドウでオブジェクト一覧が表示されます
+4. 一覧から選択したいアイテムをクリックすると、タイムライン上で自動選択されます
+
+### 表示されないときの注意点
+
+![reload](./docs/func_reload_button.png)
+
+アイテム一覧が表示されないときは「再読み込み」ボタンを押してください。
+
+- シーンを切り替えたとき
+- プロジェクトを新しく読み込んだ時
+- プラグインのウィンドウが起動時に開いたままだった時
+
+シーン切替は将来的に連動を対応しています。
+
+## 💡 こんな時に便利
+
+- **大量のアイテムがある動画**での目的のアイテム探し
+- **複雑なレイヤー構造**の動画編集時の整理
+- **特定の名前のオブジェクト**を素早く見つけたい時
+
+## ⚠️ 注意事項
+
+- **このプラグインはYMM4の非公開APIを使用しているため、YMM4のアップデートで動作しなくなる可能性があります**
+- 問題が発生した場合は、YMM4本体の開発者ではなく、プラグイン作者（InuInu2022）にお問い合わせください
+
+## 🛠️ インストール方法
+
+1. [Releases](https://github.com/InuInu2022/YMM4ObjectListPlugin/releases)ページから最新版をダウンロード
+2. ダウンロードしたymmeファイルをダブルクリックする または YMM4のプラグインフォルダに配置
+3. YMM4を再起動
+
+## 📊 システム要件
+
+- ゆっくりムービーメーカー4 v4.41以上
+  - もう少し前のバージョンでも動く可能性はありますが確認していません
+- .NET 9.0 Runtime
+  - YMM4と同じです
+
+## 🔗 関連リンク
+
+- [作者のGitHub](https://github.com/InuInu2022)
+- [YMM4公式サイト](https://manjubox.net/ymm4/)
+
+## ライセンス
+
+```txt
+© InuInu 2025 - MIT License
+```
+
+- ライセンス詳細: [LICENSE](./LICENSE)
+- 使用ライセンス一覧: [licenses/](./licenses/)
+
+## その他
+
+スクリーンショットの立ち絵イラストはゆめうつうつさんの「[ふたば(はし&たち)](https://seiga.nicovideo.jp/seiga/im11321172)」です。
