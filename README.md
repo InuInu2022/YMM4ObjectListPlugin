@@ -1,6 +1,9 @@
 # YMM4 オブジェクトリスト プラグイン
 
-![スクリーンショット](./docs/ymm4_objectlist_v0.1_ss.png)
+<img src="./docs/ymm4_objectlist_v0.1_ss.png" alt="スクリーンショット" width="400">
+
+[![動画のタイトル](https://img.youtube.com/vi/aFCm6s7XBmM/0.jpg)](https://www.youtube.com/watch?v=aFCm6s7XBmM)
+
 
 YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン上のオブジェクトを一覧表示し、素早く選択・操作できるプラグインです。
 
@@ -16,31 +19,31 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
 
 ### アイテム一覧表示
 
-![アイテム一覧](./docs/ymm4_objectlist_v0.1_ss.png)
+<img src="./docs/ymm4_objectlist_v0.1_ss.png" alt="アイテム一覧" width="400">
 
 タイムライン上のすべてのアイテム（テキスト、画像、音声など）を見やすい一覧で表示できます。
 
 ### クイック選択
 
-![selection](./docs/func_select_items_on_timeline.png)
+<img src="./docs/func_select_items_on_timeline.png" alt="selection" width="400">
 
 一覧からクリックするだけで該当アイテムをタイムライン上で選択します。
 またサイドパネルのアイテムエディタで詳細が表示されます。
 
 複数アイテム選択もできます。
 
-![lock_hidden](./docs/func_lock_and_hidden_buttons.png)
+<img src="./docs/func_lock_and_hidden_buttons.png" alt="lock_hidden" width="400">
 
 「ロック」と「非表示」ボタンはオブジェクトリストプラグインからも操作できます（連動します）。
 
 ### 検索&ソート機能
 
-![search](./docs/func_search_filter.png)
+<img src="./docs/func_search_filter.png" alt="search" width="400">
 
 アイテム名での絞り込み検索ができます。
 ※アイテム名は備考のテキストも含まれます。
 
-![sort](./docs/func_sort_by_column.png)
+<img src="./docs/func_sort_by_column.png" alt="sort" width="400">
 
 列のヘッダー部分をクリックするとアイテム表示をソートできます。
 同じレイヤーのアイテム、とかを並べる時に便利です。
@@ -49,7 +52,7 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
 
 レイヤー、グループ、ラベル情報で整理された見やすい表示ができます。
 
-![setting](./docs/objectlist_setting.png)
+<img src="./docs/objectlist_setting.png" alt="setting" width="400">
 
 オプションで表示内容を変更できます。アイテム名だけのリストにする、とかもできます。
 
@@ -71,18 +74,17 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
   - シーンのFPS（フレームレート）
   - シーンの音声サンプリングレート
 
-
 ## 📋 使い方
 
 1. YMM4で動画編集プロジェクトを開く
 2. メニューの「ツール」→「YMM4 オブジェクトリスト」を選択
-  ![tool_menu](./docs/ymm4_tool_menu.png)
+  <img src="./docs/ymm4_tool_menu.png" alt="tool_menu" width="400">
 3. 別ウィンドウでオブジェクト一覧が表示されます
 4. 一覧から選択したいアイテムをクリックすると、タイムライン上で自動選択されます
 
 ### 表示されないときの注意点
 
-![reload](./docs/func_reload_button.png)
+<img src="./docs/func_reload_button.png" alt="reload" width="400">
 
 アイテム一覧が表示されないときは「再読み込み」ボタンを押してください。
 
