@@ -87,7 +87,8 @@
       <ZipFileName>$(AssemblyName).v.$(Version).ymme</ZipFileName>
       <PublishRootDir>$(MSBuildProjectDirectory)\..\..\publish\</PublishRootDir>
       <ZipDestination>$(PublishRootDir)$(ZipFileName)</ZipDestination>
-      <PackageFolder>$(OutputPath)/ymme</PackageFolder>
+      <!-- 2段階のフォルダ構造を作成 -->
+      <PackageFolder>$(OutputPath)/ymme/$(AssemblyName)/$(AssemblyName)</PackageFolder>
       <ZipSource>$(OutputPath)/ymme</ZipSource>
     </PropertyGroup>
 
@@ -147,7 +148,7 @@
       <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
     </ItemGroup>
 
-    <!-- ファイルをコピー -->
+    <!-- ファイルを2段階目のフォルダにコピー -->
     <Copy
       SourceFiles="@(PublishFiles)"
       DestinationFiles="@(PublishFiles->'$(PackageFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -163,7 +164,7 @@
 
     <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
 
-    <!-- ルートディレクトリに直接展開 -->
+    <!-- plugin/フォルダに展開（2段階のフォルダ構造が維持される） -->
     <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\" />
   </Target>
   <!-- Release構成でも直接コピーできるようにする -->
