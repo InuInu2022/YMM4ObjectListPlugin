@@ -32,7 +32,7 @@
     <!-- MinVer -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>0.1</MinVerMinimumMajorMinor>
-    <MinVerDefaultPreReleasePhase>preview</MinVerDefaultPreReleasePhase>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerVerbosity>normal</MinVerVerbosity>
     <MinVerWorkingDirectory>$(MSBuildThisFileDirectory)..\..</MinVerWorkingDirectory>
   </PropertyGroup>
