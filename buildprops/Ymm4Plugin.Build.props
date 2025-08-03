@@ -32,6 +32,20 @@
     <ExcludeFromPublish Include="**\*.pdb" />
     <ExcludeFromPublish Include="**\*.xml" />
     <ExcludeFromPublish Include="**\*.log" />
+    <!-- 開発用ライセンスファイルを除外 -->
+    <ExcludeFromPublish Include="**\licenses\Microsoft.CodeAnalysis.Analyzers__*.html" />
+    <ExcludeFromPublish Include="**\licenses\Microsoft.CSharp__*.html" />
+    <ExcludeFromPublish Include="**\licenses\Microsoft.NETCore.*__*.html" />
+    <ExcludeFromPublish Include="**\licenses\Microsoft.VisualStudio.Threading.Analyzers__*.html" />
+    <ExcludeFromPublish Include="**\licenses\Meziantou.Analyzer__*.html" />
+    <ExcludeFromPublish Include="**\licenses\MinVer__*.html" />
+    <ExcludeFromPublish Include="**\licenses\Roslynator.*__*.html" />
+    <ExcludeFromPublish Include="**\licenses\SatorImaging.*__*.html" />
+    <ExcludeFromPublish Include="**\licenses\SharpSource__*.txt" />
+    <ExcludeFromPublish Include="**\licenses\System.*__*.html" />
+    <ExcludeFromPublish Include="**\licenses\ConcurrencyLab.ParallelChecker__*.html" />
+    <ExcludeFromPublish Include="**\licenses\ParallelHelper__*.html" />
+    <ExcludeFromPublish Include="**\licenses\SonarAnalyzer.CSharp__*.html" />
     <!-- YMM4 plugins -->
     <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Plugin.dll">
       <Private>false</Private>
@@ -45,134 +59,125 @@
 
   <!-- MS Build settings -->
 
-  <!-- RemovePublishDirBeforeBuildをMakeZipPackageの直前に移動 -->
-  <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="MakeZipPackage" Condition="'$(Configuration)' == 'Release'">
-    <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
-    <Message Text="RemovePublishDirBeforeBuild (Release)" Importance="high" />
-  </Target>
-
-  <!-- CopyDebugDllsをDebug構成のみに制限 -->
-  <Target Name="CopyDebugDlls" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <!-- デバッグ出力を追加 -->
-    <Message Text="=== CopyDebugDlls is RUNNING ===" Importance="high" />
+  <!-- デバッグビルド用ターゲット -->
+  <Target Name="CopyDebugFiles" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <Message Text="=== CopyDebugFiles is RUNNING (Debug only) ===" Importance="high" />
     <Message Text="OutputPath: $(OutputPath)" Importance="high" />
     <Message Text="YMM4_PATH: $(YMM4_PATH)" Importance="high" />
     <Message Text="AssemblyName: $(AssemblyName)" Importance="high" />
 
-    <!-- 環境変数チェック -->
     <Error Text="YMM4_PATH environment variable is not set!" Condition="'$(YMM4_PATH)' == ''" />
-
-    <ItemGroup>
-      <CommonPaths Include="$(OutputPath)" />
-      <MissingDlls Include="$(OutputPath)*.dll" Exclude="$(OutputPath)$(AssemblyName).dll" />
-      <MissingPdbs Include="$(OutputPath)*.pdb" Exclude="$(OutputPath)$(AssemblyName).pdb" />
-    </ItemGroup>
-
-    <!-- コピー先ディレクトリの作成 -->
-    <MakeDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)" />
 
     <ItemGroup>
       <SourceFiles Include="$(OutputPath)**/*.*" />
     </ItemGroup>
 
+    <MakeDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)" />
     <Copy SourceFiles="@(SourceFiles)" DestinationFiles="@(SourceFiles->'$(YMM4_PATH)\user\plugin\$(AssemblyName)\%(RecursiveDir)%(Filename)%(Extension)')" />
 
-    <Message Text="Dlls @(MissingDlls)" Importance="high" />
-    <Message Text="PDBs @(MissingPdbs)" Importance="high" />
-    <Message Text="★Copy completed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
+    <Message Text="★Debug Copy completed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
   </Target>
-  <Target Name="CleanBeforePublish" BeforeTargets="BeforePublish">
-    <RemoveDir Directories="$(OutputPath)/publish/" />
-    <RemoveDir Directories="$(OutputPath)/ymme/" />
+
+  <Target Name="CleanBeforePublish" BeforeTargets="Publish">
+    <Message Text="=== CleanBeforePublish STARTED ===" Importance="high" />
+
+    <!-- publishディレクトリとymmeディレクトリのみクリーンアップ -->
+    <RemoveDir Directories="$(OutputPath)publish/" ContinueOnError="true" />
+    <RemoveDir Directories="$(OutputPath)ymme/" ContinueOnError="true" />
+
+    <Message Text="=== CleanBeforePublish COMPLETED ===" Importance="high" />
   </Target>
-  <!-- MakeZipPackageをRelease構成のみに制限 -->
-  <Target Name="MakeZipPackage" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+
+  <!-- リリースビルド用ターゲット - 最優先で実行 -->
+  <Target Name="MakeZipPackageFirst" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'" BeforeTargets="">
+    <Message Text="=== MakeZipPackageFirst STARTED ===" Importance="high" />
+    <Message Text="OutputPath: $(OutputPath)" Importance="high" />
+    <Message Text="PublishDir: $(PublishDir)" Importance="high" />
+
+    <!-- 念のため、開始時にもクリーンアップ -->
+    <RemoveDir Directories="$(OutputPath)ymme/" ContinueOnError="true" />
+
     <PropertyGroup>
       <ZipFileName>$(AssemblyName).v.$(Version).ymme</ZipFileName>
       <PublishRootDir>$(MSBuildProjectDirectory)\..\..\publish\</PublishRootDir>
       <ZipDestination>$(PublishRootDir)$(ZipFileName)</ZipDestination>
-      <!-- 2段階のフォルダ構造を作成 -->
-      <PackageFolder>$(OutputPath)/ymme/$(AssemblyName)/$(AssemblyName)</PackageFolder>
-      <ZipSource>$(OutputPath)/ymme</ZipSource>
+      <!-- パッケージフォルダ構造を修正：2階層目を追加 -->
+      <PackageFolder>$(OutputPath)ymme\$(AssemblyName)\$(AssemblyName)</PackageFolder>
+      <ZipSource>$(OutputPath)ymme</ZipSource>
     </PropertyGroup>
-
-    <!-- デバッグ出力を追加 -->
-    <Message Text="PublishRootDir: $(PublishRootDir)" Importance="high" />
-    <Message Text="PackageFolder: $(PackageFolder)" Importance="high" />
-    <Message Text="ZipSource: $(ZipSource)" Importance="high" />
-    <Message Text="ZipDestination: $(ZipDestination)" Importance="high" />
 
     <!-- ディレクトリを作成 -->
     <MakeDir Directories="$(PublishRootDir)" />
     <MakeDir Directories="$(PackageFolder)" />
 
+    <!-- PublishDirが空なので、OutputPathから直接コピー -->
     <ItemGroup>
-      <!-- 削除対象ファイルをpublishフォルダから指定 -->
-      <FilesToDelete Include="$(OutputPath)\publish\Vortice.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\NCalc.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Newtonsoft.Json.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Microsoft.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\MathNet.Numerics.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\WinRT.Runtime.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Parlot.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\ExtendedNumerics.BigDecimal.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\SharpGen.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\System.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\ICSharpCode.AvalonEdit.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\runtimes\win\lib\**\System.Management.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.pdb" />
-      <FilesToDelete Include="$(OutputPath)\publish\*.pdb" />
-      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Bridge.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Ymm4.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Common.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Core.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Wpf.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Dynamitey.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\ImpromptuInterface.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\BigHelp.Http.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\ByteSize.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\GithubReleaseDownloader.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\Mayerch1.GithubUpdateCheck.dll" />
-      <FilesToDelete Include="$(OutputPath)\publish\*.deps.json" />
+      <!-- 必要なファイルのみを選択 -->
+      <FilesToCopy Include="$(OutputPath)$(AssemblyName).dll" />
+      <FilesToCopy Include="$(OutputPath)README.md" />
+      <FilesToCopy Include="$(OutputPath)LICENSE" />
+      <!-- 実行時ライセンスのみ（開発用ライセンスを除外） -->
+      <FilesToCopy Include="$(OutputPath)licenses\BigHelp.Http__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\ByteSize__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\Dynamitey__*.txt" />
+      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Build__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Core.Wpf__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Wpf__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\GithubReleaseDownloader__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\ILRepack.Lib.MSBuild.Task__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\ImpromptuInterface__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\Mayerch1.GithubUpdateCheck__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\Newtonsoft.Json__*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\YMM4ObjectListPlugin.md" />
+      <!-- Readmeフォルダ -->
+      <FilesToCopy Include="$(OutputPath)Readme\YmmeUtil\README.md" />
     </ItemGroup>
 
-    <!-- 不要ファイルを削除 -->
-    <Delete Files="@(FilesToDelete)" ContinueOnError="true">
-      <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
-    </Delete>
+    <Message Text="=== Files to copy ===" Importance="high" />
+    <Message Text="%(FilesToCopy.Identity)" Importance="high" />
 
+    <!-- OutputPathからファイルをコピー -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll"
+          DestinationFiles="$(PackageFolder)\$(AssemblyName).dll" />
+
+    <Copy SourceFiles="$(OutputPath)README.md"
+          DestinationFiles="$(PackageFolder)\README.md" />
+
+    <Copy SourceFiles="$(OutputPath)LICENSE"
+          DestinationFiles="$(PackageFolder)\LICENSE" />
+
+    <!-- ライセンスファイルをlicensesフォルダに配置 -->
     <ItemGroup>
-      <!-- 削除後のファイル一覧を取得 -->
-      <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
+      <LicenseFiles Include="$(OutputPath)licenses\*.html" />
+      <LicenseFiles Include="$(OutputPath)licenses\*.txt" />
+      <LicenseFiles Include="$(OutputPath)licenses\*.md" />
+      <LicenseFiles Include="$(OutputPath)licenses\YMM4ObjectListPlugin.md" />
     </ItemGroup>
 
-    <!-- ファイルを2段階目のフォルダにコピー -->
-    <Copy
-      SourceFiles="@(PublishFiles)"
-      DestinationFiles="@(PublishFiles->'$(PackageFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(LicenseFiles)"
+          DestinationFiles="@(LicenseFiles->'$(PackageFolder)\licenses\%(Filename)%(Extension)')" />
 
-    <!-- ZipSourceディレクトリの存在確認 -->
-    <Error Text="ZipSource directory does not exist: $(ZipSource)" Condition="!Exists('$(ZipSource)')" />
+    <!-- ReadmeフォルダをReadme/YmmeUtilフォルダに配置 -->
+    <MakeDir Directories="$(PackageFolder)\Readme\YmmeUtil" />
+    <Copy SourceFiles="$(OutputPath)Readme\YmmeUtil\README.md"
+          DestinationFiles="$(PackageFolder)\Readme\YmmeUtil\README.md" />
 
-    <!-- Zip圧縮 -->
-    <ZipDirectory
-      SourceDirectory="$(ZipSource)"
-      DestinationFile="$(ZipDestination)"
-      Overwrite="true" />
+    <!-- ymmeディレクトリの内容確認 -->
+    <ItemGroup>
+      <YmmeFiles Include="$(OutputPath)ymme\**\*.*" />
+    </ItemGroup>
 
-    <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
+    <Message Text="=== Ymme directory contents ===" Importance="high" />
+    <Message Text="%(YmmeFiles.Identity)" Importance="high" />
 
-    <!-- YMM4プラグインフォルダをクリーンアップしてからZIPを展開 -->
+    <ZipDirectory SourceDirectory="$(ZipSource)" DestinationFile="$(ZipDestination)" Overwrite="true" />
+
+    <!-- プラグインフォルダをクリーンアップしてからZIPを展開 -->
     <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)" ContinueOnError="true" />
     <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\" />
 
+    <Message Text="=== MakeZipPackageFirst COMPLETED ===" Importance="high" />
     <Message Text="Plugin deployed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
   </Target>
 
-  <!-- CopyReleaseDllsを完全に無効化 -->
-  <Target Name="CopyReleaseDlls" Condition="false">
-    <Message Text="CopyReleaseDlls is disabled - using MakeZipPackage instead" Importance="high" />
-  </Target>
 </Project>

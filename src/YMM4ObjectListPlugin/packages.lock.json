@@ -60,6 +60,12 @@
         "resolved": "2.3.0",
         "contentHash": "xckR4WhI4q8Oy2k88sair3UEL+qtI0QbWbMKmItVTHqu23C/oQHcZHR4NFTy07J2KOa8P0ad9T/6vAsm8v/8tA=="
       },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "(, )",
+        "resolved": "3.5.8",
+        "contentHash": "Xmri4q9s1NjuiBtOFkWMU9sUZdw5V7kFSf3CQQ3TlDyzWQHo94d5cHNxsSlnezGAZSPfdEG5k7bOrkzTe6rUOQ=="
+      },
       "ParallelHelper": {
         "type": "Direct",
         "requested": "[3.6.1, )",
@@ -177,11 +183,6 @@
         "type": "Transitive",
         "resolved": "1.1.0",
         "contentHash": "aOZA3BWfz9RXjpzt0sRJJMjAscAUm3Hoa4UWAfceV9UTYxgwZ1lZt5nO2myFf+/jetYQo4uTP7zS8sJY67BBxg=="
-      },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "13.0.3",
-        "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
       },
       "System.ComponentModel": {
         "type": "Transitive",

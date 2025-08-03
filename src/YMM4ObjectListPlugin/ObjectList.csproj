@@ -36,6 +36,10 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </PackageReference>
     <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Controls.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
