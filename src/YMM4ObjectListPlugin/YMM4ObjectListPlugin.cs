@@ -11,7 +11,10 @@ using YukkuriMovieMaker.Plugin;
 
 namespace ObjectList;
 
-[PluginDetails(AuthorName = "InuInu", ContentId = "")]
+[PluginDetails(
+	AuthorName = "InuInu",
+	ContentId = "nc424814"
+)]
 public class Ymm4ObjectListPlugin : IToolPlugin
 {
 	public string Name { get; } = "YMM4 オブジェクトリスト";
