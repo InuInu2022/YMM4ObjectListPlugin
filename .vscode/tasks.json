@@ -29,6 +29,7 @@
                 "${workspaceFolder}/src/YMM4ObjectListPlugin/ObjectList.csproj",
 				"/property:GenerateFullPaths=true",
 				"/property:Configuration=Release",
+                "/terminalLogger:off",
 				"/p:RunAnalyzers=false"
 			],
 			"problemMatcher": "$msCompile"

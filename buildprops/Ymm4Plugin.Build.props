@@ -83,16 +83,27 @@
     <RemoveDir Directories="$(OutputPath)/ymme/" />
   </Target>
   <Target Name="MakeZipPackage" AfterTargets="Publish">
-    <MakeDir Directories="$(OutputPath)/../../../../../publish/" />
     <PropertyGroup>
       <ZipFileName>$(AssemblyName).v.$(Version).ymme</ZipFileName>
-      <ZipDestination>$(OutputPath)/../../../../../../publish/$(ZipFileName)</ZipDestination>
+      <!-- 正しいパスに修正 -->
+      <PublishRootDir>$(MSBuildProjectDirectory)\..\..\publish\</PublishRootDir>
+      <ZipDestination>$(PublishRootDir)$(ZipFileName)</ZipDestination>
       <PackageFolder>$(OutputPath)/ymme/$(AssemblyName)</PackageFolder>
       <ZipSource>$(OutputPath)/ymme</ZipSource>
     </PropertyGroup>
 
+    <!-- デバッグ出力を追加 -->
+    <Message Text="PublishRootDir: $(PublishRootDir)" Importance="high" />
+    <Message Text="PackageFolder: $(PackageFolder)" Importance="high" />
+    <Message Text="ZipSource: $(ZipSource)" Importance="high" />
+    <Message Text="ZipDestination: $(ZipDestination)" Importance="high" />
+
+    <!-- ディレクトリを作成 -->
+    <MakeDir Directories="$(PublishRootDir)" />
     <MakeDir Directories="$(PackageFolder)" />
+
     <ItemGroup>
+      <!-- 既存の削除対象ファイル -->
       <FilesToDelete Include="$(OutputPath)\publish\Vortice.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\NCalc.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\Newtonsoft.Json.dll" />
@@ -107,6 +118,19 @@
       <FilesToDelete Include="$(OutputPath)\publish\runtimes\win\lib\**\System.Management.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\YukkuriMovieMaker.*.pdb" />
+
+      <!-- 追加: PDBファイルの削除 -->
+      <FilesToDelete Include="$(OutputPath)\publish\*.pdb" />
+
+      <!-- 追加: ILRepackでマージされたDLLの削除 (メインDLL以外) -->
+      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Bridge.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Ymm4.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\YmmeUtil.Common.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Core.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Wpf.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\Dynamitey.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\ImpromptuInterface.dll" />
     </ItemGroup>
     <Delete Files="@(FilesToDelete)">
       <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />
@@ -115,9 +139,16 @@
     <ItemGroup>
       <PublishFiles Include="$(OutputPath)/publish/**/*.*" />
     </ItemGroup>
+
+    <!-- ファイルをコピー -->
     <Copy
       SourceFiles="@(PublishFiles)"
       DestinationFiles="@(PublishFiles->'$(PackageFolder)/%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <!-- ZipSourceディレクトリの存在確認 -->
+    <Error Text="ZipSource directory does not exist: $(ZipSource)" Condition="!Exists('$(ZipSource)')" />
+
+    <!-- Zip圧縮 -->
     <ZipDirectory
       SourceDirectory="$(ZipSource)"
       DestinationFile="$(ZipDestination)"
@@ -125,7 +156,7 @@
 
     <Message Text="Zip package created at: $(ZipDestination)" Importance="high" />
 
-    <Unzip SourceFiles="$(OutputPath)/../../../../../publish/$(ZipFileName)" DestinationFolder="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
+    <Unzip SourceFiles="$(ZipDestination)" DestinationFolder="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
   </Target>
   <!-- Release構成でも直接コピーできるようにする -->
   <Target Name="CopyReleaseDlls" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
