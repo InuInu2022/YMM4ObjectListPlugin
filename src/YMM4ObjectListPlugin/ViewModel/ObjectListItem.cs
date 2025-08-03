@@ -95,6 +95,12 @@ public class ObjectListItem : INotifyPropertyChanged
 			case nameof(IWrapBaseItem.IsHidden):
 				OnPropertyChanged(nameof(IsHidden));
 				break;
+			case nameof(IWrapBaseItem.Length):
+				OnPropertyChanged(nameof(Length));
+				break;
+			case nameof(IWrapBaseItem.Frame):
+				OnPropertyChanged(nameof(Frame));
+				break;
 			default:
 				break;
 		}
