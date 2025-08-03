@@ -132,6 +132,11 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
 - ライセンス詳細: [LICENSE](./LICENSE)
 - 使用ライセンス一覧: [licenses/](./licenses/)
 
+```txt
+Material Design Icons
+Icons / Apache 2.0
+```
+
 ## その他
 
 スクリーンショットの立ち絵イラストはゆめうつうつさんの「[ふたば(はし&たち)](https://seiga.nicovideo.jp/seiga/im11321172)」です。
