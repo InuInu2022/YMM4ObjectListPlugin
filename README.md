@@ -1,3 +1,7 @@
+<p align="center">
+<img src="./docs/thumbnail.png" alt="サムネイル" width="400">
+</p>
+
 # YMM4 オブジェクトリスト プラグイン
 
 <img src="./docs/ymm4_objectlist_v0.1_ss.png" alt="スクリーンショット" width="400">
