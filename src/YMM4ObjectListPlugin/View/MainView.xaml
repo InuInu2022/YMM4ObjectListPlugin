@@ -24,6 +24,29 @@
       </ResourceDictionary.MergedDictionaries>
 
       <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+      <!--  共通のColumnHeaderStyleを定義  -->
+      <Style
+        x:Key="BaseColumnHeaderStyle"
+        BasedOn="{StaticResource {x:Type DataGridColumnHeader}}"
+        TargetType="DataGridColumnHeader"
+        >
+        <Setter Property="Height" Value="22" />
+        <Setter Property="MinHeight" Value="20" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+      </Style>
+
+      <!--  左寄せ用のHeaderStyle  -->
+      <Style
+        x:Key="LeftAlignColumnHeaderStyle"
+        BasedOn="{StaticResource BaseColumnHeaderStyle}"
+        TargetType="DataGridColumnHeader"
+        >
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+      </Style>
     </ResourceDictionary>
   </UserControl.Resources>
 
@@ -119,6 +142,13 @@
           <Setter Property="TextAlignment" Value="Center" />
         </Style>
       </DataGrid.Resources>
+
+      <!--  DataGridで共通スタイルを使用  -->
+      <DataGrid.ColumnHeaderStyle>
+        <StaticResource ResourceKey="BaseColumnHeaderStyle" />
+      </DataGrid.ColumnHeaderStyle>
+
+
       <!--  行スタイルを追加  -->
       <DataGrid.RowStyle>
         <Style TargetType="DataGridRow">
@@ -126,20 +156,23 @@
             <Trigger Property="AlternationIndex" Value="1">
               <Setter Property="Background">
                 <Setter.Value>
-                  <SolidColorBrush Opacity="0.05" Color="{DynamicResource {x:Static SystemColors.ControlTextColorKey}}" />
+                  <SolidColorBrush Opacity="0.1" Color="{DynamicResource {x:Static SystemColors.AccentColorKey}}" />
                 </Setter.Value>
               </Setter>
             </Trigger>
           </Style.Triggers>
         </Style>
       </DataGrid.RowStyle>
+
+
       <DataGrid.Columns>
 
         <DataGridTemplateColumn IsReadOnly="True" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnColor, Converter={StaticResource BoolToVisibilityConverter}}">
           <DataGridTemplateColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiPaletteOutline}"
               ToolTip="{x:Static loc:Texts.BaseItemColorName}"
               />
@@ -165,15 +198,18 @@
           SortMemberPath="Category"
           Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnCategory, Converter={StaticResource BoolToVisibilityConverter}}"
           >
+          <DataGridTextColumn.HeaderStyle>
+            <StaticResource ResourceKey="LeftAlignColumnHeaderStyle" />
+          </DataGridTextColumn.HeaderStyle>
           <DataGridTextColumn.Header>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Margin="2,0" Orientation="Horizontal">
               <Image
-                Width="14"
-                Margin="2"
+                Width="12"
+                Margin="2,0"
                 Source="{StaticResource mdiSitemap}"
                 ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
                 />
-              <Label Content="カテゴリ" />
+              <TextBlock Margin="2,0" Text="カテゴリ" />
             </StackPanel>
 
           </DataGridTextColumn.Header>
@@ -187,15 +223,19 @@
           SortDirection="Ascending"
           SortMemberPath="Label"
           >
+          <!--  Label列で左寄せスタイルを使用  -->
+          <DataGridTextColumn.HeaderStyle>
+            <StaticResource ResourceKey="LeftAlignColumnHeaderStyle" />
+          </DataGridTextColumn.HeaderStyle>
           <DataGridTextColumn.Header>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Margin="2,0" Orientation="Horizontal">
               <Image
-                Width="14"
-                Margin="2"
+                Width="12"
+                Margin="2,0"
                 Source="{StaticResource mdiNameLabel}"
                 ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
                 />
-              <Label Content="{x:Static loc:Texts.SearchResultItemColumnHeader}" />
+              <TextBlock Margin="2,0" Text="{x:Static loc:Texts.SearchResultItemColumnHeader}" />
             </StackPanel>
 
           </DataGridTextColumn.Header>
@@ -211,8 +251,9 @@
           >
           <DataGridTextColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiLayers}"
               ToolTip="{x:Static loc:Texts.BaseItemLayerName}"
               />
@@ -229,8 +270,9 @@
           >
           <DataGridTextColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiTimelineClock}"
               ToolTip="{x:Static loc:Texts.BaseItemFrameName}"
               />
@@ -247,8 +289,9 @@
           >
           <DataGridTextColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiArrowExpandHorizontal}"
               ToolTip="{x:Static loc:Texts.BaseItemLengthName}"
               />
@@ -265,8 +308,9 @@
           >
           <DataGridTextColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiGroup}"
               ToolTip="{x:Static loc:Texts.GroupLabel}"
               />
@@ -281,8 +325,9 @@
           >
           <DataGridTemplateColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiLock}"
               ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
               />
@@ -306,8 +351,9 @@
           >
           <DataGridTemplateColumn.Header>
             <Image
-              Width="14"
-              Margin="2"
+              Width="12"
+              Margin="2,0"
+              HorizontalAlignment="Center"
               Source="{StaticResource mdiEyeOffOutline}"
               ToolTip="{x:Static loc:Texts.BaseItemIsHiddenDesc}"
               />
@@ -332,7 +378,7 @@
         HorizontalAlignment="Right"
         DockPanel.Dock="Right"
         >
-        <!-- Scene Name -->
+        <!--  Scene Name  -->
         <TextBlock Text="{Binding SceneName}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}" />
         <Border
           Width="1"
@@ -340,7 +386,7 @@
           Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
           Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}"
           />
-        <!-- Scene Screen Size -->
+        <!--  Scene Screen Size  -->
         <TextBlock Text="{Binding SceneScreenSize}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}" />
         <Border
           Width="1"
@@ -348,7 +394,7 @@
           Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
           Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}"
           />
-        <!-- Scene FPS -->
+        <!--  Scene FPS  -->
         <TextBlock Text="{Binding SceneFps}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}" />
         <Border
           Width="1"
@@ -356,7 +402,7 @@
           Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
           Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}"
           />
-        <!-- Scene Hz -->
+        <!--  Scene Hz  -->
         <TextBlock Text="{Binding SceneHz}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneHz, Converter={StaticResource BoolToVisibilityConverter}}" />
       </WrapPanel>
     </DockPanel>
