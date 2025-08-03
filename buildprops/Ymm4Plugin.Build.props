@@ -45,10 +45,13 @@
 
   <!-- MS Build settings -->
 
-  <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="BeforeBuild">
+  <!-- RemovePublishDirBeforeBuildをMakeZipPackageの直前に移動 -->
+  <Target Name="RemovePublishDirBeforeBuild" BeforeTargets="MakeZipPackage" Condition="'$(Configuration)' == 'Release'">
     <RemoveDir Directories="$(YMM4_PATH)\user\plugin\$(AssemblyName)\" />
-    <Message Text="RemovePublishDirBeforeBuild" Importance="high" />
+    <Message Text="RemovePublishDirBeforeBuild (Release)" Importance="high" />
   </Target>
+
+  <!-- CopyDebugDllsをDebug構成のみに制限 -->
   <Target Name="CopyDebugDlls" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
     <!-- デバッグ出力を追加 -->
     <Message Text="=== CopyDebugDlls is RUNNING ===" Importance="high" />
@@ -82,7 +85,8 @@
     <RemoveDir Directories="$(OutputPath)/publish/" />
     <RemoveDir Directories="$(OutputPath)/ymme/" />
   </Target>
-  <Target Name="MakeZipPackage" AfterTargets="Publish">
+  <!-- MakeZipPackageをRelease構成のみに制限 -->
+  <Target Name="MakeZipPackage" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
     <PropertyGroup>
       <ZipFileName>$(AssemblyName).v.$(Version).ymme</ZipFileName>
       <PublishRootDir>$(MSBuildProjectDirectory)\..\..\publish\</PublishRootDir>
@@ -167,8 +171,8 @@
     <Message Text="Plugin deployed to: $(YMM4_PATH)\user\plugin\$(AssemblyName)" Importance="high" />
   </Target>
 
-  <!-- CopyReleaseDllsを無効化（MakeZipPackageで処理するため） -->
-  <Target Name="CopyReleaseDlls" AfterTargets="Publish" Condition="'$(Configuration)' == 'Release'">
+  <!-- CopyReleaseDllsを完全に無効化 -->
+  <Target Name="CopyReleaseDlls" Condition="false">
     <Message Text="CopyReleaseDlls is disabled - using MakeZipPackage instead" Importance="high" />
   </Target>
 </Project>
