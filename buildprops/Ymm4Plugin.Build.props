@@ -131,6 +131,14 @@
       <FilesToDelete Include="$(OutputPath)\publish\Epoxy.Wpf.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\Dynamitey.dll" />
       <FilesToDelete Include="$(OutputPath)\publish\ImpromptuInterface.dll" />
+
+      <!-- YmmeUtilの依存関係も削除 -->
+      <FilesToDelete Include="$(OutputPath)\publish\BigHelp.Http.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\ByteSize.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\GithubReleaseDownloader.dll" />
+      <FilesToDelete Include="$(OutputPath)\publish\Mayerch1.GithubUpdateCheck.dll" />
+
+      <FilesToDelete Include="$(OutputPath)\publish\*.deps.json" />
     </ItemGroup>
     <Delete Files="@(FilesToDelete)">
       <Output TaskParameter="DeletedFiles" ItemName="FilesDeleted" />

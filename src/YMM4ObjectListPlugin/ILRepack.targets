@@ -24,6 +24,12 @@
       <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" />
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
+
+      <!-- YmmeUtilの依存関係も追加 -->
+      <InputAssemblies Include="$(OutputPath)\BigHelp.Http.dll" Condition="Exists('$(OutputPath)\BigHelp.Http.dll')" />
+      <InputAssemblies Include="$(OutputPath)\ByteSize.dll" Condition="Exists('$(OutputPath)\ByteSize.dll')" />
+      <InputAssemblies Include="$(OutputPath)\GithubReleaseDownloader.dll" Condition="Exists('$(OutputPath)\GithubReleaseDownloader.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Mayerch1.GithubUpdateCheck.dll" Condition="Exists('$(OutputPath)\Mayerch1.GithubUpdateCheck.dll')" />
     </ItemGroup>
 
     <ItemGroup>
@@ -66,6 +72,12 @@
     <Delete Files="$(OutputPath)\Epoxy.Wpf.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Dynamitey.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ImpromptuInterface.dll" ContinueOnError="true" />
+
+    <!-- YmmeUtilの依存関係も削除 -->
+    <Delete Files="$(OutputPath)\BigHelp.Http.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\ByteSize.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\GithubReleaseDownloader.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\Mayerch1.GithubUpdateCheck.dll" ContinueOnError="true" />
 
     <!-- マージが成功したかを確認 -->
     <Message Text="ILRepack completed. Merged assemblies removed." Importance="high" />
