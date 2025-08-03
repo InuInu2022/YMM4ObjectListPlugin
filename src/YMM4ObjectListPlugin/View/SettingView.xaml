@@ -5,6 +5,7 @@
   xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
   xmlns:core="clr-namespace:ObjectList"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   xmlns:local="clr-namespace:ObjectList.View"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:viewmodels="clr-namespace:ObjectList.ViewModel"
@@ -89,50 +90,114 @@
           <GroupBox Name="ColumnHeaderOptions" Margin="5">
             <GroupBox.Header>
               <DockPanel>
-                <Label Content="列ヘッダー" />
+                <Label Content="列ヘッダー表示" />
               </DockPanel>
             </GroupBox.Header>
 
-            <StackPanel Margin="5" IsEnabled="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}">
+            <StackPanel Margin="5">
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="🎨アイテムカラー列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnColor}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiPaletteOutline}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemColorName}" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="false" />
-                <Label Content="🗃️カテゴリ列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnCategory}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiSitemap}"
+                  />
+                <Label Content="カテゴリ" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="#️⃣レイヤー番号列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLayer}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiLayers}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemLayerName}" />
+              </DockPanel>
+
+              <DockPanel Margin="0,2"
+                Visibility="Collapsed">
+                <ComboBox
+                  Width="150"
+                  DockPanel.Dock="Right"
+                  IsEnabled="false"
+                  SelectedIndex="0"
+                  >
+                  <ComboBoxItem>レイヤー番号</ComboBoxItem>
+                  <ComboBoxItem>レイヤー名</ComboBoxItem>
+                </ComboBox>
+                <Image
+                  Width="14"
+                  Margin="2"
+                  IsHitTestVisible="False"
+                  Opacity="0"
+                  />
+                <Label Content="レイヤーの表示種類" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="🧱レイヤー名列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnGroup}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiGroup}"
+                  ToolTip="{x:Static loc:Texts.GroupLabel}"
+                  />
+                <Label Content="{x:Static loc:Texts.GroupLabel}" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="#️⃣グループ番号列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnFrame}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiTimelineClock}"
+                  ToolTip="{x:Static loc:Texts.SearchResultFrameColumnHeader}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemFrameName}" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="👥グループ名列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLength}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiArrowExpandHorizontal}"
+                  ToolTip="{x:Static loc:Texts.BaseItemLengthName}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemLengthName}" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="🔒ロック列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLock}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiLock}"
+                  ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemIsLockedName}" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="👁️非表示列を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnHidden}" />
+                <Image
+                  Width="14"
+                  Margin="2"
+                  Source="{StaticResource mdiEyeOffOutline}"
+                  />
+                <Label Content="{x:Static loc:Texts.BaseItemIsHiddenName}" />
               </DockPanel>
 
             </StackPanel>
@@ -144,30 +209,30 @@
             <GroupBox.Header>
               <DockPanel>
                 <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="フッターを表示" />
+                <Label Content="フッター表示" />
               </DockPanel>
             </GroupBox.Header>
 
             <StackPanel Margin="5" IsEnabled="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}">
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="シーン名を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+                <Label Content="シーン名" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="false" />
-                <Label Content="シーンの画面サイズを表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize}" />
+                <Label Content="シーンの画面サイズ" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="シーンFPSを表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps}" />
+                <Label Content="シーンFPS" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
-                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}" />
-                <Label Content="シーンの音周波数を表示" />
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneHz}" />
+                <Label Content="シーンの音声サンプリングレート" />
               </DockPanel>
 
             </StackPanel>
@@ -186,43 +251,6 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Label
-              Grid.Row="0"
-              Grid.Column="0"
-              Content="フッターを表示"
-              />
-            <c:ToggleSlider
-              Grid.Row="0"
-              Grid.Column="1"
-              HorizontalAlignment="Right"
-              Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}"
-              />
-
-            <Label
-              Grid.Row="1"
-              Grid.Column="0"
-              Content="ボイスライブラリ切替高速化（※時間がかかります）"
-              ToolTip="VoiSona Talkは別トラックにボイスを割り当てていると速くボイス切替ができます。事前に利用しないトラックにすべてのボイスを割り当てます。"
-              />
-            <c:ToggleSlider
-              Grid.Row="1"
-              Grid.Column="1"
-              HorizontalAlignment="Right"
-              Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}"
-              />
-
-            <Label
-              Grid.Row="2"
-              Grid.Column="0"
-              Content="{Binding UpdateMessage}"
-              IsEnabled="{Binding HasUpdate}"
-              />
-            <c:ToggleSlider
-              Grid.Row="2"
-              Grid.Column="1"
-              HorizontalAlignment="Right"
-              Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter}"
-              />
 
           </Grid>
         </StackPanel>
@@ -237,7 +265,8 @@
         Header="YMM4 オブジェクトリスト プラグインについて"
         >
         <StackPanel>
-          <TextBlock Margin="5" TextWrapping="Wrap">VoiSona Talkに対応した非公式プラグインです。</TextBlock>
+          <TextBlock Margin="5" TextWrapping="Wrap">タイムライン上のアイテムを一覧表示＆選択することのできるプラグインです。</TextBlock>
+          <TextBlock Margin="5" TextWrapping="Wrap">【注意】プラグインに公開されていない非公式な処理をしているため、YMM4本体のアップデートで動かなくなる可能性があります。</TextBlock>
           <TextBlock Margin="5" TextWrapping="Wrap">このプラグインが原因のエラーはYMM4本体の開発者ではなく、いぬいぬ（InuInu2022）にご連絡ください。</TextBlock>
           <TextBlock Margin="5">Ⓒ InuInu 2025 -</TextBlock>
           <Button

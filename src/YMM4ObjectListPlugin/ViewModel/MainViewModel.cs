@@ -42,6 +42,8 @@ public class MainViewModel
 	public string SceneName { get; set; } = string.Empty;
 	public string SceneHz { get; set; } = string.Empty;
 	public string SceneFps { get; set; } = string.Empty;
+	public string SceneScreenSize { get; set; } =
+		string.Empty;
 
 	IDisposable? sceneSubscription;
 
@@ -307,5 +309,7 @@ public class MainViewModel
 		SceneName = timeLine.Name;
 		SceneHz = $"{timeLine.VideoInfo.Hz} Hz";
 		SceneFps = $"{timeLine.VideoInfo.FPS} FPS";
+		SceneScreenSize =
+			$"{timeLine.VideoInfo.Width} x {timeLine.VideoInfo.Height}";
 	}
 }

@@ -28,6 +28,11 @@ public class ObjectListItem : INotifyPropertyChanged
 	public string Label => _item.Label;
 	public int Group => _item.Group;
 	public int Layer => _item.Layer;
+	public int Length => _item.Length;
+
+	public int Frame => _item.Frame;
+
+
 	public Brush ColorBrush => new SolidColorBrush(_item.ItemColor);
 
 	public string Category

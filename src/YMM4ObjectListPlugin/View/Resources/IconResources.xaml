@@ -1,20 +1,76 @@
 <ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    >
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  >
 
-    <!--  リロード/リフレッシュアイコン  -->
-    <DrawingImage x:Key="MyIcon">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <!--  リロード/リフレッシュアイコン  -->
+  <DrawingImage x:Key="mdiReload">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M2 12C2 16.97 6.03 21 11 21C13.39 21 15.68 20.06 17.4 18.4L15.9 16.9C14.63 18.25 12.86 19 11 19C4.76 19 1.64 11.46 6.05 7.05C10.46 2.64 18 5.77 18 12H15L19 16H19.1L23 12H20C20 7.03 15.97 3 11 3C6.03 3 2 7.03 2 12Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <!--  非表示（目のアイコン）  -->
-    <DrawingImage x:Key="MdilEyeOff">
-        <DrawingImage.Drawing>
-            <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M2.54,4.71L3.25,4L20,20.75L19.29,21.46L15.95,18.11C14.58,18.68 13.08,19 11.5,19C6.94,19 3,16.35 1.14,12.5C2.11,10.5 3.63,8.83 5.5,7.68L2.54,4.71M11.5,18C12.79,18 14.03,17.77 15.17,17.34L14.05,16.21C13.32,16.71 12.45,17 11.5,17C9,17 7,15 7,12.5C7,11.55 7.29,10.68 7.79,9.95L6.24,8.41C4.57,9.38 3.19,10.8 2.26,12.5C4.04,15.78 7.5,18 11.5,18M20.74,12.5C18.96,9.22 15.5,7 11.5,7C10.35,7 9.23,7.19 8.19,7.53L7.41,6.75C8.68,6.26 10.06,6 11.5,6C16.06,6 20,8.65 21.86,12.5C20.95,14.39 19.53,16 17.79,17.13L17.07,16.4C18.6,15.44 19.87,14.1 20.74,12.5M11.5,8C14,8 16,10 16,12.5C16,13.32 15.78,14.08 15.4,14.74L14.66,14C14.88,13.54 15,13.04 15,12.5C15,10.57 13.43,9 11.5,9C10.96,9 10.46,9.12 10,9.34L9.26,8.6C9.92,8.22 10.68,8 11.5,8M8,12.5C8,14.43 9.57,16 11.5,16C12.17,16 12.79,15.81 13.32,15.5L8.5,10.68C8.19,11.21 8,11.83 8,12.5Z" />
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <!--  非表示（目のアイコン）  -->
+  <DrawingImage x:Key="mdiEyeOffOutline">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M2,5.27L3.28,4L20,20.72L18.73,22L15.65,18.92C14.5,19.3 13.28,19.5 12,19.5C7,19.5 2.73,16.39 1,12C1.69,10.24 2.79,8.69 4.19,7.46L2,5.27M12,9A3,3 0 0,1 15,12C15,12.35 14.94,12.69 14.83,13L11,9.17C11.31,9.06 11.65,9 12,9M12,4.5C17,4.5 21.27,7.61 23,12C22.18,14.08 20.79,15.88 19,17.19L17.58,15.76C18.94,14.82 20.06,13.54 20.82,12C19.17,8.64 15.76,6.5 12,6.5C10.91,6.5 9.84,6.68 8.84,7L7.3,5.47C8.74,4.85 10.33,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C12.69,17.5 13.37,17.43 14,17.29L11.72,15C10.29,14.85 9.15,13.71 9,12.28L5.6,8.87C4.61,9.72 3.78,10.78 3.18,12Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  パレットアイコン  -->
+  <DrawingImage x:Key="mdiPaletteOutline">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2C17.5,2 22,6 22,11A6,6 0 0,1 16,17H14.2C13.9,17 13.7,17.2 13.7,17.5C13.7,17.6 13.8,17.7 13.8,17.8C14.2,18.3 14.4,18.9 14.4,19.5C14.5,20.9 13.4,22 12,22M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C12.3,20 12.5,19.8 12.5,19.5C12.5,19.3 12.4,19.2 12.4,19.1C12,18.6 11.8,18.1 11.8,17.5C11.8,16.1 12.9,15 14.3,15H16A4,4 0 0,0 20,11C20,7.1 16.4,4 12,4M6.5,10C7.3,10 8,10.7 8,11.5C8,12.3 7.3,13 6.5,13C5.7,13 5,12.3 5,11.5C5,10.7 5.7,10 6.5,10M9.5,6C10.3,6 11,6.7 11,7.5C11,8.3 10.3,9 9.5,9C8.7,9 8,8.3 8,7.5C8,6.7 8.7,6 9.5,6M14.5,6C15.3,6 16,6.7 16,7.5C16,8.3 15.3,9 14.5,9C13.7,9 13,8.3 13,7.5C13,6.7 13.7,6 14.5,6M17.5,10C18.3,10 19,10.7 19,11.5C19,12.3 18.3,13 17.5,13C16.7,13 16,12.3 16,11.5C16,10.7 16.7,10 17.5,10Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  カテゴリ  -->
+  <DrawingImage x:Key="mdiSitemap">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M9,2V8H11V11H5C3.89,11 3,11.89 3,13V16H1V22H7V16H5V13H11V16H9V22H15V16H13V13H19V16H17V22H23V16H21V13C21,11.89 20.11,11 19,11H13V8H15V2H9Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  レイヤー  -->
+  <DrawingImage x:Key="mdiLayers">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.8L12,18.54Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  グループ  -->
+  <DrawingImage x:Key="mdiGroup">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M1,1V5H2V19H1V23H5V22H19V23H23V19H22V5H23V1H19V2H5V1M5,4H19V5H20V19H19V20H5V19H4V5H5M6,6V14H9V18H18V9H14V6M8,8H12V12H8M14,11H16V16H11V14H14" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  ロック  -->
+  <DrawingImage x:Key="mdiLock">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  ラベル  -->
+  <DrawingImage x:Key="mdiNameLabel">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M17.63,5.84C17.27,5.33 16.67,5 16,5H5A2,2 0 0,0 3,7V17A2,2 0 0,0 5,19H16C16.67,19 17.27,18.66 17.63,18.15L22,12L17.63,5.84Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  長さ  -->
+  <DrawingImage x:Key="mdiArrowExpandHorizontal">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M9,11H15V8L19,12L15,16V13H9V16L5,12L9,8V11M2,20V4H4V20H2M20,20V4H22V20H20Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
+
+  <!--  フレーム  -->
+  <DrawingImage x:Key="mdiTimelineClock">
+    <DrawingImage.Drawing>
+      <GeometryDrawing Brush="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" Geometry="M4 2V8H2V2H4M2 22V16H4V22H2M5 12C5 13.11 4.11 14 3 14C1.9 14 1 13.11 1 12C1 10.9 1.9 10 3 10C4.11 10 5 10.9 5 12M16 4C20.42 4 24 7.58 24 12C24 16.42 20.42 20 16 20C12.4 20 9.36 17.62 8.35 14.35L6 12L8.35 9.65C9.36 6.38 12.4 4 16 4M15 13L19.53 15.79L20.33 14.5L16.5 12.2V7H15V13Z" />
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
 </ResourceDictionary>
