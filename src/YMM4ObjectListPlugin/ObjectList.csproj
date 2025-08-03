@@ -36,7 +36,7 @@
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
-    <PackageReference Include="Newtonsoft.Json">
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </PackageReference>
