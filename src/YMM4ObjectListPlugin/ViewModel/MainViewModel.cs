@@ -60,7 +60,7 @@ public class MainViewModel
 	public int CurrentFrame { get; set; }
 	public int RangeStartFrame { get; set; }
 	public int RangeEndFrame { get; set; }
-	public bool IsRangeInvalid { get; set; }
+	public bool IsRangeInvalid { get; set; } = true;
 
 
 	public string SceneName { get; set; } = string.Empty;
@@ -69,14 +69,12 @@ public class MainViewModel
 	public string SceneScreenSize { get; set; } =
 		string.Empty;
 
+	public int SceneLength { get; set; } = 100;
+
 	IDisposable? sceneSubscription;
 
-	// フィルター関連のプロパティ
-	private string _currentFilter = "All";
-	private string _currentGrouping = "None";
-
 	private DispatcherTimer? _filterTimer;
-	private bool _needsFilterUpdate = false;
+	private bool _needsFilterUpdate;
 
 	public MainViewModel()
 	{
@@ -319,9 +317,19 @@ public class MainViewModel
 						<= yourItem.Frame + yourItem.Length
 				);
 
+			// レンジフィルター
+			var matchesRangeFilter =
+				!IsRangeFilterSelected
+				|| (
+					RangeStartFrame <= yourItem.Frame
+					&& RangeEndFrame
+						>= yourItem.Frame + yourItem.Length
+				);
+
 			// 両方の条件を満たす必要がある
 			return matchesSearchText
-				&& matchesSeekBarFilter;
+				&& matchesSeekBarFilter
+				&& matchesRangeFilter;
 		};
 	}
 
@@ -346,6 +354,7 @@ public class MainViewModel
 			case nameof(WrapTimeLine.CurrentFrame):
 				CurrentFrame = timeLine.CurrentFrame;
 				break;
+			case nameof(WrapTimeLine.Length):
 			case nameof(WrapTimeLine.Name):
 				UpdateSceneInfo(timeLine);
 				break;
@@ -430,7 +439,8 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask RangeStartFrameChangedAsync(int value)
 	{
-		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
+		//開始フレーム
+		ValidateRange();
 		return default;
 	}
 
@@ -438,8 +448,15 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask RangeEndFrameChangedAsync(int value)
 	{
-		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
+		//終了フレーム
+		ValidateRange();
 		return default;
+	}
+
+	void ValidateRange()
+	{
+		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
+		FilterItems();
 	}
 
 	void OnItemsChanged()
@@ -457,5 +474,7 @@ public class MainViewModel
 		SceneFps = $"{timeLine.VideoInfo.FPS} FPS";
 		SceneScreenSize =
 			$"{timeLine.VideoInfo.Width} x {timeLine.VideoInfo.Height}";
+
+		SceneLength = Math.Max(100, timeLine.Length);
 	}
 }

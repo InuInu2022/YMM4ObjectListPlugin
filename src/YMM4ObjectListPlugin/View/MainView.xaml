@@ -83,7 +83,7 @@
         IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
         >
         <ToggleButton.Style>
-          <Style TargetType="ToggleButton">
+          <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
             <Setter Property="Content">
               <Setter.Value>
                 <materialIcons:MaterialIconExt Kind="Filter" Size="16" />
@@ -180,6 +180,7 @@
             <Separator Margin="0,5" />
 
             <!--  グルーピングセクション  -->
+            <!-- TODO:実装
             <StackPanel Orientation="Horizontal">
               <materialIcons:MaterialIconExt
               Kind="FormatListGroup" Size="16" />
@@ -226,6 +227,8 @@
               GroupName="GroupingOptions"
               IsChecked="{Binding IsGroupGroupingSelected}"
               />
+
+            -->
 
           </StackPanel>
         </Border>
@@ -300,7 +303,7 @@
           <DockPanel>
             <Button DockPanel.Dock="Left"
               Command="{Binding SetStartRangeCurrentFrameCommand}">
-              <Label ToolTip="開始">
+              <Label ToolTip="現在のフレームから開始範囲にする">
                 <materialIcons:MaterialIconExt Kind="ClockStart" Size="16" />
               </Label>
             </Button>
@@ -308,7 +311,7 @@
               Name="RangeFilterStart"
               Width="200"
               DefaultValue="0"
-              Max="10000"
+              Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeStartFrame, Mode=TwoWay}"
               />
@@ -326,7 +329,7 @@
           <DockPanel>
             <Button DockPanel.Dock="Left"
               Command="{Binding SetEndRangeCurrentFrameCommand}">
-              <Label ToolTip="終了">
+              <Label ToolTip="現在のフレームまで終了範囲にする">
                 <materialIcons:MaterialIconExt Kind="ClockEnd" Size="16" />
               </Label>
             </Button>
@@ -334,7 +337,7 @@
               Name="RangeFilterEnd"
               Width="200"
               DefaultValue="1024"
-              Max="10000"
+              Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeEndFrame, Mode=TwoWay}"
               />
@@ -344,7 +347,7 @@
         <Label
           Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
           Foreground="Red"
-          Content="{materialIcons:MaterialIconExt Kind=AlertOctagram, Size=16}"
+          Content="{materialIcons:MaterialIconExt Kind=AlertOctagram, Size=20}"
           VerticalAlignment="Center"
           />
       </StackPanel>
