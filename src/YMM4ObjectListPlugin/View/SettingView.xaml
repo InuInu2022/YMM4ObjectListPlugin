@@ -9,6 +9,7 @@
   xmlns:local="clr-namespace:ObjectList.View"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:viewmodels="clr-namespace:ObjectList.ViewModel"
+  xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
   d:DesignHeight="450"
   d:DesignWidth="800"
   mc:Ignorable="d"

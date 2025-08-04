@@ -25,6 +25,11 @@ public class MainViewModel
 	public Command? ReloadCommand { get; set; }
 	public Command? SelectionChangedCommand { get; set; }
 
+	public Command? ToggleFilterMenuCommand { get; set; }
+	public Command? SetStartRangeCurrentFrameCommand { get; set; }
+	public Command? SetEndRangeCurrentFrameCommand { get; set; }
+	public Command? SetGroupingCommand { get; set; }
+
 	public string SearchText { get; set; } = string.Empty;
 
 	public ObservableCollection<ObjectListItem> Items
@@ -39,13 +44,37 @@ public class MainViewModel
 		private set;
 	}
 
+	public bool IsFilterMenuOpen { get; set; }
+
+	// フィルター選択状態
+	public bool IsAllFilterSelected { get; set; } = true;
+	public bool IsUnderSeekBarFilterSelected { get; set; }
+	public bool IsRangeFilterSelected { get; set; }
+
+	// グルーピング選択状態
+	public bool IsNoneGroupingSelected { get; set; } = true;
+	public bool IsCategoryGroupingSelected { get; set; }
+	public bool IsLayerGroupingSelected { get; set; }
+	public bool IsGroupGroupingSelected { get; set; }
+
+	public int CurrentFrame { get; set; }
+	public int RangeStartFrame { get; set; }
+	public int RangeEndFrame { get; set; }
+	public bool IsRangeInvalid { get; set; } = true;
+
+
 	public string SceneName { get; set; } = string.Empty;
 	public string SceneHz { get; set; } = string.Empty;
 	public string SceneFps { get; set; } = string.Empty;
 	public string SceneScreenSize { get; set; } =
 		string.Empty;
 
+	public int SceneLength { get; set; } = 100;
+
 	IDisposable? sceneSubscription;
+
+	private DispatcherTimer? _filterTimer;
+	private bool _needsFilterUpdate;
 
 	public MainViewModel()
 	{
@@ -71,6 +100,43 @@ public class MainViewModel
 			Command.Factory.Create<SelectionChangedEventArgs>(
 				SelectionUpdateAsync
 			);
+
+		SetStartRangeCurrentFrameCommand =
+			Command.Factory.Create(() =>
+			{
+				RangeStartFrame = CurrentFrame;
+				return default;
+			});
+
+		SetEndRangeCurrentFrameCommand =
+			Command.Factory.Create(() =>
+			{
+				RangeEndFrame = CurrentFrame;
+				return default;
+			});
+
+		SetFilterTimer();
+	}
+
+	void SetFilterTimer()
+	{
+		// フィルタ更新用のタイマーを初期化
+		_filterTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(100), // 100ms間隔で更新
+		};
+		_filterTimer.Tick += (s, e) =>
+		{
+			if (
+				_needsFilterUpdate
+				&& IsUnderSeekBarFilterSelected
+			)
+			{
+				FilterItems();
+				_needsFilterUpdate = false;
+			}
+			_filterTimer.Stop();
+		};
 	}
 
 	ValueTask InitializeApplicationAsync()
@@ -231,14 +297,39 @@ public class MainViewModel
 
 		FilteredItems.Filter = item =>
 		{
-			return item is ObjectListItem yourItem
-				&& (
-					string.IsNullOrEmpty(SearchText)
-					|| yourItem.Label.Contains(
-						SearchText,
-						StringComparison.OrdinalIgnoreCase
-					)
+			if (item is not ObjectListItem yourItem)
+				return false;
+
+			// テキスト検索フィルター
+			var matchesSearchText =
+				string.IsNullOrEmpty(SearchText)
+				|| yourItem.Label.Contains(
+					SearchText,
+					StringComparison.OrdinalIgnoreCase
 				);
+
+			// シークバー位置フィルター
+			var matchesSeekBarFilter =
+				!IsUnderSeekBarFilterSelected
+				|| (
+					CurrentFrame >= yourItem.Frame
+					&& CurrentFrame
+						<= yourItem.Frame + yourItem.Length
+				);
+
+			// レンジフィルター
+			var matchesRangeFilter =
+				!IsRangeFilterSelected
+				|| (
+					RangeStartFrame <= yourItem.Frame
+					&& RangeEndFrame
+						>= yourItem.Frame + yourItem.Length
+				);
+
+			// 両方の条件を満たす必要がある
+			return matchesSearchText
+				&& matchesSeekBarFilter
+				&& matchesRangeFilter;
 		};
 	}
 
@@ -260,6 +351,10 @@ public class MainViewModel
 			case "Items":
 				UpdateItems(timeLine);
 				break;
+			case nameof(WrapTimeLine.CurrentFrame):
+				CurrentFrame = timeLine.CurrentFrame;
+				break;
+			case nameof(WrapTimeLine.Length):
 			case nameof(WrapTimeLine.Name):
 				UpdateSceneInfo(timeLine);
 				break;
@@ -296,6 +391,74 @@ public class MainViewModel
 		return default;
 	}
 
+	[PropertyChanged(nameof(CurrentFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask CurrentFrameChangedAsync(int value)
+	{
+		//オプション有効時にフィルタかける（間引き処理）
+		if (IsUnderSeekBarFilterSelected)
+		{
+			_needsFilterUpdate = true;
+			if (_filterTimer?.IsEnabled != true)
+			{
+				_filterTimer?.Start();
+			}
+		}
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsUnderSeekBarFilterSelected))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask IsUnderSeekBarFilterSelectedChangedAsync(
+		bool value
+	)
+	{
+		// タイマーを使って確実にフィルタを実行
+		_needsFilterUpdate = true;
+		if (_filterTimer?.IsEnabled != true)
+		{
+			_filterTimer?.Start();
+		}
+
+		// さらに、即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
+		if (
+			value
+			&& TimelineUtil.TryGetTimeline(out var timeLine)
+			&& timeLine is not null
+		)
+		{
+			CurrentFrame = timeLine.CurrentFrame;
+			FilterItems();
+			_needsFilterUpdate = false; // 即座に実行したのでタイマー実行を防ぐ
+		}
+
+		return default;
+	}
+
+	[PropertyChanged(nameof(RangeStartFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask RangeStartFrameChangedAsync(int value)
+	{
+		//開始フレーム
+		ValidateRange();
+		return default;
+	}
+
+	[PropertyChanged(nameof(RangeEndFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask RangeEndFrameChangedAsync(int value)
+	{
+		//終了フレーム
+		ValidateRange();
+		return default;
+	}
+
+	void ValidateRange()
+	{
+		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
+		FilterItems();
+	}
+
 	void OnItemsChanged()
 	{
 		FilteredItems = CollectionViewSource.GetDefaultView(
@@ -311,5 +474,7 @@ public class MainViewModel
 		SceneFps = $"{timeLine.VideoInfo.FPS} FPS";
 		SceneScreenSize =
 			$"{timeLine.VideoInfo.Width} x {timeLine.VideoInfo.Height}";
+
+		SceneLength = Math.Max(100, timeLine.Length);
 	}
 }
