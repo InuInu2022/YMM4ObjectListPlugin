@@ -71,6 +71,9 @@ public class MainViewModel
 	private string _currentFilter = "All";
 	private string _currentGrouping = "None";
 
+	private DispatcherTimer? _filterTimer;
+	private bool _needsFilterUpdate = false;
+
 	public MainViewModel()
 	{
 		Ready = Command.Factory.Create(
@@ -95,6 +98,24 @@ public class MainViewModel
 			Command.Factory.Create<SelectionChangedEventArgs>(
 				SelectionUpdateAsync
 			);
+
+		// フィルタ更新用のタイマーを初期化
+		_filterTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(100), // 100ms間隔で更新
+		};
+		_filterTimer.Tick += (s, e) =>
+		{
+			if (
+				_needsFilterUpdate
+				&& IsUnderSeekBarFilterSelected
+			)
+			{
+				FilterItems();
+				_needsFilterUpdate = false;
+			}
+			_filterTimer.Stop();
+		};
 	}
 
 	ValueTask InitializeApplicationAsync()
@@ -342,10 +363,14 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask CurrentFrameChangedAsync(int value)
 	{
-		//オプション有効時にフィルタかける
+		//オプション有効時にフィルタかける（間引き処理）
 		if (IsUnderSeekBarFilterSelected)
 		{
-			FilterItems();
+			_needsFilterUpdate = true;
+			if (_filterTimer?.IsEnabled != true)
+			{
+				_filterTimer?.Start();
+			}
 		}
 		return default;
 	}
@@ -356,11 +381,25 @@ public class MainViewModel
 		bool value
 	)
 	{
-		//オプション有効時にフィルタかける
-		if (value)
+		// タイマーを使って確実にフィルタを実行
+		_needsFilterUpdate = true;
+		if (_filterTimer?.IsEnabled != true)
 		{
-			FilterItems();
+			_filterTimer?.Start();
 		}
+
+		// さらに、即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
+		if (
+			value
+			&& TimelineUtil.TryGetTimeline(out var timeLine)
+			&& timeLine is not null
+		)
+		{
+			CurrentFrame = timeLine.CurrentFrame;
+			FilterItems();
+			_needsFilterUpdate = false; // 即座に実行したのでタイマー実行を防ぐ
+		}
+
 		return default;
 	}
 
