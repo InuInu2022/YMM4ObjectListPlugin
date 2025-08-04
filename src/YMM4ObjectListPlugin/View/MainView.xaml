@@ -187,7 +187,7 @@
                 Margin="5,5,5,5"
                 FontWeight="Bold"
                 Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-                Text="リストグルーピング"
+                Text="リストグループ"
                 />
             </StackPanel>
 
