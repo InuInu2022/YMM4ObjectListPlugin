@@ -79,11 +79,42 @@
         x:Name="FilterMenuToggle"
         Margin="0,5,5,0"
         HorizontalAlignment="Left"
-        Content="{materialIcons:MaterialIconExt Kind=Filter,
-                                                Size=16}"
         DockPanel.Dock="Right"
         IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
-        />
+        >
+        <ToggleButton.Style>
+          <Style TargetType="ToggleButton">
+            <Setter Property="Content">
+              <Setter.Value>
+                <materialIcons:MaterialIconExt Kind="Filter" Size="16" />
+              </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+              <!--  デフォルト以外の設定が有効な場合はFilterCheckアイコンに変更  -->
+              <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                  <Condition Binding="{Binding IsAllFilterSelected}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="Content">
+                  <Setter.Value>
+                    <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
+                  </Setter.Value>
+                </Setter>
+              </MultiDataTrigger>
+              <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                  <Condition Binding="{Binding IsNoneGroupingSelected}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="Content">
+                  <Setter.Value>
+                    <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
+                  </Setter.Value>
+                </Setter>
+              </MultiDataTrigger>
+            </Style.Triggers>
+          </Style>
+        </ToggleButton.Style>
+      </ToggleButton>
 
       <!--  ポップアップメニュー  -->
       <Popup
@@ -112,17 +143,20 @@
           <StackPanel Margin="5">
 
             <!--  フィルターセクション  -->
-            <TextBlock
-              Margin="5,0,5,5"
-              FontWeight="Bold"
-              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-              Text="📊 フィルター"
-              />
+            <StackPanel Orientation="Horizontal">
+              <materialIcons:MaterialIconExt
+              Kind="FilterPlus" Size="16" />
+              <TextBlock
+                Margin="5,0,5,5"
+                FontWeight="Bold"
+                Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                Text="追加フィルター"
+                />
+            </StackPanel>
+
 
             <RadioButton
               Margin="10,2"
-              Command="{Binding SetFilterCommand}"
-              CommandParameter="All"
               Content="すべて"
               GroupName="FilterOptions"
               IsChecked="{Binding IsAllFilterSelected}"
@@ -130,8 +164,6 @@
 
             <RadioButton
               Margin="10,2"
-              Command="{Binding SetFilterCommand}"
-              CommandParameter="UnderSeekBar"
               Content="シークバーの下"
               GroupName="FilterOptions"
               IsChecked="{Binding IsUnderSeekBarFilterSelected}"
@@ -139,8 +171,6 @@
 
             <RadioButton
               Margin="10,2"
-              Command="{Binding SetFilterCommand}"
-              CommandParameter="Range"
               Content="範囲指定"
               GroupName="FilterOptions"
               IsChecked="{Binding IsRangeFilterSelected}"
@@ -150,12 +180,16 @@
             <Separator Margin="0,5" />
 
             <!--  グルーピングセクション  -->
-            <TextBlock
-              Margin="5,5,5,5"
-              FontWeight="Bold"
-              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-              Text="📁 グルーピング"
-              />
+            <StackPanel Orientation="Horizontal">
+              <materialIcons:MaterialIconExt
+              Kind="FormatListGroup" Size="16" />
+              <TextBlock
+                Margin="5,5,5,5"
+                FontWeight="Bold"
+                Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                Text="リストグルーピング"
+                />
+            </StackPanel>
 
             <RadioButton
               Margin="10,2"
