@@ -141,6 +141,14 @@ Material Design Icons
 Icons / Apache 2.0
 ```
 
+## ニコニ・コモンズ
+
+ニコニコに投稿する際には以下のコンテンツIDを親子登録してください。
+
+[nc424814](https://commons.nicovideo.jp/works/nc424814)
+
+(YMM4の素材一覧からも確認できます。)
+
 ## その他
 
 スクリーンショットの立ち絵イラストはゆめうつうつさんの「[ふたば(はし&たち)](https://seiga.nicovideo.jp/seiga/im11321172)」です。
