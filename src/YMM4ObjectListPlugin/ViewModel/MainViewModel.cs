@@ -25,6 +25,10 @@ public class MainViewModel
 	public Command? ReloadCommand { get; set; }
 	public Command? SelectionChangedCommand { get; set; }
 
+	public Command? ToggleFilterMenuCommand { get; set; }
+	public Command? SetFilterCommand { get; set; }
+	public Command? SetGroupingCommand { get; set; }
+
 	public string SearchText { get; set; } = string.Empty;
 
 	public ObservableCollection<ObjectListItem> Items
@@ -39,6 +43,22 @@ public class MainViewModel
 		private set;
 	}
 
+	public bool IsFilterMenuOpen { get; set; }
+
+	// フィルター選択状態
+	public bool IsAllFilterSelected { get; set; } = true;
+	public bool IsUnderSeekBarFilterSelected { get; set; }
+	public bool IsRangeFilterSelected { get; set; }
+
+	// グルーピング選択状態
+	public bool IsNoneGroupingSelected { get; set; } = true;
+	public bool IsCategoryGroupingSelected { get; set; }
+	public bool IsLayerGroupingSelected { get; set; }
+	public bool IsGroupGroupingSelected { get; set; }
+
+	public int CurrentFrame { get; set; }
+
+
 	public string SceneName { get; set; } = string.Empty;
 	public string SceneHz { get; set; } = string.Empty;
 	public string SceneFps { get; set; } = string.Empty;
@@ -46,6 +66,10 @@ public class MainViewModel
 		string.Empty;
 
 	IDisposable? sceneSubscription;
+
+	// フィルター関連のプロパティ
+	private string _currentFilter = "All";
+	private string _currentGrouping = "None";
 
 	public MainViewModel()
 	{
@@ -231,14 +255,29 @@ public class MainViewModel
 
 		FilteredItems.Filter = item =>
 		{
-			return item is ObjectListItem yourItem
-				&& (
-					string.IsNullOrEmpty(SearchText)
-					|| yourItem.Label.Contains(
-						SearchText,
-						StringComparison.OrdinalIgnoreCase
-					)
+			if (item is not ObjectListItem yourItem)
+				return false;
+
+			// テキスト検索フィルター
+			var matchesSearchText =
+				string.IsNullOrEmpty(SearchText)
+				|| yourItem.Label.Contains(
+					SearchText,
+					StringComparison.OrdinalIgnoreCase
 				);
+
+			// シークバー位置フィルター
+			var matchesSeekBarFilter =
+				!IsUnderSeekBarFilterSelected
+				|| (
+					CurrentFrame >= yourItem.Frame
+					&& CurrentFrame
+						<= yourItem.Frame + yourItem.Length
+				);
+
+			// 両方の条件を満たす必要がある
+			return matchesSearchText
+				&& matchesSeekBarFilter;
 		};
 	}
 
@@ -259,6 +298,9 @@ public class MainViewModel
 		{
 			case "Items":
 				UpdateItems(timeLine);
+				break;
+			case nameof(WrapTimeLine.CurrentFrame):
+				CurrentFrame = timeLine.CurrentFrame;
 				break;
 			case nameof(WrapTimeLine.Name):
 				UpdateSceneInfo(timeLine);
@@ -293,6 +335,32 @@ public class MainViewModel
 	private ValueTask SearchTextChangedAsync(string value)
 	{
 		FilterItems();
+		return default;
+	}
+
+	[PropertyChanged(nameof(CurrentFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask CurrentFrameChangedAsync(int value)
+	{
+		//オプション有効時にフィルタかける
+		if (IsUnderSeekBarFilterSelected)
+		{
+			FilterItems();
+		}
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsUnderSeekBarFilterSelected))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask IsUnderSeekBarFilterSelectedChangedAsync(
+		bool value
+	)
+	{
+		//オプション有効時にフィルタかける
+		if (value)
+		{
+			FilterItems();
+		}
 		return default;
 	}
 

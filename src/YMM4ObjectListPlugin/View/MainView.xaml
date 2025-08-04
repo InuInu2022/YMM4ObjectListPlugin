@@ -8,6 +8,7 @@
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
   xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   xmlns:local="clr-namespace:ObjectList.View"
+  xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   d:DesignHeight="450"
   d:DesignWidth="800"
@@ -47,11 +48,14 @@
         >
         <Setter Property="HorizontalContentAlignment" Value="Left" />
       </Style>
+
     </ResourceDictionary>
+
   </UserControl.Resources>
 
   <Grid>
     <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
@@ -69,6 +73,131 @@
         >
         <Image Margin="2" Source="{StaticResource mdiReload}" />
       </Button>
+
+      <!--  フィルタートグルボタン  -->
+      <ToggleButton
+        x:Name="FilterMenuToggle"
+        Margin="0,5,5,0"
+        HorizontalAlignment="Left"
+        Content="{materialIcons:MaterialIconExt Kind=Filter,
+                                                Size=16}"
+        DockPanel.Dock="Right"
+        IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
+        />
+
+      <!--  ポップアップメニュー  -->
+      <Popup
+        x:Name="FilterPopup"
+        AllowsTransparency="True"
+        IsOpen="{Binding IsFilterMenuOpen, Mode=TwoWay}"
+        Placement="Bottom"
+        PlacementTarget="{Binding ElementName=FilterMenuToggle}"
+        PopupAnimation="Fade"
+        StaysOpen="False"
+        >
+        <Border
+          Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+          BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+          BorderThickness="1"
+          CornerRadius="3"
+          >
+          <Border.Effect>
+            <DropShadowEffect
+              BlurRadius="5"
+              Opacity="0.3"
+              ShadowDepth="2"
+              Color="Black"
+              />
+          </Border.Effect>
+          <StackPanel Margin="5">
+
+            <!--  フィルターセクション  -->
+            <TextBlock
+              Margin="5,0,5,5"
+              FontWeight="Bold"
+              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+              Text="📊 フィルター"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetFilterCommand}"
+              CommandParameter="All"
+              Content="すべて"
+              GroupName="FilterOptions"
+              IsChecked="{Binding IsAllFilterSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetFilterCommand}"
+              CommandParameter="UnderSeekBar"
+              Content="シークバーの下"
+              GroupName="FilterOptions"
+              IsChecked="{Binding IsUnderSeekBarFilterSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetFilterCommand}"
+              CommandParameter="Range"
+              Content="範囲指定"
+              GroupName="FilterOptions"
+              IsChecked="{Binding IsRangeFilterSelected}"
+              />
+
+            <!--  セパレーター  -->
+            <Separator Margin="0,5" />
+
+            <!--  グルーピングセクション  -->
+            <TextBlock
+              Margin="5,5,5,5"
+              FontWeight="Bold"
+              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+              Text="📁 グルーピング"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="None"
+              Content="なし"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsNoneGroupingSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="Category"
+              Content="カテゴリ"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsCategoryGroupingSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="Layer"
+              Content="レイヤー"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsLayerGroupingSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="Group"
+              Content="グループ"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsGroupGroupingSelected}"
+              />
+
+          </StackPanel>
+        </Border>
+      </Popup>
+
+
       <!--  検索テキストボックス  -->
       <TextBox
         Margin="5,5,5,0"
@@ -114,12 +243,70 @@
         </TextBox.Style>
       </TextBox>
 
+
+
     </DockPanel>
+
+    <!--  サブオプション領域  -->
+    <StackPanel
+      Name="SubOptionsPanel"
+      Grid.Row="1"
+      Orientation="Horizontal"
+      >
+      <StackPanel
+        Name="RangeFilterOptions"
+        Margin="10,2,2,2"
+        Orientation="Horizontal"
+        Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
+        >
+
+        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
+          <DockPanel>
+            <Button DockPanel.Dock="Left">
+              <Label ToolTip="開始">
+                <materialIcons:MaterialIconExt Kind="ClockStart" Size="16" />
+              </Label>
+            </Button>
+            <c:FrameNumberEditor
+              Name="RangeFilterStart"
+              Width="200"
+              DefaultValue="0"
+              Max="10000"
+              Min="0"
+              />
+
+          </DockPanel>
+        </Border>
+
+        <TextBlock
+          Margin="20,5"
+          VerticalAlignment="Center"
+          Text="～"
+          />
+
+        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
+          <DockPanel>
+            <Button DockPanel.Dock="Left">
+              <Label ToolTip="終了">
+                <materialIcons:MaterialIconExt Kind="ClockEnd" Size="16" />
+              </Label>
+            </Button>
+            <c:FrameNumberEditor
+              Name="RangeFilterEnd"
+              Width="200"
+              DefaultValue="1024"
+              Max="10000"
+              Min="0"
+              />
+          </DockPanel>
+        </Border>
+      </StackPanel>
+    </StackPanel>
 
     <!--  DataGrid  -->
     <DataGrid
       x:Name="CustomerDataGrid"
-      Grid.Row="1"
+      Grid.Row="2"
       Margin="0,5,0,0"
       AlternationCount="2"
       AutoGenerateColumns="False"
@@ -372,7 +559,7 @@
     </DataGrid>
 
     <!--  Footer  -->
-    <DockPanel Grid.Row="2" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter, Converter={StaticResource BoolToVisibilityConverter}}">
+    <DockPanel Grid.Row="3" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter, Converter={StaticResource BoolToVisibilityConverter}}">
       <WrapPanel
         Margin="5,0,5,0"
         HorizontalAlignment="Right"

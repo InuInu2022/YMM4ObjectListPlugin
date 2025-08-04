@@ -30,6 +30,15 @@
         "resolved": "2.0.43",
         "contentHash": "7oa+HoI7vwiPXzY6HVbMvUevr5Tn6ONoRRSHxRDW71hF8rFhLWQCCbgN9NWXUHhYJmKflv8Xgl4Jr4BFFpq1Gw=="
       },
+      "Material.Icons.WPF": {
+        "type": "Direct",
+        "requested": "[2.4.1, )",
+        "resolved": "2.4.1",
+        "contentHash": "O1+DZVCLvSSHhYritL5t9glKvss0LrEe5RZ2e7O+oTBIQaiVswBmGFoZ+5oOhe+tg0Lp6K1n7f4H7RVS0mXw+Q==",
+        "dependencies": {
+          "Material.Icons": "2.4.1"
+        }
+      },
       "Meziantou.Analyzer": {
         "type": "Direct",
         "requested": "[2.0.210, )",
@@ -163,6 +172,11 @@
           "Microsoft.CSharp": "4.7.0",
           "System.Reflection.Emit": "4.7.0"
         }
+      },
+      "Material.Icons": {
+        "type": "Transitive",
+        "resolved": "2.4.1",
+        "contentHash": "5/8ekF4GXqpluBF+kPfv3TytBpV5Z+h4CUU5iNCDC7+A9hPQvtn08ZUjMUXtcRGxGyfScHYDqzshzTvYiPTCdA=="
       },
       "Mayerch1.GithubUpdateCheck": {
         "type": "Transitive",
