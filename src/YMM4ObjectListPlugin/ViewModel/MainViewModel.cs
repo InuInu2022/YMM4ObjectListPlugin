@@ -26,7 +26,8 @@ public class MainViewModel
 	public Command? SelectionChangedCommand { get; set; }
 
 	public Command? ToggleFilterMenuCommand { get; set; }
-	public Command? SetFilterCommand { get; set; }
+	public Command? SetStartRangeCurrentFrameCommand { get; set; }
+	public Command? SetEndRangeCurrentFrameCommand { get; set; }
 	public Command? SetGroupingCommand { get; set; }
 
 	public string SearchText { get; set; } = string.Empty;
@@ -57,6 +58,9 @@ public class MainViewModel
 	public bool IsGroupGroupingSelected { get; set; }
 
 	public int CurrentFrame { get; set; }
+	public int RangeStartFrame { get; set; }
+	public int RangeEndFrame { get; set; }
+	public bool IsRangeInvalid { get; set; }
 
 
 	public string SceneName { get; set; } = string.Empty;
@@ -99,6 +103,25 @@ public class MainViewModel
 				SelectionUpdateAsync
 			);
 
+		SetStartRangeCurrentFrameCommand =
+			Command.Factory.Create(() =>
+			{
+				RangeStartFrame = CurrentFrame;
+				return default;
+			});
+
+		SetEndRangeCurrentFrameCommand =
+			Command.Factory.Create(() =>
+			{
+				RangeEndFrame = CurrentFrame;
+				return default;
+			});
+
+		SetFilterTimer();
+	}
+
+	void SetFilterTimer()
+	{
 		// フィルタ更新用のタイマーを初期化
 		_filterTimer = new DispatcherTimer
 		{
@@ -400,6 +423,22 @@ public class MainViewModel
 			_needsFilterUpdate = false; // 即座に実行したのでタイマー実行を防ぐ
 		}
 
+		return default;
+	}
+
+	[PropertyChanged(nameof(RangeStartFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask RangeStartFrameChangedAsync(int value)
+	{
+		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
+		return default;
+	}
+
+	[PropertyChanged(nameof(RangeEndFrame))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask RangeEndFrameChangedAsync(int value)
+	{
+		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
 		return default;
 	}
 
