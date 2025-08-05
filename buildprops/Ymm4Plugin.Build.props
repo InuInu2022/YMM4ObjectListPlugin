@@ -112,26 +112,52 @@
 
     <!-- PublishDirが空なので、OutputPathから直接コピー -->
     <ItemGroup>
-      <!-- 必要なファイルのみを選択 -->
+      <!-- メインDLL -->
       <FilesToCopy Include="$(OutputPath)$(AssemblyName).dll" />
+
+      <!-- すべてのDLLファイルを含める（ただし除外設定あり） -->
+      <FilesToCopy Include="$(OutputPath)*.dll" />
+
+      <!-- その他の必要ファイル -->
       <FilesToCopy Include="$(OutputPath)README.md" />
       <FilesToCopy Include="$(OutputPath)LICENSE" />
-      <!-- 実行時ライセンスのみ（開発用ライセンスを除外） -->
-      <FilesToCopy Include="$(OutputPath)licenses\BigHelp.Http__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\ByteSize__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\Dynamitey__*.txt" />
-      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Build__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Core.Wpf__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\Epoxy.Wpf__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\GithubReleaseDownloader__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\ILRepack.Lib.MSBuild.Task__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\ImpromptuInterface__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\Mayerch1.GithubUpdateCheck__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\Newtonsoft.Json__*.html" />
-      <FilesToCopy Include="$(OutputPath)licenses\YMM4ObjectListPlugin.md" />
+
+      <!-- すべてのライセンスファイルを含める -->
+      <FilesToCopy Include="$(OutputPath)licenses\*.html" />
+      <FilesToCopy Include="$(OutputPath)licenses\*.txt" />
+      <FilesToCopy Include="$(OutputPath)licenses\*.md" />
+
       <!-- Readmeフォルダ -->
-      <FilesToCopy Include="$(OutputPath)Readme\YmmeUtil\README.md" />
+      <FilesToCopy Include="$(OutputPath)Readme\**\*.md" />
     </ItemGroup>
+
+    <!-- 不要なDLLファイルを除外（YMM4本体のDLLなど） -->
+    <ItemGroup>
+      <!-- YMM4_PATHにあるDLLファイルを動的に取得 -->
+      <Ymm4SystemDlls Include="$(YMM4_PATH)\*.dll" />
+
+      <!-- YMM4本体のDLLを除外対象に追加 -->
+      <FilesToCopy Remove="@(Ymm4SystemDlls->'$(OutputPath)%(Filename)%(Extension)')" />
+
+      <!-- 開発用ライセンスファイルを除外 -->
+      <FilesToCopy Remove="$(OutputPath)licenses\Microsoft.CodeAnalysis.Analyzers__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\Microsoft.CSharp__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\Microsoft.NETCore.*__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\Microsoft.VisualStudio.Threading.Analyzers__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\Meziantou.Analyzer__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\MinVer__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\Roslynator.*__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\SatorImaging.*__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\SharpSource__*.txt" />
+      <FilesToCopy Remove="$(OutputPath)licenses\System.*__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\ConcurrencyLab.ParallelChecker__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\ParallelHelper__*.html" />
+      <FilesToCopy Remove="$(OutputPath)licenses\SonarAnalyzer.CSharp__*.html" />
+    </ItemGroup>
+
+    <!-- デバッグ用：除外されるDLLの一覧表示 -->
+    <Message Text="=== YMM4 System DLLs to exclude ===" Importance="high" />
+    <Message Text="%(Ymm4SystemDlls.Filename)%(Ymm4SystemDlls.Extension)" Importance="high" />
 
     <Message Text="=== Files to copy ===" Importance="high" />
     <Message Text="%(FilesToCopy.Identity)" Importance="high" />
@@ -146,16 +172,18 @@
     <Copy SourceFiles="$(OutputPath)LICENSE"
           DestinationFiles="$(PackageFolder)\LICENSE" />
 
-    <!-- ライセンスファイルをlicensesフォルダに配置 -->
+    <!-- 選択されたファイルをすべてコピー -->
+    <Copy SourceFiles="@(FilesToCopy)"
+          DestinationFiles="@(FilesToCopy->'$(PackageFolder)\%(Filename)%(Extension)')"
+          Condition="!$([System.String]::new('%(FilesToCopy.Identity)').Contains('licenses\')) And !$([System.String]::new('%(FilesToCopy.Identity)').Contains('Readme\'))" />
+
+    <!-- ライセンスファイルは専用フォルダに -->
     <ItemGroup>
-      <LicenseFiles Include="$(OutputPath)licenses\*.html" />
-      <LicenseFiles Include="$(OutputPath)licenses\*.txt" />
-      <LicenseFiles Include="$(OutputPath)licenses\*.md" />
-      <LicenseFiles Include="$(OutputPath)licenses\YMM4ObjectListPlugin.md" />
+      <LicenseFilesToCopy Include="@(FilesToCopy)" Condition="$([System.String]::new('%(FilesToCopy.Identity)').Contains('licenses\'))" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(LicenseFiles)"
-          DestinationFiles="@(LicenseFiles->'$(PackageFolder)\licenses\%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(LicenseFilesToCopy)"
+          DestinationFiles="@(LicenseFilesToCopy->'$(PackageFolder)\licenses\%(Filename)%(Extension)')" />
 
     <!-- ReadmeフォルダをReadme/YmmeUtilフォルダに配置 -->
     <MakeDir Directories="$(PackageFolder)\Readme\YmmeUtil" />

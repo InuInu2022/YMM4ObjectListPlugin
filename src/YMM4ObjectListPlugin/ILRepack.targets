@@ -24,6 +24,11 @@
       <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" />
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
+      <!--
+      Material.Iconsはdllマージすると表示されない
+      <InputAssemblies Include="$(OutputPath)\Material.Icons.dll" Condition="Exists('$(OutputPath)\Material.Icons.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Material.Icons.WPF.dll" Condition="Exists('$(OutputPath)\Material.Icons.WPF.dll')" />
+      -->
 
       <!-- YmmeUtilの依存関係も追加 -->
       <InputAssemblies Include="$(OutputPath)\BigHelp.Http.dll" Condition="Exists('$(OutputPath)\BigHelp.Http.dll')" />
@@ -72,6 +77,12 @@
     <Delete Files="$(OutputPath)\Epoxy.Wpf.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Dynamitey.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ImpromptuInterface.dll" ContinueOnError="true" />
+
+    <!-- Material.Icons関連を削除 -->
+    <!--
+    <Delete Files="$(OutputPath)\Material.Icons.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\Material.Icons.WPF.dll" ContinueOnError="true" />
+    -->
 
     <!-- YmmeUtilの依存関係も削除 -->
     <Delete Files="$(OutputPath)\BigHelp.Http.dll" ContinueOnError="true" />
