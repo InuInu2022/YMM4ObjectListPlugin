@@ -395,26 +395,40 @@
         </Style>
       </DataGrid.Resources>
 
-      <!--  グルーピング用のGroupStyle追加  -->
+      <!--  グルーピング用のGroupStyle修正  -->
       <DataGrid.GroupStyle>
         <GroupStyle>
-          <GroupStyle.HeaderTemplate>
-            <DataTemplate>
-              <StackPanel Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" Orientation="Horizontal">
-                <TextBlock
-                  Margin="5,2"
-                  VerticalAlignment="Center"
-                  FontWeight="Bold"
-                  Text="{Binding Name}"
-                  />
-                <TextBlock
-                  Margin="2"
-                  VerticalAlignment="Center"
-                  Text="{Binding ItemCount, StringFormat=({0})}"
-                  />
-              </StackPanel>
-            </DataTemplate>
-          </GroupStyle.HeaderTemplate>
+          <GroupStyle.ContainerStyle>
+            <Style TargetType="{x:Type GroupItem}">
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="{x:Type GroupItem}">
+                    <Expander IsExpanded="True">
+                      <Expander.Header>
+                        <DockPanel>
+                          <TextBlock
+                            DockPanel.Dock="Right"
+                            Margin="2"
+                            VerticalAlignment="Center"
+                            Text="{Binding ItemCount, StringFormat=x{0}}"
+                            />
+                          <TextBlock
+                            DockPanel.Dock="Left"
+                            Margin="5,2"
+                            VerticalAlignment="Center"
+                            FontWeight="Bold"
+                            Text="{Binding Name}"
+                            />
+
+                        </DockPanel>
+                      </Expander.Header>
+                      <ItemsPresenter />
+                    </Expander>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </GroupStyle.ContainerStyle>
         </GroupStyle>
       </DataGrid.GroupStyle>
 

@@ -395,31 +395,41 @@ public class MainViewModel
 		if (IsCategoryGroupingSelected)
 		{
 			FilteredItems.GroupDescriptions.Add(
-				new PropertyGroupDescription("Category")
+				new PropertyGroupDescription(
+					nameof(ObjectListItem.Category)
+				)
 			);
 		}
 		else if (IsLayerGroupingSelected)
 		{
 			FilteredItems.GroupDescriptions.Add(
-				new PropertyGroupDescription("Layer")
+				new PropertyGroupDescription(
+					nameof(ObjectListItem.Layer)
+				)
 			);
 		}
 		else if (IsGroupGroupingSelected)
 		{
 			FilteredItems.GroupDescriptions.Add(
-				new PropertyGroupDescription("Group")
+				new PropertyGroupDescription(
+					nameof(ObjectListItem.Group)
+				)
 			);
 		}
 		else if (IsLockedGroupingSelected)
 		{
 			FilteredItems.GroupDescriptions.Add(
-				new PropertyGroupDescription("IsLocked")
+				new PropertyGroupDescription(
+					nameof(ObjectListItem.IsLockedLabel)
+				)
 			);
 		}
 		else if (IsHiddenGroupingSelected)
 		{
 			FilteredItems.GroupDescriptions.Add(
-				new PropertyGroupDescription("IsHidden")
+				new PropertyGroupDescription(
+					nameof(ObjectListItem.IsHiddenLabel)
+				)
 			);
 		}
 		// IsNoneGroupingSelectedの場合は何もしない（グルーピングなし）

@@ -72,6 +72,10 @@ public class ObjectListItem : INotifyPropertyChanged
 		set => _item.IsHidden = value;
 	}
 
+	public string IsLockedLabel =>
+		IsLocked ? "🔒 Lock" : "🔓 Unlock";
+	public string IsHiddenLabel => IsHidden ? "🙈" : "👁";
+
 	void OnItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
 	{
 		// アイテムのプロパティが変更されたら、対応するプロパティの変更通知を送る
@@ -91,9 +95,11 @@ public class ObjectListItem : INotifyPropertyChanged
 				break;
 			case nameof(IWrapBaseItem.IsLocked):
 				OnPropertyChanged(nameof(IsLocked));
+				OnPropertyChanged(nameof(IsLockedLabel));
 				break;
 			case nameof(IWrapBaseItem.IsHidden):
 				OnPropertyChanged(nameof(IsHidden));
+				OnPropertyChanged(nameof(IsHiddenLabel));
 				break;
 			case nameof(IWrapBaseItem.Length):
 				OnPropertyChanged(nameof(Length));
