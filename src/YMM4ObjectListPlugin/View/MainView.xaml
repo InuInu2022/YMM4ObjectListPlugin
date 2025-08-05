@@ -83,7 +83,7 @@
         IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
         >
         <ToggleButton.Style>
-          <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+          <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
             <Setter Property="Content">
               <Setter.Value>
                 <materialIcons:MaterialIconExt Kind="Filter" Size="16" />
@@ -146,8 +146,7 @@
 
             <!--  フィルターセクション  -->
             <StackPanel Orientation="Horizontal">
-              <materialIcons:MaterialIconExt
-              Kind="FilterPlus" Size="16" />
+              <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
               <TextBlock
                 Margin="5,0,5,5"
                 FontWeight="Bold"
@@ -182,10 +181,8 @@
             <Separator Margin="0,5" />
 
             <!--  グルーピングセクション  -->
-            <!-- TODO:実装
             <StackPanel Orientation="Horizontal">
-              <materialIcons:MaterialIconExt
-              Kind="FormatListGroup" Size="16" />
+              <materialIcons:MaterialIconExt Kind="FormatListGroup" Size="16" />
               <TextBlock
                 Margin="5,5,5,5"
                 FontWeight="Bold"
@@ -230,7 +227,23 @@
               IsChecked="{Binding IsGroupGroupingSelected}"
               />
 
-            -->
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="IsLocked"
+              Content="ロック状態"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsLockedGroupingSelected}"
+              />
+
+            <RadioButton
+              Margin="10,2"
+              Command="{Binding SetGroupingCommand}"
+              CommandParameter="IsHidden"
+              Content="表示状態"
+              GroupName="GroupingOptions"
+              IsChecked="{Binding IsHiddenGroupingSelected}"
+              />
 
           </StackPanel>
         </Border>
@@ -303,8 +316,7 @@
 
         <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
           <DockPanel>
-            <Button DockPanel.Dock="Left"
-              Command="{Binding SetStartRangeCurrentFrameCommand}">
+            <Button Command="{Binding SetStartRangeCurrentFrameCommand}" DockPanel.Dock="Left">
               <Label ToolTip="現在のフレームから開始範囲にする">
                 <materialIcons:MaterialIconExt Kind="ClockStart" Size="16" />
               </Label>
@@ -329,8 +341,7 @@
 
         <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
           <DockPanel>
-            <Button DockPanel.Dock="Left"
-              Command="{Binding SetEndRangeCurrentFrameCommand}">
+            <Button Command="{Binding SetEndRangeCurrentFrameCommand}" DockPanel.Dock="Left">
               <Label ToolTip="現在のフレームまで終了範囲にする">
                 <materialIcons:MaterialIconExt Kind="ClockEnd" Size="16" />
               </Label>
@@ -347,10 +358,11 @@
         </Border>
 
         <Label
-          Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
-          Foreground="Red"
-          Content="{materialIcons:MaterialIconExt Kind=AlertOctagram, Size=20}"
           VerticalAlignment="Center"
+          Content="{materialIcons:MaterialIconExt Kind=AlertOctagram,
+                                                  Size=20}"
+          Foreground="Red"
+          Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
           />
       </StackPanel>
     </StackPanel>
@@ -372,6 +384,7 @@
       <epoxy:EventBinder.Events>
         <epoxy:Event Command="{Binding SelectionChangedCommand}" EventName="SelectionChanged" />
       </epoxy:EventBinder.Events>
+
       <DataGrid.Resources>
         <Style TargetType="DataGridCell">
           <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -381,6 +394,29 @@
           <Setter Property="TextAlignment" Value="Center" />
         </Style>
       </DataGrid.Resources>
+
+      <!--  グルーピング用のGroupStyle追加  -->
+      <DataGrid.GroupStyle>
+        <GroupStyle>
+          <GroupStyle.HeaderTemplate>
+            <DataTemplate>
+              <StackPanel Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" Orientation="Horizontal">
+                <TextBlock
+                  Margin="5,2"
+                  VerticalAlignment="Center"
+                  FontWeight="Bold"
+                  Text="{Binding Name}"
+                  />
+                <TextBlock
+                  Margin="2"
+                  VerticalAlignment="Center"
+                  Text="{Binding ItemCount, StringFormat=({0})}"
+                  />
+              </StackPanel>
+            </DataTemplate>
+          </GroupStyle.HeaderTemplate>
+        </GroupStyle>
+      </DataGrid.GroupStyle>
 
       <!--  DataGridで共通スタイルを使用  -->
       <DataGrid.ColumnHeaderStyle>

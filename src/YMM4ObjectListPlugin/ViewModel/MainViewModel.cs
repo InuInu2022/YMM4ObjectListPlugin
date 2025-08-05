@@ -52,10 +52,16 @@ public class MainViewModel
 	public bool IsRangeFilterSelected { get; set; }
 
 	// グルーピング選択状態
+	#region grouping_option
+
 	public bool IsNoneGroupingSelected { get; set; } = true;
 	public bool IsCategoryGroupingSelected { get; set; }
 	public bool IsLayerGroupingSelected { get; set; }
 	public bool IsGroupGroupingSelected { get; set; }
+	public bool IsLockedGroupingSelected { get; set; }
+	public bool IsHiddenGroupingSelected { get; set; }
+
+	#endregion grouping_option
 
 	public int CurrentFrame { get; set; }
 	public int RangeStartFrame { get; set; }
@@ -114,6 +120,14 @@ public class MainViewModel
 				RangeEndFrame = CurrentFrame;
 				return default;
 			});
+
+		SetGroupingCommand = Command.Factory.Create<string>(
+			(groupingType) =>
+			{
+				SetGrouping(groupingType);
+				return default;
+			}
+		);
 
 		SetFilterTimer();
 	}
@@ -333,6 +347,84 @@ public class MainViewModel
 		};
 	}
 
+	void SetGrouping(string groupingType)
+	{
+		// すべてのグルーピング選択をリセット
+		IsNoneGroupingSelected = false;
+		IsCategoryGroupingSelected = false;
+		IsLayerGroupingSelected = false;
+		IsGroupGroupingSelected = false;
+		IsLockedGroupingSelected = false;
+		IsHiddenGroupingSelected = false;
+
+		// 選択されたグルーピングを設定
+		switch (groupingType)
+		{
+			case "None":
+				IsNoneGroupingSelected = true;
+				break;
+			case "Category":
+				IsCategoryGroupingSelected = true;
+				break;
+			case "Layer":
+				IsLayerGroupingSelected = true;
+				break;
+			case "Group":
+				IsGroupGroupingSelected = true;
+				break;
+			case "IsLocked":
+				IsLockedGroupingSelected = true;
+				break;
+			case "IsHidden":
+				IsHiddenGroupingSelected = true;
+				break;
+		}
+
+		ApplyGrouping();
+	}
+
+	void ApplyGrouping()
+	{
+		if (FilteredItems is null)
+		{
+			return;
+		}
+
+		FilteredItems.GroupDescriptions.Clear();
+
+		if (IsCategoryGroupingSelected)
+		{
+			FilteredItems.GroupDescriptions.Add(
+				new PropertyGroupDescription("Category")
+			);
+		}
+		else if (IsLayerGroupingSelected)
+		{
+			FilteredItems.GroupDescriptions.Add(
+				new PropertyGroupDescription("Layer")
+			);
+		}
+		else if (IsGroupGroupingSelected)
+		{
+			FilteredItems.GroupDescriptions.Add(
+				new PropertyGroupDescription("Group")
+			);
+		}
+		else if (IsLockedGroupingSelected)
+		{
+			FilteredItems.GroupDescriptions.Add(
+				new PropertyGroupDescription("IsLocked")
+			);
+		}
+		else if (IsHiddenGroupingSelected)
+		{
+			FilteredItems.GroupDescriptions.Add(
+				new PropertyGroupDescription("IsHidden")
+			);
+		}
+		// IsNoneGroupingSelectedの場合は何もしない（グルーピングなし）
+	}
+
 	void OnTimelineChanged(
 		object? sender,
 		PropertyChangedEventArgs e
@@ -465,6 +557,7 @@ public class MainViewModel
 			Items
 		);
 		FilterItems();
+		ApplyGrouping();
 	}
 
 	void UpdateSceneInfo(WrapTimeLine timeLine)
