@@ -24,7 +24,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Material.Icons.WPF" Version="2.4.1" />
+    <PackageReference Include="Material.Icons.WPF" Version="2.4.1">
+      <Private>true</Private>
+      <CopyLocal>true</CopyLocal>
+    </PackageReference>
     <Reference Include="$(YMM4_PATH)\ReactiveProperty.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>

@@ -24,6 +24,8 @@
       <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" />
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Material.Icons.dll" Condition="Exists('$(OutputPath)\Material.Icons.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Material.Icons.WPF.dll" Condition="Exists('$(OutputPath)\Material.Icons.WPF.dll')" />
 
       <!-- YmmeUtilの依存関係も追加 -->
       <InputAssemblies Include="$(OutputPath)\BigHelp.Http.dll" Condition="Exists('$(OutputPath)\BigHelp.Http.dll')" />
