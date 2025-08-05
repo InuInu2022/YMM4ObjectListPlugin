@@ -25,6 +25,7 @@
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
       <!--
+      Material.Iconsはdllマージすると表示されない
       <InputAssemblies Include="$(OutputPath)\Material.Icons.dll" Condition="Exists('$(OutputPath)\Material.Icons.dll')" />
       <InputAssemblies Include="$(OutputPath)\Material.Icons.WPF.dll" Condition="Exists('$(OutputPath)\Material.Icons.WPF.dll')" />
       -->
