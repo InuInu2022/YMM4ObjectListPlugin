@@ -192,58 +192,128 @@
             </StackPanel>
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="None"
               Content="なし"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsNoneGroupingSelected}"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               />
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Category"
-              Content="カテゴリ"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsCategoryGroupingSelected}"
-              />
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
+              >
+              <StackPanel Orientation="Horizontal">
+                <Image
+                  Width="10"
+                  Margin="0,0,4,0"
+                  VerticalAlignment="Center"
+                  Source="{StaticResource mdiSitemap}"
+                  />
+                <TextBlock
+                  Text="カテゴリ" />
+              </StackPanel>
+            </RadioButton>
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Layer"
-              Content="レイヤー"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsLayerGroupingSelected}"
-              />
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
+              >
+              <StackPanel Orientation="Horizontal">
+                <Image
+                  Width="10"
+                  Margin="0,0,4,0"
+                  VerticalAlignment="Center"
+                  Source="{StaticResource mdiLayers}"
+                  />
+                <TextBlock
+                  Text="{x:Static loc:Texts.BaseItemLayerName}"
+                  />
+              </StackPanel>
+            </RadioButton>
+
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Group"
-              Content="グループ"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsGroupGroupingSelected}"
-              />
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
+              >
+              <StackPanel Orientation="Horizontal">
+                <Image
+                  Width="10"
+                  Margin="0,0,4,0"
+                  VerticalAlignment="Center"
+                  Source="{StaticResource mdiGroup}"
+                  ToolTip="{x:Static loc:Texts.GroupLabel}"
+                  />
+                <TextBlock
+                  Text="{x:Static loc:Texts.GroupLabel}"
+                  />
+              </StackPanel>
+            </RadioButton>
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsLocked"
-              Content="ロック状態"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsLockedGroupingSelected}"
-              />
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
+              >
+              <StackPanel Orientation="Horizontal">
+                <Image
+                  Width="10"
+                  Margin="0,0,4,0"
+                  VerticalAlignment="Center"
+                  Source="{StaticResource mdiLock}"
+                  ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
+                  />
+                <TextBlock
+                  Text="{x:Static loc:Texts.BaseItemIsLockedName}" />
+              </StackPanel>
+            </RadioButton>
 
             <RadioButton
-              Margin="10,2"
+              Margin="10,0"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsHidden"
-              Content="表示状態"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsHiddenGroupingSelected}"
-              />
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
+              >
+              <StackPanel Orientation="Horizontal">
+                <Image
+                  Width="10"
+                  Margin="0,0,4,0"
+                  VerticalAlignment="Center"
+                  Source="{StaticResource mdiEyeOffOutline}"
+                  ToolTip="{x:Static loc:Texts.BaseItemIsHiddenName}"
+                  />
+                <TextBlock
+                  Text="{x:Static loc:Texts.BaseItemIsHiddenName}"
+                  VerticalAlignment="Center"
+                  />
+              </StackPanel>
+            </RadioButton>
 
           </StackPanel>
         </Border>
