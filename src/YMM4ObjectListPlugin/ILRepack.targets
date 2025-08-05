@@ -75,6 +75,10 @@
     <Delete Files="$(OutputPath)\Dynamitey.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ImpromptuInterface.dll" ContinueOnError="true" />
 
+    <!-- Material.Icons関連を削除 -->
+    <Delete Files="$(OutputPath)\Material.Icons.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\Material.Icons.WPF.dll" ContinueOnError="true" />
+
     <!-- YmmeUtilの依存関係も削除 -->
     <Delete Files="$(OutputPath)\BigHelp.Http.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ByteSize.dll" ContinueOnError="true" />
