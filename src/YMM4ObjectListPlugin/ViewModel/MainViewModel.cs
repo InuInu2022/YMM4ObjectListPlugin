@@ -378,6 +378,13 @@ public class MainViewModel
 			case "IsHidden":
 				IsHiddenGroupingSelected = true;
 				break;
+			default:
+				IsNoneGroupingSelected = true;
+				Debug.Assert(
+					true,
+					$"Unknown grouping type: {groupingType}"
+				);
+				break;
 		}
 
 		ApplyGrouping();
