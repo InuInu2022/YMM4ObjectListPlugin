@@ -2,18 +2,21 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
+
 using Epoxy;
+
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
+
+using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.ViewModels;
 
 namespace ObjectList.ViewModel;
@@ -68,6 +71,10 @@ public class MainViewModel
 	public int RangeEndFrame { get; set; }
 	public bool IsRangeInvalid { get; set; } = true;
 
+	public Pile<FrameNumberEditor> RangeStartPile { get; } =
+		Pile.Factory.Create<FrameNumberEditor>();
+	public Pile<FrameNumberEditor> RangeEndPile { get; } =
+		Pile.Factory.Create<FrameNumberEditor>();
 
 	public string SceneName { get; set; } = string.Empty;
 	public string SceneHz { get; set; } = string.Empty;
@@ -551,6 +558,40 @@ public class MainViewModel
 		}
 
 		return default;
+	}
+
+	[PropertyChanged(nameof(IsRangeFilterSelected))]
+	[SuppressMessage("", "IDE0051")]
+	[SuppressMessage(
+		"Usage",
+		"MA0004:Use Task.ConfigureAwait",
+		Justification = "<保留中>"
+	)]
+	private async ValueTask IsRangeFilterSelectedChangedAsync(
+		bool value
+	)
+	{
+		if (value)
+		{
+			// Rangeフィルタが選択された場合の処理
+			var isSuccess = ItemEditorUtil.TryGetItemEditor(
+				out var itemEditor
+			);
+			if (!isSuccess || itemEditor is null)
+			{
+				return;
+			}
+			await RangeStartPile.RentAsync(editor =>
+			{
+				editor.SetEditorInfo(itemEditor.EditorInfo);
+				return ValueTask.CompletedTask;
+			});
+			await RangeEndPile.RentAsync(editor =>
+			{
+				editor.SetEditorInfo(itemEditor.EditorInfo);
+				return ValueTask.CompletedTask;
+			});
+		}
 	}
 
 	[PropertyChanged(nameof(RangeStartFrame))]

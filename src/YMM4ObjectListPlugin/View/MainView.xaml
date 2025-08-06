@@ -387,6 +387,7 @@
               Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeStartFrame, Mode=TwoWay}"
+              epoxy:Anchor.Pile="{Binding RangeStartPile}"
               />
 
           </DockPanel>
@@ -412,6 +413,7 @@
               Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeEndFrame, Mode=TwoWay}"
+              epoxy:Anchor.Pile="{Binding RangeEndPile}"
               />
           </DockPanel>
         </Border>
