@@ -465,6 +465,8 @@ public class MainViewModel
 				break;
 			case nameof(WrapTimeLine.Length):
 			case nameof(WrapTimeLine.Name):
+			case nameof(WrapTimeLine.Id):
+			case nameof(WrapTimeLine.MaxLayer):
 				UpdateSceneInfo(timeLine);
 				break;
 
