@@ -102,17 +102,6 @@
                 </Setter>
                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
               </MultiDataTrigger>
-              <MultiDataTrigger>
-                <MultiDataTrigger.Conditions>
-                  <Condition Binding="{Binding IsNoneGroupingSelected}" Value="False" />
-                </MultiDataTrigger.Conditions>
-                <Setter Property="Content">
-                  <Setter.Value>
-                    <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
-                  </Setter.Value>
-                </Setter>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-              </MultiDataTrigger>
             </Style.Triggers>
           </Style>
         </ToggleButton.Style>

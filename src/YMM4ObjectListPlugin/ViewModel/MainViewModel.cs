@@ -476,6 +476,13 @@ public class MainViewModel
 		{
 			return;
 		}
+		// 既存のイベント購読を解除
+		foreach (var item in Items)
+		{
+			item.PropertyChanged -=
+				OnObjectListItemPropertyChanged;
+		}
+
 		// アイテムビューのモデルが取得できた場合は、アイテムを更新する
 		Items = new ObservableCollection<ObjectListItem>(
 			itemViewModels.Select(
@@ -563,11 +570,91 @@ public class MainViewModel
 
 	void OnItemsChanged()
 	{
+		// ObjectListItemのプロパティ変更イベントを購読
+		foreach (var item in Items)
+		{
+			item.PropertyChanged +=
+				OnObjectListItemPropertyChanged;
+		}
+
 		FilteredItems = CollectionViewSource.GetDefaultView(
 			Items
 		);
 		FilterItems();
 		ApplyGrouping();
+	}
+
+	void OnObjectListItemPropertyChanged(
+		object? sender,
+		PropertyChangedEventArgs e
+	)
+	{
+		// IsLockedやIsHiddenが変更された場合、CollectionViewを更新
+		if (
+			(
+				string.Equals(
+					e.PropertyName,
+					nameof(ObjectListItem.IsLocked),
+					StringComparison.Ordinal
+				)
+				|| string.Equals(
+					e.PropertyName,
+					nameof(ObjectListItem.IsHidden),
+					StringComparison.Ordinal
+				)
+				|| string.Equals(
+					e.PropertyName,
+					nameof(ObjectListItem.IsLockedLabel),
+					StringComparison.Ordinal
+				)
+				|| string.Equals(
+					e.PropertyName,
+					nameof(ObjectListItem.IsHiddenLabel),
+					StringComparison.Ordinal
+				)
+			)
+			&& (
+				(
+					IsLockedGroupingSelected
+					&& (
+						string.Equals(
+							e.PropertyName,
+							nameof(ObjectListItem.IsLocked),
+							StringComparison.Ordinal
+						)
+						|| string.Equals(
+							e.PropertyName,
+							nameof(
+								ObjectListItem.IsLockedLabel
+							),
+							StringComparison.Ordinal
+						)
+					)
+				)
+				|| (
+					IsHiddenGroupingSelected
+					&& (
+						string.Equals(
+							e.PropertyName,
+							nameof(ObjectListItem.IsHidden),
+							StringComparison.Ordinal
+						)
+						|| string.Equals(
+							e.PropertyName,
+							nameof(
+								ObjectListItem.IsHiddenLabel
+							),
+							StringComparison.Ordinal
+						)
+					)
+				)
+			)
+		)
+		{
+			_ = Application.Current.Dispatcher.BeginInvoke(
+				() => FilteredItems?.Refresh()
+			);
+		}
 	}
 
 	void UpdateSceneInfo(WrapTimeLine timeLine)
