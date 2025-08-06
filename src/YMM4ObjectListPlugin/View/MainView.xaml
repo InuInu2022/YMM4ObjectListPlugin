@@ -181,7 +181,7 @@
             </StackPanel>
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="None"
               Content="なし"
@@ -192,7 +192,7 @@
               />
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Category"
               GroupName="GroupingOptions"
@@ -213,7 +213,7 @@
             </RadioButton>
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Layer"
               GroupName="GroupingOptions"
@@ -236,7 +236,7 @@
 
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Group"
               GroupName="GroupingOptions"
@@ -259,7 +259,7 @@
             </RadioButton>
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsLocked"
               GroupName="GroupingOptions"
@@ -281,7 +281,7 @@
             </RadioButton>
 
             <RadioButton
-              Margin="10,0"
+              Margin="10,2"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsHidden"
               GroupName="GroupingOptions"
