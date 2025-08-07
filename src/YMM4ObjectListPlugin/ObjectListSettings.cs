@@ -40,6 +40,12 @@ public class ObjectListSettings
 	private bool isShowFooterSceneHz = true;
 	private bool isShowFooterSceneScreenSize;
 
+	private GroupingType selectedGroupingType =
+		GroupingType.None;
+
+	private FilterType selectedFilterType = FilterType.All;
+	private bool rangeFilterStrictMode = true;
+
 	#region footer
 	public bool IsShowFooter
 	{
@@ -128,6 +134,24 @@ public class ObjectListSettings
 
 	#endregion column
 
+	public GroupingType SelectedGroupingType
+	{
+		get => selectedGroupingType;
+		set => Set(ref selectedGroupingType, value);
+	}
+
+	public FilterType SelectedFilterType
+	{
+		get => selectedFilterType;
+		set => Set(ref selectedFilterType, value);
+	}
+
+	public bool RangeFilterStrictMode
+	{
+		get => rangeFilterStrictMode;
+		set => Set(ref rangeFilterStrictMode, value);
+	}
+
 	public override void Initialize() { }
 }
 
@@ -138,4 +162,23 @@ public enum ColumLayerType
 	Name = 1,
 
 	None = 99,
+}
+
+[Obfuscation(Exclude = true, ApplyToMembers = true)]
+public enum GroupingType
+{
+	None = 0,
+	Category = 1,
+	Layer = 2,
+	Group = 3,
+	IsLocked = 4,
+	IsHidden = 5,
+}
+
+[Obfuscation(Exclude = true, ApplyToMembers = true)]
+public enum FilterType
+{
+	All = 0,
+	UnderSeekBar = 1,
+	Range = 2,
 }

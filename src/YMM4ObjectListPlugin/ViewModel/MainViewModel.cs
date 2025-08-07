@@ -95,6 +95,9 @@ public class MainViewModel
 
 	public MainViewModel()
 	{
+		// 保存された設定を読み込み
+		LoadGroupingSettingsFromSettings();
+
 		Ready = Command.Factory.Create(
 			InitializeApplicationAsync
 		);
@@ -396,6 +399,53 @@ public class MainViewModel
 		};
 	}
 
+	void LoadGroupingSettingsFromSettings()
+	{
+		var savedGrouping = ObjectListSettings
+			.Default
+			.SelectedGroupingType;
+		SetGroupingFromEnum(savedGrouping);
+	}
+
+	void SetGroupingFromEnum(GroupingType groupingType)
+	{
+		// すべてのグルーピング選択をリセット
+		IsNoneGroupingSelected = false;
+		IsCategoryGroupingSelected = false;
+		IsLayerGroupingSelected = false;
+		IsGroupGroupingSelected = false;
+		IsLockedGroupingSelected = false;
+		IsHiddenGroupingSelected = false;
+
+		// 指定されたグルーピングを設定
+		switch (groupingType)
+		{
+			case GroupingType.None:
+				IsNoneGroupingSelected = true;
+				break;
+			case GroupingType.Category:
+				IsCategoryGroupingSelected = true;
+				break;
+			case GroupingType.Layer:
+				IsLayerGroupingSelected = true;
+				break;
+			case GroupingType.Group:
+				IsGroupGroupingSelected = true;
+				break;
+			case GroupingType.IsLocked:
+				IsLockedGroupingSelected = true;
+				break;
+			case GroupingType.IsHidden:
+				IsHiddenGroupingSelected = true;
+				break;
+			default:
+				IsNoneGroupingSelected = true;
+				break;
+		}
+
+		ApplyGrouping();
+	}
+
 	void SetGrouping(string groupingType)
 	{
 		// すべてのグルーピング選択をリセット
@@ -435,6 +485,22 @@ public class MainViewModel
 				);
 				break;
 		}
+
+		// 設定を保存
+		var enumValue = groupingType switch
+		{
+			"None" => GroupingType.None,
+			"Category" => GroupingType.Category,
+			"Layer" => GroupingType.Layer,
+			"Group" => GroupingType.Group,
+			"IsLocked" => GroupingType.IsLocked,
+			"IsHidden" => GroupingType.IsHidden,
+			_ => GroupingType.None,
+		};
+
+		ObjectListSettings.Default.SelectedGroupingType =
+			enumValue;
+		ObjectListSettings.Default.Save();
 
 		ApplyGrouping();
 	}
