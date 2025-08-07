@@ -213,6 +213,7 @@ public class MainViewModel
 		timer.Tick += TickEvent;
 		timer.Start();
 
+
 		return default;
 	}
 
@@ -277,6 +278,30 @@ public class MainViewModel
 
 	void OnHostUiReady(Window mainWindow)
 	{
+		// UI準備完了後に初期値を設定 - より確実な方法
+		Application.Current.Dispatcher.BeginInvoke(
+			() =>
+			{
+				Application.Current.Dispatcher.BeginInvoke(
+					() =>
+					{
+						// 確実に初期値を設定
+						IsRangeFilterStrictMode = true;
+						IsRangeFilterOverlapMode = false;
+
+						Debug.WriteLine(
+							$"OnHostUiReady - IsRangeFilterStrictMode: {IsRangeFilterStrictMode}"
+						);
+						Debug.WriteLine(
+							$"OnHostUiReady - IsRangeFilterOverlapMode: {IsRangeFilterOverlapMode}"
+						);
+					},
+					DispatcherPriority.DataBind
+				);
+			},
+			DispatcherPriority.Loaded
+		);
+
 		var hasTL = TimelineUtil.TryGetTimeline(
 			out var timeLine
 		);

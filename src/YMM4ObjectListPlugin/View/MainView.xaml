@@ -186,7 +186,7 @@
                 <RadioButton
                   Margin="10,2"
                   GroupName="RangeMode"
-                  IsChecked="{Binding IsRangeFilterStrictMode, Converter={ymmconv:BooleanInverterConverter}}"
+                  IsChecked="{Binding IsRangeFilterOverlapMode}"
                   >
                   <StackPanel Orientation="Horizontal">
                     <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
