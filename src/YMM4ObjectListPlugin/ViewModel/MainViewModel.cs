@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,6 +26,7 @@ namespace ObjectList.ViewModel;
 public class MainViewModel
 {
 	public Command? Ready { get; set; }
+	public Command? Unload { get; set; }
 	public Command? ReloadCommand { get; set; }
 	public Command? SelectionChangedCommand { get; set; }
 
@@ -104,6 +106,14 @@ public class MainViewModel
 			InitializeApplicationAsync
 		);
 
+		Unload = Command.Factory.Create(() =>
+		{
+			// アンロード時の処理
+			ObjectListSettings.Default.PropertyChanged -=
+				OnSettingsPropertyChanged;
+			return default;
+		});
+
 		ReloadCommand = Command.Factory.Create(() =>
 		{
 			IsReloading = true;
@@ -149,6 +159,10 @@ public class MainViewModel
 		);
 
 		SetFilterTimer();
+
+		// ObjectListSettings.Defaultの変更を監視
+		ObjectListSettings.Default.PropertyChanged +=
+			OnSettingsPropertyChanged;
 	}
 
 	void SetFilterTimer()
@@ -172,9 +186,54 @@ public class MainViewModel
 		};
 	}
 
-	ValueTask InitializeApplicationAsync()
+	async ValueTask InitializeApplicationAsync()
 	{
 		//set Title
+		SetWindowTitle();
+
+		// App loaded event
+		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
+
+		for (
+			int attempt = 0;
+			attempt < maxAttempts;
+			attempt++
+		)
+		{
+			foreach (
+				Window window in Application.Current.Windows
+			)
+			{
+				if (
+					IsRealUiWindow(window)
+					&& window.IsLoaded
+				)
+				{
+					try
+					{
+						await OnHostUiReadyAsync(window);
+						return; // 成功したら終了
+					}
+					catch (Exception ex)
+					{
+						Debug.WriteLine(
+							$"Error in OnHostUiReadyAsync: {ex.Message}"
+						);
+						return; // エラーが発生しても終了
+					}
+				}
+			}
+
+			await Task.Delay(500); // 500ms待機
+		}
+
+		Debug.WriteLine(
+			"UI window detection timed out after 30 seconds"
+		);
+	}
+
+	static void SetWindowTitle()
+	{
 		List<dynamic> windows =
 		[
 			.. Application.Current.Windows,
@@ -196,33 +255,6 @@ public class MainViewModel
 			win.Title =
 				$"YMM4 オブジェクトリスト プラグイン v{ver}";
 		}
-
-		// App loaded event
-		var timer = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromMilliseconds(500),
-		};
-		void TickEvent(object? s, EventArgs e)
-		{
-			foreach (
-				Window win in Application.Current.Windows
-			)
-			{
-				// スプラッシュではなく、実ウィンドウかを判定
-				if (IsRealUiWindow(win) && win.IsLoaded)
-				{
-					timer.Stop();
-					OnHostUiReady(win);
-					timer.Tick -= TickEvent;
-					return;
-				}
-			}
-		}
-		timer.Tick += TickEvent;
-		timer.Start();
-
-
-		return default;
 	}
 
 	static ValueTask SelectionUpdateAsync(
@@ -284,13 +316,14 @@ public class MainViewModel
 			&& window.DataContext is IMainViewModel;
 	}
 
-	void OnHostUiReady(Window mainWindow)
+	async Task OnHostUiReadyAsync(Window mainWindow)
 	{
 		// UI準備完了後に初期値を設定 - より確実な方法
-		Application.Current.Dispatcher.BeginInvoke(
+		_ = Application.Current.Dispatcher.BeginInvoke(
 			() =>
 			{
-				Application.Current.Dispatcher.BeginInvoke(
+				_ =
+					Application.Current.Dispatcher.BeginInvoke(
 					() =>
 					{
 						// 確実に初期値を設定
@@ -845,5 +878,72 @@ public class MainViewModel
 			$"{timeLine.VideoInfo.Width} x {timeLine.VideoInfo.Height}";
 
 		SceneLength = Math.Max(100, timeLine.Length);
+	}
+
+	void OnSettingsPropertyChanged(
+		object? sender,
+		PropertyChangedEventArgs e
+	)
+	{
+		_ = Application.Current.Dispatcher.BeginInvoke(() =>
+		{
+			switch (e.PropertyName)
+			{
+				case nameof(
+					ObjectListSettings.SelectedGroupingType
+				):
+					var groupingType = ObjectListSettings
+						.Default
+						.SelectedGroupingType;
+					SetGroupingFromEnum(groupingType);
+					ApplyGrouping();
+					break;
+
+				case nameof(
+					ObjectListSettings.IsShowColumnColor
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnCategory
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnLayer
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnGroup
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnFrame
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnLength
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnLock
+				):
+				case nameof(
+					ObjectListSettings.IsShowColumnHidden
+				):
+					// DataGridの列表示は自動的に更新されるはず
+					break;
+
+				case nameof(
+					ObjectListSettings.IsShowFooter
+				):
+				case nameof(
+					ObjectListSettings.IsShowFooterSceneName
+				):
+				case nameof(
+					ObjectListSettings.IsShowFooterSceneFps
+				):
+				case nameof(
+					ObjectListSettings.IsShowFooterSceneHz
+				):
+				case nameof(
+					ObjectListSettings.IsShowFooterSceneScreenSize
+				):
+					// フッター表示も自動的に更新されるはず
+					break;
+			}
+		});
 	}
 }

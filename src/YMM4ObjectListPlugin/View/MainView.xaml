@@ -17,6 +17,7 @@
   >
   <epoxy:EventBinder.Events>
     <epoxy:Event Command="{Binding Ready}" EventName="Loaded" />
+    <epoxy:Event Command="{Binding Unload}" EventName="Unloaded" />
   </epoxy:EventBinder.Events>
 
   <UserControl.Resources>

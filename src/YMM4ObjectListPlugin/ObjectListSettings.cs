@@ -1,6 +1,8 @@
-using ObjectList.View;
-using YukkuriMovieMaker.Plugin;
 using System.Reflection;
+
+using ObjectList.ViewModel;
+
+using YukkuriMovieMaker.Plugin;
 
 namespace ObjectList;
 
@@ -162,17 +164,6 @@ public enum ColumLayerType
 	Name = 1,
 
 	None = 99,
-}
-
-[Obfuscation(Exclude = true, ApplyToMembers = true)]
-public enum GroupingType
-{
-	None = 0,
-	Category = 1,
-	Layer = 2,
-	Group = 3,
-	IsLocked = 4,
-	IsHidden = 5,
 }
 
 [Obfuscation(Exclude = true, ApplyToMembers = true)]

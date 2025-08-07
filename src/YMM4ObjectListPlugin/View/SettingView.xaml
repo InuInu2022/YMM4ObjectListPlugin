@@ -204,6 +204,21 @@
             </StackPanel>
           </GroupBox>
 
+          <!--  リストグループオプション  -->
+          <GroupBox Name="ListGroupingOptions" Margin="5">
+            <GroupBox.Header>
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="FormatListGroup" Size="16" />
+                <Label Content="リストグループ表示" />
+              </StackPanel>
+            </GroupBox.Header>
+
+            <c:EnumComboBox
+              EnumType="{x:Type viewmodels:GroupingType}"
+              Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=SelectedGroupingType}"
+              Margin="5"
+               />
+          </GroupBox>
 
           <!--  フッターオプション  -->
           <GroupBox Name="FooterOptions" Margin="5">
