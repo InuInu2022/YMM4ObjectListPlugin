@@ -88,6 +88,8 @@ public class MainViewModel
 
 	public int SceneLength { get; set; } = 100;
 
+	public bool IsReloading { get; set; }
+
 	IDisposable? sceneSubscription;
 
 	private DispatcherTimer? _filterTimer;
@@ -104,6 +106,7 @@ public class MainViewModel
 
 		ReloadCommand = Command.Factory.Create(() =>
 		{
+			IsReloading = true;
 			if (
 				TimelineUtil.TryGetTimeline(
 					out var timeLine
@@ -113,6 +116,8 @@ public class MainViewModel
 				UpdateItems(timeLine);
 				UpdateSceneInfo(timeLine);
 			}
+
+			IsReloading = false;
 
 			return default;
 		});

@@ -71,6 +71,7 @@
         Command="{Binding ReloadCommand}"
         DockPanel.Dock="Right"
         ToolTip="{x:Static loc:Texts.Reload}"
+        IsEnabled="{Binding IsReloading, Converter={ymmconv:BooleanInverterConverter}}"
         >
         <Image Margin="2" Source="{StaticResource mdiReload}" />
       </Button>
