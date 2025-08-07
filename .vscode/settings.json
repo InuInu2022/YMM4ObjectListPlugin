@@ -8,5 +8,8 @@
         //outline icons color
         "symbolIcon.functionForeground":"#ffffffc5",
         "symbolIcon.methodForeground":"#f5f2b4"
-    }
+    },
+    "cSpell.words": [
+        "ymmconv"
+    ]
 }

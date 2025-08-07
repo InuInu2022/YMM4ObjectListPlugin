@@ -53,6 +53,10 @@ public class MainViewModel
 	public bool IsAllFilterSelected { get; set; } = true;
 	public bool IsUnderSeekBarFilterSelected { get; set; }
 	public bool IsRangeFilterSelected { get; set; }
+	public bool IsRangeFilterStrictMode { get; set; } =
+		true; // デフォルトは完全に範囲内
+
+	public bool IsRangeFilterOverlapMode { get; set; } // 計算プロパティから通常のプロパティに変更
 
 	// グルーピング選択状態
 	#region grouping_option
@@ -339,15 +343,28 @@ public class MainViewModel
 				);
 
 			// レンジフィルター
-			var matchesRangeFilter =
-				!IsRangeFilterSelected
-				|| (
+			bool matchesRangeFilter;
+			if (!IsRangeFilterSelected)
+			{
+				matchesRangeFilter = true;
+			}
+			else if (IsRangeFilterStrictMode)
+			{
+				// 完全に範囲内
+				matchesRangeFilter =
 					RangeStartFrame <= yourItem.Frame
 					&& RangeEndFrame
-						>= yourItem.Frame + yourItem.Length
-				);
+						>= yourItem.Frame + yourItem.Length;
+			}
+			else
+			{
+				// 範囲と重複
+				matchesRangeFilter =
+					RangeStartFrame
+						< yourItem.Frame + yourItem.Length
+					&& RangeEndFrame > yourItem.Frame;
+			}
 
-			// 両方の条件を満たす必要がある
 			return matchesSearchText
 				&& matchesSeekBarFilter
 				&& matchesRangeFilter;
@@ -592,6 +609,22 @@ public class MainViewModel
 				return ValueTask.CompletedTask;
 			});
 		}
+
+		// フィルタ選択状態が変更されたら必ずフィルタを更新
+		FilterItems();
+	}
+
+	[PropertyChanged(nameof(IsRangeFilterStrictMode))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask IsRangeFilterStrictModeChangedAsync(
+		bool value
+	)
+	{
+		// IsRangeFilterOverlapModeを連動させる
+		IsRangeFilterOverlapMode = !value;
+
+		FilterItems();
+		return default;
 	}
 
 	[PropertyChanged(nameof(RangeStartFrame))]

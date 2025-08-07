@@ -10,6 +10,7 @@
   xmlns:local="clr-namespace:ObjectList.View"
   xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:ymmconv="clr-namespace:YukkuriMovieMaker.Views.Converters;assembly=YukkuriMovieMaker.Plugin"
   d:DesignHeight="450"
   d:DesignWidth="800"
   mc:Ignorable="d"
@@ -166,6 +167,35 @@
               IsChecked="{Binding IsRangeFilterSelected}"
               />
 
+            <GroupBox
+              Margin="20,2,10,2"
+              Header="範囲フィルター"
+              Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
+              >
+              <StackPanel>
+                <RadioButton
+                  Margin="10,2"
+                  GroupName="RangeMode"
+                  IsChecked="{Binding IsRangeFilterStrictMode}"
+                  >
+                  <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
+                    <TextBlock Margin="5,0,0,0" Text="完全に範囲内" />
+                  </StackPanel>
+                </RadioButton>
+                <RadioButton
+                  Margin="10,2"
+                  GroupName="RangeMode"
+                  IsChecked="{Binding IsRangeFilterStrictMode, Converter={ymmconv:BooleanInverterConverter}}"
+                  >
+                  <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
+                    <TextBlock Margin="5,0,0,0" Text="範囲と重複" />
+                  </StackPanel>
+                </RadioButton>
+              </StackPanel>
+            </GroupBox>
+
             <!--  セパレーター  -->
             <Separator Margin="0,5" />
 
@@ -182,125 +212,116 @@
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="None"
               Content="なし"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsNoneGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               />
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Category"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsCategoryGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               >
               <StackPanel Orientation="Horizontal">
                 <Image
-                  Width="10"
+                  Width="12"
                   Margin="0,0,4,0"
                   VerticalAlignment="Center"
                   Source="{StaticResource mdiSitemap}"
                   />
-                <TextBlock
-                  Text="カテゴリ" />
+                <TextBlock Text="カテゴリ" />
               </StackPanel>
             </RadioButton>
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Layer"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsLayerGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               >
               <StackPanel Orientation="Horizontal">
                 <Image
-                  Width="10"
+                  Width="12"
                   Margin="0,0,4,0"
                   VerticalAlignment="Center"
                   Source="{StaticResource mdiLayers}"
                   />
-                <TextBlock
-                  Text="{x:Static loc:Texts.BaseItemLayerName}"
-                  />
+                <TextBlock Text="{x:Static loc:Texts.BaseItemLayerName}" />
               </StackPanel>
             </RadioButton>
 
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="Group"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsGroupGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               >
               <StackPanel Orientation="Horizontal">
                 <Image
-                  Width="10"
+                  Width="12"
                   Margin="0,0,4,0"
                   VerticalAlignment="Center"
                   Source="{StaticResource mdiGroup}"
                   ToolTip="{x:Static loc:Texts.GroupLabel}"
                   />
-                <TextBlock
-                  Text="{x:Static loc:Texts.GroupLabel}"
-                  />
+                <TextBlock Text="{x:Static loc:Texts.GroupLabel}" />
               </StackPanel>
             </RadioButton>
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsLocked"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsLockedGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               >
               <StackPanel Orientation="Horizontal">
                 <Image
-                  Width="10"
+                  Width="12"
                   Margin="0,0,4,0"
                   VerticalAlignment="Center"
                   Source="{StaticResource mdiLock}"
                   ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
                   />
-                <TextBlock
-                  Text="{x:Static loc:Texts.BaseItemIsLockedName}" />
+                <TextBlock Text="{x:Static loc:Texts.BaseItemIsLockedName}" />
               </StackPanel>
             </RadioButton>
 
             <RadioButton
               Margin="10,2"
+              VerticalAlignment="Center"
+              VerticalContentAlignment="Center"
               Command="{Binding SetGroupingCommand}"
               CommandParameter="IsHidden"
               GroupName="GroupingOptions"
               IsChecked="{Binding IsHiddenGroupingSelected}"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
               >
               <StackPanel Orientation="Horizontal">
                 <Image
-                  Width="10"
+                  Width="12"
                   Margin="0,0,4,0"
                   VerticalAlignment="Center"
                   Source="{StaticResource mdiEyeOffOutline}"
                   ToolTip="{x:Static loc:Texts.BaseItemIsHiddenName}"
                   />
-                <TextBlock
-                  Text="{x:Static loc:Texts.BaseItemIsHiddenName}"
-                  VerticalAlignment="Center"
-                  />
+                <TextBlock VerticalAlignment="Center" Text="{x:Static loc:Texts.BaseItemIsHiddenName}" />
               </StackPanel>
             </RadioButton>
 
@@ -383,21 +404,40 @@
             <c:FrameNumberEditor
               Name="RangeFilterStart"
               Width="200"
+              epoxy:Anchor.Pile="{Binding RangeStartPile}"
               DefaultValue="0"
               Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeStartFrame, Mode=TwoWay}"
-              epoxy:Anchor.Pile="{Binding RangeStartPile}"
               />
 
           </DockPanel>
         </Border>
 
-        <TextBlock
+        <StackPanel
           Margin="20,5"
+          HorizontalAlignment="Center"
           VerticalAlignment="Center"
-          Text="～"
-          />
+          Orientation="Horizontal"
+          Visibility="{Binding IsRangeFilterStrictMode, Converter={StaticResource BoolToVisibilityConverter}}"
+          ToolTip="完全に範囲内"
+          >
+          <TextBlock Text="～" />
+          <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
+          <TextBlock Text="～" />
+        </StackPanel>
+        <StackPanel
+          Margin="20,5"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Orientation="Horizontal"
+          Visibility="{Binding IsRangeFilterOverlapMode, Converter={StaticResource BoolToVisibilityConverter}}"
+          ToolTip="範囲と重複"
+          >
+          <TextBlock Text="～" />
+          <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
+          <TextBlock Text="～" />
+        </StackPanel>
 
         <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
           <DockPanel>
@@ -409,11 +449,11 @@
             <c:FrameNumberEditor
               Name="RangeFilterEnd"
               Width="200"
+              epoxy:Anchor.Pile="{Binding RangeEndPile}"
               DefaultValue="1024"
               Max="{Binding SceneLength}"
               Min="0"
               Value="{Binding RangeEndFrame, Mode=TwoWay}"
-              epoxy:Anchor.Pile="{Binding RangeEndPile}"
               />
           </DockPanel>
         </Border>
@@ -468,15 +508,15 @@
                       <Expander.Header>
                         <DockPanel>
                           <TextBlock
-                            DockPanel.Dock="Right"
                             Margin="2"
                             VerticalAlignment="Center"
+                            DockPanel.Dock="Right"
                             Text="{Binding ItemCount, StringFormat=x{0}}"
                             />
                           <TextBlock
-                            DockPanel.Dock="Left"
                             Margin="5,2"
                             VerticalAlignment="Center"
+                            DockPanel.Dock="Left"
                             FontWeight="Bold"
                             Text="{Binding Name}"
                             />
@@ -567,6 +607,7 @@
         </DataGridTextColumn>
         <DataGridTextColumn
           Width="*"
+          MinWidth="100"
           Binding="{Binding Label}"
           CanUserSort="True"
           IsReadOnly="True"
@@ -592,6 +633,7 @@
         </DataGridTextColumn>
         <DataGridTextColumn
           Width="SizeToHeader"
+          MinWidth="30"
           Binding="{Binding Layer}"
           CanUserSort="True"
           IsReadOnly="True"
@@ -611,6 +653,7 @@
         </DataGridTextColumn>
         <DataGridTextColumn
           Width="SizeToHeader"
+          MinWidth="30"
           Binding="{Binding Frame}"
           CanUserSort="True"
           IsReadOnly="True"
@@ -630,6 +673,7 @@
         </DataGridTextColumn>
         <DataGridTextColumn
           Width="SizeToHeader"
+          MinWidth="30"
           Binding="{Binding Length}"
           CanUserSort="True"
           IsReadOnly="True"
@@ -649,6 +693,7 @@
         </DataGridTextColumn>
         <DataGridTextColumn
           Width="SizeToHeader"
+          MinWidth="30"
           Binding="{Binding Group}"
           CanUserSort="True"
           IsReadOnly="True"
