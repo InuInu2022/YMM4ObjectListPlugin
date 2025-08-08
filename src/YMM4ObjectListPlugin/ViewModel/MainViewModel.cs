@@ -9,14 +9,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
-
 using Epoxy;
-
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
-
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.ViewModels;
 
@@ -25,6 +22,9 @@ namespace ObjectList.ViewModel;
 [ViewModel]
 public class MainViewModel
 {
+	// Epoxyの自動プロパティ変更通知の循環を防ぐため、初期化中は相互排他処理をスキップ
+	private bool _isInitializationComplete = false;
+
 	public Command? Ready { get; set; }
 	public Command? Unload { get; set; }
 	public Command? ReloadCommand { get; set; }
@@ -51,16 +51,14 @@ public class MainViewModel
 
 	public bool IsFilterMenuOpen { get; set; }
 
-	// フィルター選択状態
 	public bool IsAllFilterSelected { get; set; } = true;
 	public bool IsUnderSeekBarFilterSelected { get; set; }
 	public bool IsRangeFilterSelected { get; set; }
+
+	// 範囲フィルターは排他制御が必要 - ラジオボタンの仕様上、必ずどちらか一方が選択されている状態を保持
 	public bool IsRangeFilterStrictMode { get; set; } =
 		true; // デフォルトは完全に範囲内
-
-	public bool IsRangeFilterOverlapMode { get; set; } // 計算プロパティから通常のプロパティに変更
-
-	// グルーピング選択状態
+	public bool IsRangeFilterOverlapMode { get; set; } // 初期値はfalse
 	#region grouping_option
 
 	public bool IsNoneGroupingSelected { get; set; } = true;
@@ -94,12 +92,15 @@ public class MainViewModel
 
 	IDisposable? sceneSubscription;
 
+	// パフォーマンス最適化: フィルタリングを間引いて実行するためのタイマー
 	private DispatcherTimer? _filterTimer;
 	private bool _needsFilterUpdate;
 
 	public MainViewModel()
 	{
-		// 保存された設定を読み込み
+		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
+		_isInitializationComplete = false;
+
 		LoadGroupingSettingsFromSettings();
 
 		Ready = Command.Factory.Create(
@@ -108,7 +109,6 @@ public class MainViewModel
 
 		Unload = Command.Factory.Create(() =>
 		{
-			// アンロード時の処理
 			ObjectListSettings.Default.PropertyChanged -=
 				OnSettingsPropertyChanged;
 			return default;
@@ -126,11 +126,10 @@ public class MainViewModel
 				UpdateItems(timeLine);
 				UpdateSceneInfo(timeLine);
 			}
-
 			IsReloading = false;
-
 			return default;
 		});
+
 		SelectionChangedCommand =
 			Command.Factory.Create<SelectionChangedEventArgs>(
 				SelectionUpdateAsync
@@ -160,38 +159,18 @@ public class MainViewModel
 
 		SetFilterTimer();
 
-		// ObjectListSettings.Defaultの変更を監視
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
-	}
 
-	void SetFilterTimer()
-	{
-		// フィルタ更新用のタイマーを初期化
-		_filterTimer = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromMilliseconds(100), // 100ms間隔で更新
-		};
-		_filterTimer.Tick += (s, e) =>
-		{
-			if (
-				_needsFilterUpdate
-				&& IsUnderSeekBarFilterSelected
-			)
-			{
-				FilterItems();
-				_needsFilterUpdate = false;
-			}
-			_filterTimer.Stop();
-		};
+		// 初期化完了 - これ以降は相互排他制御が有効になる
+		_isInitializationComplete = true;
 	}
 
 	async ValueTask InitializeApplicationAsync()
 	{
-		//set Title
 		SetWindowTitle();
 
-		// App loaded event
+		// YMM4のUI初期化を待機 - 最大30秒間試行
 		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
 
 		for (
@@ -212,23 +191,68 @@ public class MainViewModel
 					try
 					{
 						await OnHostUiReadyAsync(window);
-						return; // 成功したら終了
+
+						// UI初期化完了後に範囲フィルターの初期値を確実に設定
+						// XAMLバインディングが準備完了してからプロパティ変更通知を送信
+						await UIThread.InvokeAsync(() =>
+						{
+							EnsureRangeFilterDefaults();
+							return default;
+						});
+
+						return;
 					}
 					catch (Exception ex)
 					{
 						Debug.WriteLine(
 							$"Error in OnHostUiReadyAsync: {ex.Message}"
 						);
-						return; // エラーが発生しても終了
+						return;
 					}
 				}
 			}
 
-			await Task.Delay(500); // 500ms待機
+			await Task.Delay(500);
 		}
 
 		Debug.WriteLine(
 			"UI window detection timed out after 30 seconds"
+		);
+	}
+
+	/// <summary>
+	/// 範囲フィルターのラジオボタン初期化
+	/// ViewModelインスタンス再利用時のUIバインディング更新用
+	/// </summary>
+	private void EnsureRangeFilterDefaults()
+	{
+		Debug.WriteLine(
+			$"EnsureRangeFilterDefaults - Before: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
+		);
+
+		// ViewModelインスタンス再利用時: 既存の正しい値をそのまま使用
+		// Epoxyに対してPropertyChanged通知を強制発生させるため、一時的に異なる値に設定してから戻す
+		var originalStrictMode = IsRangeFilterStrictMode;
+		var originalOverlapMode = IsRangeFilterOverlapMode;
+
+		// 相互排他処理を一時的に無効化
+		var wasInitialized = _isInitializationComplete;
+		_isInitializationComplete = false;
+
+		// 強制的にPropertyChanged通知を発生させる
+		// 既存の値と明確に異なる値に設定してから元に戻す
+		IsRangeFilterStrictMode = !originalStrictMode;
+		IsRangeFilterOverlapMode = !originalOverlapMode;
+
+		// 元の正しい値に戻す（これでUIに確実に反映される）
+		IsRangeFilterStrictMode = originalStrictMode;
+		IsRangeFilterOverlapMode = originalOverlapMode;
+
+		// 相互排他処理を復活
+		_isInitializationComplete = wasInitialized;
+
+		Debug.WriteLine(
+			$"EnsureRangeFilterDefaults - After: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
 	}
 
@@ -305,6 +329,7 @@ public class MainViewModel
 		return default;
 	}
 
+	// YMM4のメインUIウィンドウかどうかを判定
 	static bool IsRealUiWindow(Window window)
 	{
 		return !string.IsNullOrWhiteSpace(window.Title)
@@ -316,51 +341,31 @@ public class MainViewModel
 			&& window.DataContext is IMainViewModel;
 	}
 
-	async Task OnHostUiReadyAsync(Window mainWindow)
+	[SuppressMessage(
+		"Usage",
+		"MA0004:Use Task.ConfigureAwait",
+		Justification = "<保留中>"
+	)]
+	ValueTask OnHostUiReadyAsync(Window mainWindow)
 	{
-		// UI準備完了後に初期値を設定 - より確実な方法
-		_ = Application.Current.Dispatcher.BeginInvoke(
-			() =>
-			{
-				_ =
-					Application.Current.Dispatcher.BeginInvoke(
-					() =>
-					{
-						// 確実に初期値を設定
-						IsRangeFilterStrictMode = true;
-						IsRangeFilterOverlapMode = false;
-
-						Debug.WriteLine(
-							$"OnHostUiReady - IsRangeFilterStrictMode: {IsRangeFilterStrictMode}"
-						);
-						Debug.WriteLine(
-							$"OnHostUiReady - IsRangeFilterOverlapMode: {IsRangeFilterOverlapMode}"
-						);
-					},
-					DispatcherPriority.DataBind
-				);
-			},
-			DispatcherPriority.Loaded
-		);
-
 		var hasTL = TimelineUtil.TryGetTimeline(
 			out var timeLine
 		);
 
 		if (!hasTL || timeLine is null)
-			return;
+			return default;
 
 		var raw = timeLine.RawTimeline;
 
+		// YMM4タイムラインの変更を監視
 		if (raw is INotifyPropertyChanged target)
 		{
-			//監視する
 			target.PropertyChanged += OnTimelineChanged;
-			// ここでタイムラインの変更を反映させる
 			UpdateItems(timeLine);
 			UpdateSceneInfo(timeLine);
 		}
 
+		// シーン切り替えも監視
 		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
 			out var timeLineVm
 		);
@@ -377,6 +382,7 @@ public class MainViewModel
 					}
 				});
 		}
+		return default;
 	}
 
 	void FilterItems()
@@ -408,7 +414,7 @@ public class MainViewModel
 						<= yourItem.Frame + yourItem.Length
 				);
 
-			// レンジフィルター
+			// 範囲フィルター - 2つのモードで異なる判定ロジック
 			bool matchesRangeFilter;
 			if (!IsRangeFilterSelected)
 			{
@@ -416,7 +422,7 @@ public class MainViewModel
 			}
 			else if (IsRangeFilterStrictMode)
 			{
-				// 完全に範囲内
+				// 完全に範囲内モード: オブジェクト全体が指定範囲内にある
 				matchesRangeFilter =
 					RangeStartFrame <= yourItem.Frame
 					&& RangeEndFrame
@@ -424,7 +430,7 @@ public class MainViewModel
 			}
 			else
 			{
-				// 範囲と重複
+				// 範囲と重複モード: オブジェクトが指定範囲と少しでも重複している
 				matchesRangeFilter =
 					RangeStartFrame
 						< yourItem.Frame + yourItem.Length
@@ -481,7 +487,11 @@ public class MainViewModel
 				break;
 		}
 
-		ApplyGrouping();
+		// 初期化完了後のみApplyGrouping()を実行
+		if (_isInitializationComplete)
+		{
+			ApplyGrouping();
+		}
 	}
 
 	void SetGrouping(string groupingType)
@@ -592,7 +602,6 @@ public class MainViewModel
 				)
 			);
 		}
-		// IsNoneGroupingSelectedの場合は何もしない（グルーピングなし）
 	}
 
 	void OnTimelineChanged(
@@ -600,13 +609,13 @@ public class MainViewModel
 		PropertyChangedEventArgs e
 	)
 	{
-		//Debug.WriteLine($"Property changed: {e.PropertyName}");
-
 		if (
 			!TimelineUtil.TryGetTimeline(out var timeLine)
 			|| timeLine is null
 		)
+		{
 			return;
+		}
 
 		switch (e.PropertyName)
 		{
@@ -622,7 +631,6 @@ public class MainViewModel
 			case nameof(WrapTimeLine.MaxLayer):
 				UpdateSceneInfo(timeLine);
 				break;
-
 			default:
 				break;
 		}
@@ -638,6 +646,7 @@ public class MainViewModel
 		{
 			return;
 		}
+
 		// 既存のイベント購読を解除
 		foreach (var item in Items)
 		{
@@ -645,7 +654,6 @@ public class MainViewModel
 				OnObjectListItemPropertyChanged;
 		}
 
-		// アイテムビューのモデルが取得できた場合は、アイテムを更新する
 		Items = new ObservableCollection<ObjectListItem>(
 			itemViewModels.Select(
 				item => new ObjectListItem(item)
@@ -666,7 +674,7 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask CurrentFrameChangedAsync(int value)
 	{
-		//オプション有効時にフィルタかける（間引き処理）
+		// シークバーフィルター有効時のパフォーマンス最適化: フィルタリングを間引き処理
 		if (IsUnderSeekBarFilterSelected)
 		{
 			_needsFilterUpdate = true;
@@ -684,14 +692,13 @@ public class MainViewModel
 		bool value
 	)
 	{
-		// タイマーを使って確実にフィルタを実行
 		_needsFilterUpdate = true;
 		if (_filterTimer?.IsEnabled != true)
 		{
 			_filterTimer?.Start();
 		}
 
-		// さらに、即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
+		// 即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
 		if (
 			value
 			&& TimelineUtil.TryGetTimeline(out var timeLine)
@@ -700,7 +707,7 @@ public class MainViewModel
 		{
 			CurrentFrame = timeLine.CurrentFrame;
 			FilterItems();
-			_needsFilterUpdate = false; // 即座に実行したのでタイマー実行を防ぐ
+			_needsFilterUpdate = false;
 		}
 
 		return default;
@@ -719,7 +726,7 @@ public class MainViewModel
 	{
 		if (value)
 		{
-			// Rangeフィルタが選択された場合の処理
+			// 範囲指定用のフレーム番号エディターを初期化
 			var isSuccess = ItemEditorUtil.TryGetItemEditor(
 				out var itemEditor
 			);
@@ -737,9 +744,17 @@ public class MainViewModel
 				editor.SetEditorInfo(itemEditor.EditorInfo);
 				return ValueTask.CompletedTask;
 			});
+
+			// ラジオボタンの排他制御: 両方falseの状態を防ぐ
+			if (
+				!IsRangeFilterStrictMode
+				&& !IsRangeFilterOverlapMode
+			)
+			{
+				IsRangeFilterStrictMode = true;
+			}
 		}
 
-		// フィルタ選択状態が変更されたら必ずフィルタを更新
 		FilterItems();
 	}
 
@@ -749,8 +764,47 @@ public class MainViewModel
 		bool value
 	)
 	{
-		// IsRangeFilterOverlapModeを連動させる
-		IsRangeFilterOverlapMode = !value;
+		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
+		if (!_isInitializationComplete)
+		{
+			return default;
+		}
+
+		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
+		if (value)
+		{
+			IsRangeFilterOverlapMode = false;
+		}
+		else if (!IsRangeFilterOverlapMode)
+		{
+			IsRangeFilterOverlapMode = true;
+		}
+
+		FilterItems();
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsRangeFilterOverlapMode))]
+	[SuppressMessage("", "IDE0051")]
+	private ValueTask IsRangeFilterOverlapModeChangedAsync(
+		bool value
+	)
+	{
+		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
+		if (!_isInitializationComplete)
+		{
+			return default;
+		}
+
+		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
+		if (value)
+		{
+			IsRangeFilterStrictMode = false;
+		}
+		else if (!IsRangeFilterStrictMode)
+		{
+			IsRangeFilterStrictMode = true;
+		}
 
 		FilterItems();
 		return default;
@@ -760,7 +814,6 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask RangeStartFrameChangedAsync(int value)
 	{
-		//開始フレーム
 		ValidateRange();
 		return default;
 	}
@@ -769,7 +822,6 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask RangeEndFrameChangedAsync(int value)
 	{
-		//終了フレーム
 		ValidateRange();
 		return default;
 	}
@@ -801,7 +853,7 @@ public class MainViewModel
 		PropertyChangedEventArgs e
 	)
 	{
-		// IsLockedやIsHiddenが変更された場合、CollectionViewを更新
+		// グルーピング対象プロパティが変更された場合はCollectionViewを更新
 		if (
 			(
 				string.Equals(
@@ -863,9 +915,7 @@ public class MainViewModel
 			)
 		)
 		{
-			_ = Application.Current.Dispatcher.BeginInvoke(
-				() => FilteredItems?.Refresh()
-			);
+			FilteredItems?.Refresh();
 		}
 	}
 
@@ -885,65 +935,85 @@ public class MainViewModel
 		PropertyChangedEventArgs e
 	)
 	{
-		_ = Application.Current.Dispatcher.BeginInvoke(() =>
-		{
-			switch (e.PropertyName)
+		UIThread
+			.InvokeAsync(() =>
 			{
-				case nameof(
-					ObjectListSettings.SelectedGroupingType
-				):
-					var groupingType = ObjectListSettings
-						.Default
-						.SelectedGroupingType;
-					SetGroupingFromEnum(groupingType);
-					ApplyGrouping();
-					break;
+				switch (e.PropertyName)
+				{
+					case nameof(
+						ObjectListSettings.SelectedGroupingType
+					):
+						var groupingType =
+							ObjectListSettings
+								.Default
+								.SelectedGroupingType;
+						SetGroupingFromEnum(groupingType);
+						ApplyGrouping();
+						break;
 
-				case nameof(
-					ObjectListSettings.IsShowColumnColor
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnCategory
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnLayer
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnGroup
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnFrame
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnLength
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnLock
-				):
-				case nameof(
-					ObjectListSettings.IsShowColumnHidden
-				):
-					// DataGridの列表示は自動的に更新されるはず
-					break;
+					case nameof(
+						ObjectListSettings.IsShowColumnColor
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnCategory
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnLayer
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnGroup
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnFrame
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnLength
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnLock
+					):
+					case nameof(
+						ObjectListSettings.IsShowColumnHidden
+					):
+					case nameof(
+						ObjectListSettings.IsShowFooter
+					):
+					case nameof(
+						ObjectListSettings.IsShowFooterSceneName
+					):
+					case nameof(
+						ObjectListSettings.IsShowFooterSceneFps
+					):
+					case nameof(
+						ObjectListSettings.IsShowFooterSceneHz
+					):
+					case nameof(
+						ObjectListSettings.IsShowFooterSceneScreenSize
+					):
+						break;
+				}
 
-				case nameof(
-					ObjectListSettings.IsShowFooter
-				):
-				case nameof(
-					ObjectListSettings.IsShowFooterSceneName
-				):
-				case nameof(
-					ObjectListSettings.IsShowFooterSceneFps
-				):
-				case nameof(
-					ObjectListSettings.IsShowFooterSceneHz
-				):
-				case nameof(
-					ObjectListSettings.IsShowFooterSceneScreenSize
-				):
-					// フッター表示も自動的に更新されるはず
-					break;
+				return default;
+			})
+			.AsTask()
+			.Wait();
+	}
+
+	// パフォーマンス最適化用タイマー設定
+	void SetFilterTimer()
+	{
+		_filterTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(100), // 100ms間隔で実行
+		};
+		_filterTimer.Tick += (sender, e) =>
+		{
+			_filterTimer.Stop();
+			if (_needsFilterUpdate)
+			{
+				FilterItems();
+				_needsFilterUpdate = false;
 			}
-		});
+		};
 	}
 }

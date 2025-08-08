@@ -176,9 +176,11 @@
               >
               <StackPanel>
                 <RadioButton
+                  x:Name="StrictModeRadio"
                   Margin="10,2"
                   GroupName="RangeMode"
-                  IsChecked="{Binding IsRangeFilterStrictMode}"
+                  IsChecked="{Binding IsRangeFilterStrictMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Loaded="StrictModeRadio_Loaded"
                   >
                   <StackPanel Orientation="Horizontal">
                     <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
@@ -186,9 +188,11 @@
                   </StackPanel>
                 </RadioButton>
                 <RadioButton
+                  x:Name="OverlapModeRadio"
                   Margin="10,2"
                   GroupName="RangeMode"
-                  IsChecked="{Binding IsRangeFilterOverlapMode}"
+                  IsChecked="{Binding IsRangeFilterOverlapMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Loaded="OverlapModeRadio_Loaded"
                   >
                   <StackPanel Orientation="Horizontal">
                     <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
