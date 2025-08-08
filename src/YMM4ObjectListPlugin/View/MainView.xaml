@@ -71,8 +71,8 @@
         Margin="5,5,5,0"
         Command="{Binding ReloadCommand}"
         DockPanel.Dock="Right"
-        ToolTip="{x:Static loc:Texts.Reload}"
         IsEnabled="{Binding IsReloading, Converter={ymmconv:BooleanInverterConverter}}"
+        ToolTip="{x:Static loc:Texts.Reload}"
         >
         <Image Margin="2" Source="{StaticResource mdiReload}" />
       </Button>
@@ -425,8 +425,8 @@
           HorizontalAlignment="Center"
           VerticalAlignment="Center"
           Orientation="Horizontal"
-          Visibility="{Binding IsRangeFilterStrictMode, Converter={StaticResource BoolToVisibilityConverter}}"
           ToolTip="完全に範囲内"
+          Visibility="{Binding IsRangeFilterStrictMode, Converter={StaticResource BoolToVisibilityConverter}}"
           >
           <TextBlock Text="～" />
           <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
@@ -437,8 +437,8 @@
           HorizontalAlignment="Center"
           VerticalAlignment="Center"
           Orientation="Horizontal"
-          Visibility="{Binding IsRangeFilterOverlapMode, Converter={StaticResource BoolToVisibilityConverter}}"
           ToolTip="範囲と重複"
+          Visibility="{Binding IsRangeFilterOverlapMode, Converter={StaticResource BoolToVisibilityConverter}}"
           >
           <TextBlock Text="～" />
           <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
@@ -586,7 +586,7 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn
           Width="SizeToCells"
-          MinWidth="70"
+          MinWidth="100"
           Binding="{Binding Category}"
           CanUserSort="True"
           IsReadOnly="True"
@@ -606,6 +606,15 @@
                 ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
                 />
               <TextBlock Margin="2,0" Text="カテゴリ" />
+              <Button
+                x:Name="CategoryFilterButton"
+                Width="26"
+                Height="20"
+                Margin="2,0"
+                Padding="2"
+                Content="⋮"
+                Command="{Binding DataContext.OpenCategoryFilterMenuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                />
             </StackPanel>
 
           </DataGridTextColumn.Header>
@@ -771,6 +780,156 @@
         </DataGridTemplateColumn>
       </DataGrid.Columns>
     </DataGrid>
+
+
+    <!--  ポップアップメニュー  -->
+    <Popup
+      x:Name="CategoryFilterPopup"
+      AllowsTransparency="True"
+      IsOpen="{Binding IsCategoryFilterMenuOpen, Mode=TwoWay}"
+      Placement="MousePoint"
+      PopupAnimation="Fade"
+      StaysOpen="False"
+      >
+      <Border
+        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+        BorderThickness="1"
+        CornerRadius="3"
+        >
+        <Border.Effect>
+          <DropShadowEffect
+            BlurRadius="5"
+            Opacity="0.3"
+            ShadowDepth="2"
+            Color="Black"
+            />
+        </Border.Effect>
+        <StackPanel Margin="5">
+
+          <!--  フィルターセクション  -->
+          <StackPanel Orientation="Horizontal">
+            <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
+            <TextBlock
+              Margin="5,0,5,5"
+              FontWeight="Bold"
+              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+              Text="カテゴリーフィルター"
+              />
+          </StackPanel>
+
+          <StackPanel>
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="FormatText" Size="14" />
+                <TextBlock Text="ボイス" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="FormatText" Size="14" />
+                <TextBlock Text="テキスト" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="動画" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Music" Size="14" />
+                <TextBlock Text="音声" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Image" Size="14" />
+                <TextBlock Text="画像" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="図形" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="立ち絵" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="表情" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="エフェクト" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="場面切り替え" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="シーン" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="複製" />
+              </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Video" Size="14" />
+                <TextBlock Text="グループ制御" />
+              </StackPanel>
+            </DockPanel>
+
+
+          </StackPanel>
+
+        </StackPanel>
+      </Border>
+    </Popup>
+
 
     <!--  Footer  -->
     <DockPanel Grid.Row="3" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter, Converter={StaticResource BoolToVisibilityConverter}}">

@@ -213,11 +213,15 @@
               </StackPanel>
             </GroupBox.Header>
 
-            <c:EnumComboBox
-              EnumType="{x:Type viewmodels:GroupingType}"
-              Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=SelectedGroupingType}"
-              Margin="5"
+            <DockPanel Margin="0,2">
+              <c:EnumComboBox
+                DockPanel.Dock="Right"
+                EnumType="{x:Type viewmodels:GroupingType}"
+                Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=SelectedGroupingType}"
+                Margin="5"
                />
+              <Label Content="リストグループ" />
+            </DockPanel>
           </GroupBox>
 
           <!--  フッターオプション  -->

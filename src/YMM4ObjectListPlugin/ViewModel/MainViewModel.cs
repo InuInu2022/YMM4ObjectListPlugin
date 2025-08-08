@@ -4,16 +4,18 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
+
 using Epoxy;
+
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
+
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.ViewModels;
 
@@ -34,6 +36,8 @@ public class MainViewModel
 	public Command? SetStartRangeCurrentFrameCommand { get; set; }
 	public Command? SetEndRangeCurrentFrameCommand { get; set; }
 	public Command? SetGroupingCommand { get; set; }
+
+	public Command? OpenCategoryFilterMenuCommand { get; set; }
 
 	public string SearchText { get; set; } = string.Empty;
 
@@ -59,6 +63,11 @@ public class MainViewModel
 	public bool IsRangeFilterStrictMode { get; set; } =
 		true; // デフォルトは完全に範囲内
 	public bool IsRangeFilterOverlapMode { get; set; } // 初期値はfalse
+
+	public bool IsCategoryFilterMenuOpen { get; set; }
+
+	public Point CategoryFilterMenuPosition { get; set; }
+
 	#region grouping_option
 
 	public bool IsNoneGroupingSelected { get; set; } = true;
@@ -156,6 +165,13 @@ public class MainViewModel
 				return default;
 			}
 		);
+
+		OpenCategoryFilterMenuCommand =
+			Command.Factory.Create(() =>
+			{
+				IsCategoryFilterMenuOpen = true;
+				return default;
+			});
 
 		SetFilterTimer();
 
