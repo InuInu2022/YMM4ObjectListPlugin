@@ -819,104 +819,104 @@
           </StackPanel>
 
           <StackPanel>
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="FormatText" Size="14" />
                 <TextBlock Text="ボイス" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="FormatText" Size="14" />
                 <TextBlock Text="テキスト" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="動画" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Music" Size="14" />
                 <TextBlock Text="音声" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Image" Size="14" />
                 <TextBlock Text="画像" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="図形" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="立ち絵" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="表情" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="エフェクト" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="場面切り替え" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="シーン" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="複製" />
               </StackPanel>
             </DockPanel>
 
-            <DockPanel Margin="0,2">
-              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" />
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+              <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName}" Height="14" />
               <StackPanel Orientation="Horizontal">
                 <materialIcons:MaterialIconExt Kind="Video" Size="14" />
                 <TextBlock Text="グループ制御" />
