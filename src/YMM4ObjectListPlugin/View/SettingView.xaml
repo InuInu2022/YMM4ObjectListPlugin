@@ -213,15 +213,34 @@
               </StackPanel>
             </GroupBox.Header>
 
-            <DockPanel Margin="0,2">
-              <c:EnumComboBox
-                DockPanel.Dock="Right"
-                EnumType="{x:Type viewmodels:GroupingType}"
-                Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=SelectedGroupingType}"
-                Margin="5"
-               />
-              <Label Content="リストグループ" />
-            </DockPanel>
+            <StackPanel Margin="5">
+
+              <DockPanel Margin="0,2">
+                <c:EnumComboBox
+                  DockPanel.Dock="Right"
+                  EnumType="{x:Type viewmodels:GroupingType}"
+                  Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=SelectedGroupingType}"
+                  Margin="5"
+                />
+                <materialIcons:MaterialIconExt Kind="FormatListGroup" Size="16" />
+                <Label Content="リストグループ" />
+              </DockPanel>
+            </StackPanel>
+
+          </GroupBox>
+
+          <!--  カテゴリフィルター  -->
+          <GroupBox Name="CategoryFilterOptions" Margin="5">
+            <GroupBox.Header>
+              <DockPanel>
+                <Label Content="カテゴリフィルター" />
+              </DockPanel>
+            </GroupBox.Header>
+
+            <StackPanel Margin="5">
+              <local:CategoryFilterPanel />
+            </StackPanel>
+
           </GroupBox>
 
           <!--  フッターオプション  -->

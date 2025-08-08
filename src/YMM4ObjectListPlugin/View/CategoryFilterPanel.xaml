@@ -1,0 +1,118 @@
+<UserControl
+    x:Class="ObjectList.View.CategoryFilterPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
+    xmlns:core="clr-namespace:ObjectList"
+    xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+    >
+    <StackPanel>
+        <StackPanel>
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterVoiceItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="MessageTextOutline" Size="16" />
+                    <Label Content="ボイス" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterTextItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="FormatText" Size="16" />
+                    <Label Content="テキスト" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterVideoItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="動画" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterMusicItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Music" Size="16" />
+                    <Label Content="音声" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterImageItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Image" Size="16" />
+                    <Label Content="画像" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterShapeItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="ShapePlus" Size="16" />
+                    <Label Content="図形" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterTachieItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Account" Size="16" />
+                    <Label Content="立ち絵" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterTachieFaceItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="EmoticonOutline" Size="16" />
+                    <Label Content="表情" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterEffectItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="エフェクト" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterTransitionItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="場面切り替え" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterSceneItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="シーン" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterFrameBufferItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="複製" />
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel Margin="0,2" VerticalAlignment="Center">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterGroupItem}" />
+                <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="Video" Size="16" />
+                    <Label Content="グループ制御" />
+                </StackPanel>
+            </DockPanel>
+
+
+        </StackPanel>
+    </StackPanel>
+</UserControl>

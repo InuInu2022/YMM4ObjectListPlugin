@@ -5,11 +5,11 @@ using System.Windows.Controls;
 namespace ObjectList.View;
 
 /// <summary>
-/// Interaction logic for UserControl1.xaml
+/// Interaction logic for CategoryFilterPanel.xaml
 /// </summary>
-public partial class MainView : UserControl
+public partial class CategoryFilterPanel : UserControl
 {
-	public MainView()
+	public CategoryFilterPanel()
 	{
 		InitializeComponent();
 	}
