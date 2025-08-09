@@ -65,6 +65,7 @@
 
 
     <DockPanel Grid.Row="0">
+      <!--  リロードボタン  -->
       <Button
         Width="24"
         Height="24"
@@ -143,7 +144,7 @@
                 Margin="5,0,5,5"
                 FontWeight="Bold"
                 Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-                Text="追加フィルター"
+                Text="時間フィルター"
                 />
             </StackPanel>
 
@@ -157,17 +158,26 @@
 
             <RadioButton
               Margin="10,2"
-              Content="シークバーの下"
               GroupName="FilterOptions"
               IsChecked="{Binding IsUnderSeekBarFilterSelected}"
-              />
+              >
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
+                <TextBlock Margin="5,0,0,0" Text="シークバーの下" />
+              </StackPanel>
+            </RadioButton>
+
 
             <RadioButton
               Margin="10,2"
-              Content="範囲指定"
               GroupName="FilterOptions"
               IsChecked="{Binding IsRangeFilterSelected}"
-              />
+              >
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />
+                <TextBlock Margin="5,0,0,0" Text="範囲指定" />
+              </StackPanel>
+            </RadioButton>
 
             <GroupBox
               Margin="20,2,10,2"
@@ -356,7 +366,7 @@
 
       <!--  検索テキストボックス  -->
       <TextBox
-        Margin="5,5,5,0"
+        Margin="5,5,0,0"
         DockPanel.Dock="Left"
         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
         >
