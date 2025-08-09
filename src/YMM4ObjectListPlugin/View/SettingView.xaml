@@ -193,7 +193,7 @@
                   IsHitTestVisible="False"
                   Opacity="0"
                   />
-                <Label Content="長さの表示方法" />
+                <Label Content="長さの表示モード" />
               </DockPanel>
 
               <DockPanel Margin="0,2">
