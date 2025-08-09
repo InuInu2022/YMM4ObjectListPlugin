@@ -106,6 +106,9 @@ public class MainViewModel
 	private DispatcherTimer? _filterTimer;
 	private bool _needsFilterUpdate;
 
+	DispatcherTimer? _timelineMonitorTimer;
+	INotifyPropertyChanged? _lastRawTimeline;
+
 	public MainViewModel()
 	{
 		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
@@ -175,6 +178,7 @@ public class MainViewModel
 			});
 
 		SetFilterTimer();
+		SetTimelineMonitorTimer();
 
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
@@ -377,6 +381,7 @@ public class MainViewModel
 		// YMM4タイムラインの変更を監視
 		if (raw is INotifyPropertyChanged target)
 		{
+			UnsubscribeTimelineEvents();
 			target.PropertyChanged += OnTimelineChanged;
 			UpdateItems(timeLine);
 			UpdateSceneInfo(timeLine);
@@ -1233,5 +1238,55 @@ public class MainViewModel
 				_needsFilterUpdate = false;
 			}
 		};
+	}
+
+	void SetTimelineMonitorTimer()
+	{
+		_timelineMonitorTimer = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(500), // 0.5秒ごとに監視
+		};
+		_timelineMonitorTimer.Tick += (sender, e) =>
+		{
+			MonitorTimelineReference();
+		};
+		_timelineMonitorTimer.Start();
+	}
+
+	void MonitorTimelineReference()
+	{
+		if (
+			!TimelineUtil.TryGetTimeline(out var timeLine)
+			|| timeLine is null
+		)
+		{
+			// プロジェクト未読込など
+			UnsubscribeTimelineEvents();
+			_lastRawTimeline = null;
+			return;
+		}
+
+		var raw =
+			timeLine.RawTimeline as INotifyPropertyChanged;
+		if (!ReferenceEquals(raw, _lastRawTimeline))
+		{
+			UnsubscribeTimelineEvents();
+			if (raw is not null)
+			{
+				raw.PropertyChanged += OnTimelineChanged;
+				UpdateItems(timeLine);
+				UpdateSceneInfo(timeLine);
+			}
+			_lastRawTimeline = raw;
+		}
+	}
+
+	void UnsubscribeTimelineEvents()
+	{
+		if (_lastRawTimeline is not null)
+		{
+			_lastRawTimeline.PropertyChanged -=
+				OnTimelineChanged;
+		}
 	}
 }
