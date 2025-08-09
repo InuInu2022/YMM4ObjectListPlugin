@@ -40,7 +40,7 @@ public class ObjectListItem : INotifyPropertyChanged
 	{
 		get
 		{
-			Debug.WriteLine($"Category: {RawItemCategory}");
+			//Debug.WriteLine($"Category: {RawItemCategory}");
 			return RawItemCategory switch
 			{
 				"VideoItem" => Texts.VideoItemName,
@@ -60,6 +60,25 @@ public class ObjectListItem : INotifyPropertyChanged
 			};
 		}
 	}
+
+	public string CategoryIconKey =>
+		RawItemCategory switch
+		{
+			"VideoItem" => "Video",
+			"AudioItem" => "Music",
+			"ImageItem" => "Image",
+			"TextItem" => "FormatText",
+			"FrameBufferItem" => "ImageMultiple",
+			"EffectItem" => "ImageAutoAdjust",
+			"SceneItem" => "ChartTimeline",
+			"TransitionItem" => "GradientHorizontal",
+			"TachieItem" => "Account",
+			"TachieFaceItem" => "EmoticonOutline",
+			"ShapeItem" => "ShapePlus",
+			"VoiceItem" => "MessageTextOutline",
+			"GroupItem" => "SelectGroup",
+			_ => "icon_other",
+		};
 
 	public string RawItemCategory { get; }
 
