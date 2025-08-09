@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 docs/thumbnail.ymmp
+.github/instructions/*.md

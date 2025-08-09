@@ -1,6 +1,8 @@
-using ObjectList.View;
-using YukkuriMovieMaker.Plugin;
 using System.Reflection;
+
+using ObjectList.ViewModel;
+
+using YukkuriMovieMaker.Plugin;
 
 namespace ObjectList;
 
@@ -39,6 +41,28 @@ public class ObjectListSettings
 	private bool isShowFooterSceneFps = true;
 	private bool isShowFooterSceneHz = true;
 	private bool isShowFooterSceneScreenSize;
+
+	private GroupingType selectedGroupingType =
+		GroupingType.None;
+
+	private FilterType selectedFilterType = FilterType.All;
+	private bool rangeFilterStrictMode = true;
+
+	private bool isCategoryFilterVoiceItem = true;
+	private bool isCategoryFilterTextItem = true;
+	private bool isCategoryFilterAudioItem = true;
+	private bool isCategoryFilterVideoItem = true;
+	private bool isCategoryFilterImageItem = true;
+	private bool isCategoryFilterShapeItem = true;
+	private bool isCategoryFilterTachieItem = true;
+	private bool isCategoryFilterTachieFaceItem = true;
+	private bool isCategoryFilterEffectItem = true;
+	private bool isCategoryFilterSceneItem = true;
+	private bool isCategoryFilterTransitionItem = true;
+	private bool isCategoryFilterFrameBufferItem = true;
+	private bool isCategoryFilterGroupItem = true;
+	private LengthViewMode showLengthViewMode =
+		LengthViewMode.Frame;
 
 	#region footer
 	public bool IsShowFooter
@@ -96,6 +120,13 @@ public class ObjectListSettings
 		get => isShowColumnLength;
 		set => Set(ref isShowColumnLength, value);
 	}
+
+	public LengthViewMode ShowLengthViewMode
+	{
+		get => showLengthViewMode;
+		set => Set(ref showLengthViewMode, value);
+	}
+
 	public bool IsShowColumnLayer
 	{
 		get => isShowColumnLayer;
@@ -128,6 +159,105 @@ public class ObjectListSettings
 
 	#endregion column
 
+	#region grouping
+	public GroupingType SelectedGroupingType
+	{
+		get => selectedGroupingType;
+		set => Set(ref selectedGroupingType, value);
+	}
+
+	public FilterType SelectedFilterType
+	{
+		get => selectedFilterType;
+		set => Set(ref selectedFilterType, value);
+	}
+
+	public bool RangeFilterStrictMode
+	{
+		get => rangeFilterStrictMode;
+		set => Set(ref rangeFilterStrictMode, value);
+	}
+	#endregion grouping
+
+	#region category_filter
+	public bool IsCategoryFilterVoiceItem
+	{
+		get => isCategoryFilterVoiceItem;
+		set => Set(ref isCategoryFilterVoiceItem, value);
+	}
+	public bool IsCategoryFilterTextItem
+	{
+		get => isCategoryFilterTextItem;
+		set => Set(ref isCategoryFilterTextItem, value);
+	}
+	public bool IsCategoryFilterAudioItem
+	{
+		get => isCategoryFilterAudioItem;
+		set => Set(ref isCategoryFilterAudioItem, value);
+	}
+	public bool IsCategoryFilterVideoItem
+	{
+		get => isCategoryFilterVideoItem;
+		set => Set(ref isCategoryFilterVideoItem, value);
+	}
+	public bool IsCategoryFilterImageItem
+	{
+		get => isCategoryFilterImageItem;
+		set => Set(ref isCategoryFilterImageItem, value);
+	}
+
+	public bool IsCategoryFilterShapeItem
+	{
+		get => isCategoryFilterShapeItem;
+		set => Set(ref isCategoryFilterShapeItem, value);
+	}
+
+	public bool IsCategoryFilterTachieItem
+	{
+		get => isCategoryFilterTachieItem;
+		set => Set(ref isCategoryFilterTachieItem, value);
+	}
+
+	public bool IsCategoryFilterTachieFaceItem
+	{
+		get => isCategoryFilterTachieFaceItem;
+		set =>
+			Set(ref isCategoryFilterTachieFaceItem, value);
+	}
+
+	public bool IsCategoryFilterEffectItem
+	{
+		get => isCategoryFilterEffectItem;
+		set => Set(ref isCategoryFilterEffectItem, value);
+	}
+
+	public bool IsCategoryFilterTransitionItem
+	{
+		get => isCategoryFilterTransitionItem;
+		set =>
+			Set(ref isCategoryFilterTransitionItem, value);
+	}
+
+	public bool IsCategoryFilterSceneItem
+	{
+		get => isCategoryFilterSceneItem;
+		set => Set(ref isCategoryFilterSceneItem, value);
+	}
+
+	public bool IsCategoryFilterFrameBufferItem
+	{
+		get => isCategoryFilterFrameBufferItem;
+		set =>
+			Set(ref isCategoryFilterFrameBufferItem, value);
+	}
+
+	public bool IsCategoryFilterGroupItem
+	{
+		get => isCategoryFilterGroupItem;
+		set => Set(ref isCategoryFilterGroupItem, value);
+	}
+
+	#endregion category_filter
 	public override void Initialize() { }
 }
 
@@ -138,4 +268,12 @@ public enum ColumLayerType
 	Name = 1,
 
 	None = 99,
+}
+
+[Obfuscation(Exclude = true, ApplyToMembers = true)]
+public enum FilterType
+{
+	All = 0,
+	UnderSeekBar = 1,
+	Range = 2,
 }
