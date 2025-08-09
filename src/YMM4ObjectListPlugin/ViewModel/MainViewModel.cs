@@ -67,7 +67,7 @@ public class MainViewModel
 
 	public bool IsCategoryFilterMenuOpen { get; set; }
 
-	public Point CategoryFilterMenuPosition { get; set; }
+	public bool IsCategoryFilterEnabled { get; set; }
 
 	#region grouping_option
 
@@ -1093,6 +1093,7 @@ public class MainViewModel
 						ObjectListSettings.IsCategoryFilterGroupItem
 					):
 						FilterItems();
+						CheckCategoryFilterEnabled();
 						break;
 
 					case nameof(
@@ -1141,6 +1142,55 @@ public class MainViewModel
 			})
 			.AsTask()
 			.Wait();
+	}
+
+	/// <summary>
+	/// カテゴリフィルターのいずれかが有効ならtrue
+	/// </summary>
+	private void CheckCategoryFilterEnabled()
+	{
+		// IsCategoryFilter* は false の時にフィルタ有効
+
+		IsCategoryFilterEnabled =
+			!ObjectListSettings
+				.Default
+				.IsCategoryFilterVoiceItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterTextItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterVideoItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterAudioItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterImageItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterShapeItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterTachieItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterTachieFaceItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterEffectItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterTransitionItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterSceneItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterFrameBufferItem
+			|| !ObjectListSettings
+				.Default
+				.IsCategoryFilterGroupItem;
 	}
 
 	// パフォーマンス最適化用タイマー設定
