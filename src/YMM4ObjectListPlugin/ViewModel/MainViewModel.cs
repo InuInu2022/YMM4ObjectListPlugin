@@ -13,6 +13,7 @@ using Epoxy;
 
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
+using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
 
@@ -453,10 +454,94 @@ public class MainViewModel
 					&& RangeEndFrame > yourItem.Frame;
 			}
 
+			//カテゴリフィルター
+			var matchesCategoryFilter = CheckMatchCategory(
+				yourItem
+			);
+
 			return matchesSearchText
 				&& matchesSeekBarFilter
-				&& matchesRangeFilter;
+				&& matchesRangeFilter
+				&& matchesCategoryFilter;
 		};
+	}
+
+	[SuppressMessage(
+		"Design",
+		"MA0051:Method is too long",
+		Justification = "<保留中>"
+	)]
+	internal static bool CheckMatchCategory(
+		ObjectListItem yourItem
+	)
+	{
+		var settings = ObjectListSettings.Default;
+
+		// 型リストとフィルタboolをコレクション式でペア化（インデックスは定数名で管理）
+		(bool, string)[] filters =
+		[
+			(
+				settings.IsCategoryFilterVoiceItem,
+				"VoiceItem"
+			),
+			(settings.IsCategoryFilterTextItem, "TextItem"),
+			(
+				settings.IsCategoryFilterVideoItem,
+				"VideoItem"
+			),
+			(
+				settings.IsCategoryFilterAudioItem,
+				"AudioItem"
+			),
+			(
+				settings.IsCategoryFilterImageItem,
+				"ImageItem"
+			),
+			(
+				settings.IsCategoryFilterShapeItem,
+				"ShapeItem"
+			),
+			(
+				settings.IsCategoryFilterTachieItem,
+				"TachieItem"
+			),
+			(
+				settings.IsCategoryFilterTachieFaceItem,
+				"TachieFaceItem"
+			),
+			(
+				settings.IsCategoryFilterEffectItem,
+				"EffectItem"
+			),
+			(
+				settings.IsCategoryFilterTransitionItem,
+				"TransitionItem"
+			),
+			(
+				settings.IsCategoryFilterSceneItem,
+				"SceneItem"
+			),
+			(
+				settings.IsCategoryFilterFrameBufferItem,
+				"FrameBufferItem"
+			),
+			(
+				settings.IsCategoryFilterGroupItem,
+				"GroupItem"
+			),
+		];
+
+		return !string.IsNullOrEmpty(yourItem.Category)
+			&& Array.Exists(
+				filters,
+				f =>
+					f.Item1
+					&& string.Equals(
+						yourItem.RawItemCategory,
+						f.Item2,
+						StringComparison.Ordinal
+					)
+			);
 	}
 
 	void LoadGroupingSettingsFromSettings()
@@ -965,6 +1050,49 @@ public class MainViewModel
 								.SelectedGroupingType;
 						SetGroupingFromEnum(groupingType);
 						ApplyGrouping();
+						break;
+
+					// カテゴリフィルターの変更
+					case nameof(
+						ObjectListSettings.IsCategoryFilterVoiceItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterTextItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterVideoItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterAudioItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterImageItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterShapeItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterTachieItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterTachieFaceItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterEffectItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterTransitionItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterSceneItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterFrameBufferItem
+					):
+					case nameof(
+						ObjectListSettings.IsCategoryFilterGroupItem
+					):
+						FilterItems();
 						break;
 
 					case nameof(

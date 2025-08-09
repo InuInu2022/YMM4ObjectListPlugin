@@ -23,6 +23,7 @@ public class ObjectListItem : INotifyPropertyChanged
 		{
 			notifyItem.PropertyChanged += OnItemPropertyChanged;
 		}
+		RawItemCategory = _item.RawItem.GetType().Name;
 	}
 
 	public string Label => _item.Label;
@@ -39,8 +40,8 @@ public class ObjectListItem : INotifyPropertyChanged
 	{
 		get
 		{
-			Debug.WriteLine($"Category: {_item.RawItem.GetType().Name}");
-			return _item.RawItem.GetType().Name switch
+			Debug.WriteLine($"Category: {RawItemCategory}");
+			return RawItemCategory switch
 			{
 				"VideoItem" => Texts.VideoItemName,
 				"AudioItem" => Texts.AudioItemName,
@@ -59,6 +60,8 @@ public class ObjectListItem : INotifyPropertyChanged
 			};
 		}
 	}
+
+	public string RawItemCategory { get; }
 
 	public bool IsLocked
 	{

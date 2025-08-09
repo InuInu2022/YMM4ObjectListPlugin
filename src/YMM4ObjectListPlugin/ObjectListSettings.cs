@@ -48,21 +48,19 @@ public class ObjectListSettings
 	private FilterType selectedFilterType = FilterType.All;
 	private bool rangeFilterStrictMode = true;
 
-	private bool isCategoryFilterVoiceItem;
-	private bool isCategoryFilterTextItem;
-	private bool isCategoryFilterMusicItem;
-	private bool isCategoryFilterVideoItem;
-	private bool isCategoryFilterImageItem;
-	private bool isCategoryFilterShapeItem;
-	private bool isCategoryFilterTachieItem;
-	private bool isCategoryFilterTachieFaceItem;
-	private bool isCategoryFilterEffectItem;
-
-	private bool isCategoryFilterSceneItem;
-
-	private bool isCategoryFilterTransitionItem;
-	private bool isCategoryFilterFrameBufferItem;
-	private bool isCategoryFilterGroupItem;
+	private bool isCategoryFilterVoiceItem = true;
+	private bool isCategoryFilterTextItem = true;
+	private bool isCategoryFilterAudioItem = true;
+	private bool isCategoryFilterVideoItem = true;
+	private bool isCategoryFilterImageItem = true;
+	private bool isCategoryFilterShapeItem = true;
+	private bool isCategoryFilterTachieItem = true;
+	private bool isCategoryFilterTachieFaceItem = true;
+	private bool isCategoryFilterEffectItem = true;
+	private bool isCategoryFilterSceneItem = true;
+	private bool isCategoryFilterTransitionItem = true;
+	private bool isCategoryFilterFrameBufferItem = true;
+	private bool isCategoryFilterGroupItem = true;
 
 	#region footer
 	public bool IsShowFooter
@@ -183,10 +181,10 @@ public class ObjectListSettings
 		get => isCategoryFilterTextItem;
 		set => Set(ref isCategoryFilterTextItem, value);
 	}
-	public bool IsCategoryFilterMusicItem
+	public bool IsCategoryFilterAudioItem
 	{
-		get => isCategoryFilterMusicItem;
-		set => Set(ref isCategoryFilterMusicItem, value);
+		get => isCategoryFilterAudioItem;
+		set => Set(ref isCategoryFilterAudioItem, value);
 	}
 	public bool IsCategoryFilterVideoItem
 	{
