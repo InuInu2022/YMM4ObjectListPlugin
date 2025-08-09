@@ -61,6 +61,7 @@ public class ObjectListSettings
 	private bool isCategoryFilterTransitionItem = true;
 	private bool isCategoryFilterFrameBufferItem = true;
 	private bool isCategoryFilterGroupItem = true;
+	private ViewModel.LengthViewMode showLengthViewMode;
 
 	#region footer
 	public bool IsShowFooter
@@ -118,6 +119,13 @@ public class ObjectListSettings
 		get => isShowColumnLength;
 		set => Set(ref isShowColumnLength, value);
 	}
+
+	public LengthViewMode ShowLengthViewMode
+	{
+		get => showLengthViewMode;
+		set => Set(ref showLengthViewMode, value);
+	}
+
 	public bool IsShowColumnLayer
 	{
 		get => isShowColumnLayer;

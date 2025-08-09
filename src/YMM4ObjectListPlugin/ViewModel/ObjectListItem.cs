@@ -31,6 +31,8 @@ public class ObjectListItem : INotifyPropertyChanged
 	public int Layer => _item.Layer;
 	public int Length => _item.Length;
 
+	public TimeSpan ContentLength => _item.ContentLength;
+
 	public int Frame => _item.Frame;
 
 
