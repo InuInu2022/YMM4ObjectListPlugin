@@ -376,16 +376,11 @@ public class MainViewModel
 		if (!hasTL || timeLine is null)
 			return default;
 
-		var raw = timeLine.RawTimeline;
+		var raw =
+			timeLine.RawTimeline as INotifyPropertyChanged;
 
-		// YMM4タイムラインの変更を監視
-		if (raw is INotifyPropertyChanged target)
-		{
-			UnsubscribeTimelineEvents();
-			target.PropertyChanged += OnTimelineChanged;
-			UpdateItems(timeLine);
-			UpdateSceneInfo(timeLine);
-		}
+		// 共通化した購読セットアップを利用
+		SubscribeTimeline(raw, timeLine);
 
 		// シーン切り替えも監視
 		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
@@ -399,12 +394,36 @@ public class MainViewModel
 					var tl = x?.Timeline;
 					if (tl is not null)
 					{
-						UpdateItems(tl);
-						UpdateSceneInfo(tl);
+						SubscribeTimeline(
+							tl.RawTimeline
+								as INotifyPropertyChanged,
+							tl
+						);
 					}
 				});
 		}
 		return default;
+	}
+
+	/// <summary>
+	/// タイムラインのPropertyChanged購読と初期化を一元化
+	/// </summary>
+	void SubscribeTimeline(
+		INotifyPropertyChanged? raw,
+		WrapTimeLine? timeLine
+	)
+	{
+		if (!ReferenceEquals(raw, _lastRawTimeline))
+		{
+			UnsubscribeTimelineEvents();
+			if (raw is not null && timeLine is not null)
+			{
+				raw.PropertyChanged += OnTimelineChanged;
+				UpdateItems(timeLine);
+				UpdateSceneInfo(timeLine);
+			}
+			_lastRawTimeline = raw;
+		}
 	}
 
 	void FilterItems()
@@ -1268,17 +1287,7 @@ public class MainViewModel
 
 		var raw =
 			timeLine.RawTimeline as INotifyPropertyChanged;
-		if (!ReferenceEquals(raw, _lastRawTimeline))
-		{
-			UnsubscribeTimelineEvents();
-			if (raw is not null)
-			{
-				raw.PropertyChanged += OnTimelineChanged;
-				UpdateItems(timeLine);
-				UpdateSceneInfo(timeLine);
-			}
-			_lastRawTimeline = raw;
-		}
+		SubscribeTimeline(raw, timeLine);
 	}
 
 	void UnsubscribeTimelineEvents()
