@@ -5,6 +5,7 @@
   xmlns:c="clr-namespace:YukkuriMovieMaker.Controls;assembly=YukkuriMovieMaker.Controls"
   xmlns:core="clr-namespace:ObjectList"
   xmlns:local="clr-namespace:ObjectList.View"
+  xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
   x:Name="root"
   >
@@ -69,7 +70,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="MessageTextOutline" />
           </Border>
-          <Label Content="ボイス" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.VoiceItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -79,7 +80,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="FormatText" />
           </Border>
-          <Label Content="テキスト" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.TextItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -89,7 +90,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="Video" />
           </Border>
-          <Label Content="動画" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.VideoItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -99,7 +100,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="Music" />
           </Border>
-          <Label Content="音声" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.AudioItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -109,7 +110,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="Image" />
           </Border>
-          <Label Content="画像" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.ImageItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -119,7 +120,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="ShapePlus" />
           </Border>
-          <Label Content="図形" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.ShapeItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -129,7 +130,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="Account" />
           </Border>
-          <Label Content="立ち絵" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.TachieItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -139,7 +140,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="EmoticonOutline" />
           </Border>
-          <Label Content="表情" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.TachieFaceItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -149,7 +150,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="ImageAutoAdjust" />
           </Border>
-          <Label Content="エフェクト" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.EffectItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -159,7 +160,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="GradientHorizontal" />
           </Border>
-          <Label Content="場面切り替え" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.TransitionItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -169,7 +170,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="ChartTimeline" />
           </Border>
-          <Label Content="シーン" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.SceneGroupName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -179,7 +180,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="ImageMultiple" />
           </Border>
-          <Label Content="複製" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.FrameBufferItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
 
@@ -189,7 +190,7 @@
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="SelectGroup" />
           </Border>
-          <Label Content="グループ制御" Style="{StaticResource LabelStyle}" />
+          <Label Content="{x:Static loc:Texts.GroupItemName}" Style="{StaticResource LabelStyle}" />
         </StackPanel>
       </DockPanel>
     </StackPanel>
