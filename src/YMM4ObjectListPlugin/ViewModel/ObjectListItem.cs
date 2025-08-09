@@ -5,25 +5,35 @@ using System.Windows.Media;
 using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YukkuriMovieMaker.Resources.Localization;
+using System.Runtime.InteropServices;
 
 namespace ObjectList.ViewModel;
 
 //[ViewModel]
-public class ObjectListItem : INotifyPropertyChanged
+public class ObjectListItem
+	: INotifyPropertyChanged,
+		IDisposable
 {
 	private readonly IWrapBaseItem _item;
 	readonly WrapTimelineItemViewModel _itemVm;
 
-	public ObjectListItem(WrapTimelineItemViewModel itemVm)
+	static readonly List<ObjectListItem> instances = [];
+
+	public ObjectListItem(
+		WrapTimelineItemViewModel itemVm,
+		int fps
+	)
 	{
 		_itemVm = itemVm;
 		_item = itemVm.Item;
+		FPS = fps;
 		// アイテムの変更を監視
 		if (_item is INotifyPropertyChanged notifyItem)
 		{
 			notifyItem.PropertyChanged += OnItemPropertyChanged;
 		}
 		RawItemCategory = _item.RawItem.GetType().Name;
+		instances.Add(this);
 	}
 
 	public string Label => _item.Label;
@@ -31,7 +41,52 @@ public class ObjectListItem : INotifyPropertyChanged
 	public int Layer => _item.Layer;
 	public int Length => _item.Length;
 
-	public TimeSpan ContentLength => _item.ContentLength;
+	public int FPS { get; set; }
+
+	public TimeSpan ContentLength =>
+		_item.RawItem.ContentLength;
+
+	static LengthViewMode showLengthViewMode =
+		ObjectListSettings.Default.ShowLengthViewMode;
+	public static LengthViewMode ShowLengthViewMode
+	{
+		get => showLengthViewMode;
+		set
+		{
+			if (showLengthViewMode == value)
+			{
+				return;
+			}
+			showLengthViewMode = value;
+			foreach (
+				ref var item in CollectionsMarshal.AsSpan(
+					instances
+				)
+			)
+			{
+				item.OnPropertyChanged(
+					nameof(DisplayLength)
+				);
+			}
+		}
+	}
+	public string DisplayLength
+	{
+		get
+		{
+			return ShowLengthViewMode switch
+			{
+				LengthViewMode.Frame => $"{Length}",
+				LengthViewMode.Seconds =>
+					$"{(Length / FPS):0.#}{Texts.Sec}",
+				LengthViewMode.Smart =>
+					ContentLength.TotalSeconds < 1.0
+						? $"{Length}"
+						: $"{(Length / FPS):0.#}{Texts.Sec}",
+				_ => $"{Length}",
+			};
+		}
+	}
 
 	public int Frame => _item.Frame;
 
@@ -130,6 +185,7 @@ public class ObjectListItem : INotifyPropertyChanged
 				break;
 			case nameof(IWrapBaseItem.Frame):
 				OnPropertyChanged(nameof(Frame));
+				OnPropertyChanged(nameof(DisplayLength));
 				break;
 			default:
 				break;
@@ -146,4 +202,14 @@ public class ObjectListItem : INotifyPropertyChanged
 	public IWrapBaseItem ConvertToWrapItem() => _item;
 
 	public WrapTimelineItemViewModel ConvertToItemViewModel() => _itemVm;
+
+	public void Dispose()
+	{
+		instances.Remove(this);
+		if (_item is INotifyPropertyChanged notifyItem)
+		{
+			notifyItem.PropertyChanged -=
+				OnItemPropertyChanged;
+		}
+	}
 }

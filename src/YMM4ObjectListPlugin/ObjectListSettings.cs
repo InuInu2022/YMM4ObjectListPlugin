@@ -61,7 +61,8 @@ public class ObjectListSettings
 	private bool isCategoryFilterTransitionItem = true;
 	private bool isCategoryFilterFrameBufferItem = true;
 	private bool isCategoryFilterGroupItem = true;
-	private ViewModel.LengthViewMode showLengthViewMode;
+	private LengthViewMode showLengthViewMode =
+		LengthViewMode.Frame;
 
 	#region footer
 	public bool IsShowFooter

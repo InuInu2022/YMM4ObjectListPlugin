@@ -737,6 +737,11 @@ public class MainViewModel
 		}
 	}
 
+	[SuppressMessage(
+		"Usage",
+		"SMA0040:Missing Using Statement",
+		Justification = "<保留中>"
+	)]
 	void UpdateItems(WrapTimeLine timeLine)
 	{
 		if (
@@ -753,11 +758,15 @@ public class MainViewModel
 		{
 			item.PropertyChanged -=
 				OnObjectListItemPropertyChanged;
+			item.Dispose();
 		}
 
 		Items = new ObservableCollection<ObjectListItem>(
 			itemViewModels.Select(
-				item => new ObjectListItem(item)
+				item => new ObjectListItem(
+					item,
+					timeLine.VideoInfo.FPS
+				)
 			)
 		);
 		OnItemsChanged();
@@ -1029,6 +1038,11 @@ public class MainViewModel
 			$"{timeLine.VideoInfo.Width} x {timeLine.VideoInfo.Height}";
 
 		SceneLength = Math.Max(100, timeLine.Length);
+
+		foreach (var item in Items)
+		{
+			item.FPS = timeLine.VideoInfo.FPS;
+		}
 	}
 
 	void OnSettingsPropertyChanged(
@@ -1097,6 +1111,15 @@ public class MainViewModel
 						break;
 
 					case nameof(
+						ObjectListSettings.ShowLengthViewMode
+					):
+						ObjectListItem.ShowLengthViewMode =
+							ObjectListSettings
+								.Default
+								.ShowLengthViewMode;
+						break;
+
+					case nameof(
 						ObjectListSettings.IsShowColumnColor
 					):
 					case nameof(
@@ -1135,6 +1158,7 @@ public class MainViewModel
 					case nameof(
 						ObjectListSettings.IsShowFooterSceneScreenSize
 					):
+					default:
 						break;
 				}
 

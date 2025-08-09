@@ -774,9 +774,9 @@
           </DataGridTextColumn.Header>
         </DataGridTextColumn>
         <DataGridTextColumn
-          Width="SizeToHeader"
+          Width="SizeToCells"
           MinWidth="30"
-          Binding="{Binding Length}"
+          Binding="{Binding DisplayLength}"
           CanUserSort="True"
           IsReadOnly="True"
           SortDirection="Ascending"
