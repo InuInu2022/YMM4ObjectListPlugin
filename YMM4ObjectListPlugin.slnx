@@ -10,7 +10,4 @@
   <Folder Name="/src/YMM4ObjectListPlugin/">
     <Project Path="src/YMM4ObjectListPlugin/ObjectList.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/PluginTest/PluginTest.csproj" />
-  </Folder>
 </Solution>
