@@ -182,10 +182,10 @@ public class ObjectListItem
 				break;
 			case nameof(IWrapBaseItem.Length):
 				OnPropertyChanged(nameof(Length));
+				OnPropertyChanged(nameof(DisplayLength));
 				break;
 			case nameof(IWrapBaseItem.Frame):
 				OnPropertyChanged(nameof(Frame));
-				OnPropertyChanged(nameof(DisplayLength));
 				break;
 			default:
 				break;
