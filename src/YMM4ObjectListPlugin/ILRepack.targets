@@ -19,9 +19,9 @@
 
 
       <!-- Epoxyと関連ライブラリもマージ -->
-       <InputAssemblies Include="$(OutputPath)\Epoxy.dll" Condition="Exists('$(OutputPath)\Epoxy.dll')" />
+      <!--  <InputAssemblies Include="$(OutputPath)\Epoxy.dll" Condition="Exists('$(OutputPath)\Epoxy.dll')" />
       <InputAssemblies Include="$(OutputPath)\Epoxy.Core.dll" Condition="Exists('$(OutputPath)\Epoxy.Core.dll')" />
-      <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" /> -->
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
       <!--
@@ -72,9 +72,11 @@
     <Delete Files="$(OutputPath)\YmmeUtil.Bridge.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\YmmeUtil.Ymm4.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\YmmeUtil.Common.dll" ContinueOnError="true" />
+    <!--
     <Delete Files="$(OutputPath)\Epoxy.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Epoxy.Core.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Epoxy.Wpf.dll" ContinueOnError="true" />
+    -->
     <Delete Files="$(OutputPath)\Dynamitey.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ImpromptuInterface.dll" ContinueOnError="true" />
 

@@ -189,10 +189,26 @@ public class MainViewModel
 
 	async ValueTask InitializeApplicationAsync()
 	{
-		SetWindowTitle();
+		await UIThread
+			.InvokeAsync(() =>
+			{
+				SetWindowTitle();
+				return default;
+			})
+			.ConfigureAwait(true);
 
 		// YMM4のUI初期化を待機 - 最大30秒間試行
 		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
+
+		await UIThread.Bind();
+
+		var foundWin = Application
+			.Current.Windows.OfType<Window>()
+			.FirstOrDefault(window =>
+				IsRealUiWindow(window) && window.IsLoaded
+			);
+
+		await UIThread.Unbind();
 
 		for (
 			int attempt = 0;
@@ -200,40 +216,33 @@ public class MainViewModel
 			attempt++
 		)
 		{
-			foreach (
-				Window window in Application.Current.Windows
-			)
+			if (foundWin is not null)
 			{
-				if (
-					IsRealUiWindow(window)
-					&& window.IsLoaded
-				)
+				try
 				{
-					try
-					{
-						await OnHostUiReadyAsync(window);
-
-						// UI初期化完了後に範囲フィルターの初期値を確実に設定
-						// XAMLバインディングが準備完了してからプロパティ変更通知を送信
-						await UIThread.InvokeAsync(() =>
+					await UIThread
+						.InvokeAsync(async () =>
 						{
+							await OnHostUiReadyAsync(
+									foundWin
+								)
+								.ConfigureAwait(false);
 							EnsureRangeFilterDefaults();
-							return default;
-						});
+						})
+						.ConfigureAwait(true);
 
-						return;
-					}
-					catch (Exception ex)
-					{
-						Debug.WriteLine(
-							$"Error in OnHostUiReadyAsync: {ex.Message}"
-						);
-						return;
-					}
+					return;
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(
+						$"Error in OnHostUiReadyAsync: {ex.Message}"
+					);
+					return;
 				}
 			}
 
-			await Task.Delay(500);
+			await Task.Delay(500).ConfigureAwait(false);
 		}
 
 		Debug.WriteLine(
