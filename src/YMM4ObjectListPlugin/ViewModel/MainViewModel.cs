@@ -403,11 +403,18 @@ public class MainViewModel
 					var tl = x?.Timeline;
 					if (tl is not null)
 					{
-						SubscribeTimeline(
-							tl.RawTimeline
-								as INotifyPropertyChanged,
-							tl
-						);
+						UIThread
+							.InvokeAsync(() =>
+							{
+								SubscribeTimeline(
+									tl.RawTimeline
+										as INotifyPropertyChanged,
+									tl
+								);
+								return default;
+							})
+							.AsTask()
+							.Wait();
 					}
 				});
 		}
@@ -743,31 +750,41 @@ public class MainViewModel
 		PropertyChangedEventArgs e
 	)
 	{
-		if (
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
-		)
-		{
-			return;
-		}
+		UIThread
+			.InvokeAsync(() =>
+			{
+				if (
+					!TimelineUtil.TryGetTimeline(
+						out var timeLine
+					) || timeLine is null
+				)
+				{
+					return default;
+				}
 
-		switch (e.PropertyName)
-		{
-			case "Items":
-				UpdateItems(timeLine);
-				break;
-			case nameof(WrapTimeLine.CurrentFrame):
-				CurrentFrame = timeLine.CurrentFrame;
-				break;
-			case nameof(WrapTimeLine.Length):
-			case nameof(WrapTimeLine.Name):
-			case nameof(WrapTimeLine.Id):
-			case nameof(WrapTimeLine.MaxLayer):
-				UpdateSceneInfo(timeLine);
-				break;
-			default:
-				break;
-		}
+				switch (e.PropertyName)
+				{
+					case "Items":
+						UpdateItems(timeLine);
+						break;
+					case nameof(WrapTimeLine.CurrentFrame):
+						CurrentFrame =
+							timeLine.CurrentFrame;
+						break;
+					case nameof(WrapTimeLine.Length):
+					case nameof(WrapTimeLine.Name):
+					case nameof(WrapTimeLine.Id):
+					case nameof(WrapTimeLine.MaxLayer):
+						UpdateSceneInfo(timeLine);
+						break;
+					default:
+						break;
+				}
+
+				return default;
+			})
+			.AsTask()
+			.Wait();
 	}
 
 	[SuppressMessage(
@@ -1276,7 +1293,18 @@ public class MainViewModel
 		};
 		_timelineMonitorTimer.Tick += (sender, e) =>
 		{
-			MonitorTimelineReference();
+			try
+			{
+				MonitorTimelineReference();
+			}
+			catch (Exception ex)
+			{
+				_timelineMonitorTimer.Stop();
+				// エラーログを出力
+				Console.WriteLine(
+					$"Timeline monitoring error: {ex.Message}"
+				);
+			}
 		};
 		_timelineMonitorTimer.Start();
 	}
