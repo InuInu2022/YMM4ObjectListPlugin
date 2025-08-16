@@ -71,11 +71,27 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
   - 指定した範囲内にあるアイテムを絞り込みます
   - 開始・終了の左のボタンをクリックすると、現在のフレームの値で指定できます
 
+- 範囲フィルターオプション
+  - <img width="290" height="137" alt="image" src="https://github.com/user-attachments/assets/e1b79d44-2144-4da1-847a-0c04809a4e55" />
+  - 完全に範囲内：開始と終了の時間内に完全に入ってるアイテムだけを表示
+  - 範囲と重複：範囲内に少しでも重なっているアイテムは表示
+
+#### カテゴリフィルター機能
+
+> v1.2.x～
+
+<img width="353" height="509" alt="image" src="https://github.com/user-attachments/assets/2516e791-3fec-48c8-8254-47af1eb1ccb5" />
+
+- トグルをOFFにするとそのカテゴリが表示されなくなります。
+- フィルターボタン（折りたたみ）とカテゴリ列のボタン、プラグインオプションの3か所から設定できます
+
 ### 整理された表示
 
 レイヤー、グループ、ラベル情報で整理された見やすい表示ができます。
 
 <img src="./docs/objectlist_setting.png" alt="setting" width="400">
+
+#### 列の表示ON/OFF
 
 オプションで表示内容を変更できます。アイテム名だけのリストにする、とかもできます。
 
@@ -96,6 +112,34 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
   - シーンの画面サイズ
   - シーンのFPS（フレームレート）
   - シーンの音声サンプリングレート
+
+#### リストグループ表示
+
+> v1.2.x～
+
+<img width="985" height="540" alt="image" src="https://github.com/user-attachments/assets/1dd56c16-1e61-4944-9616-3bdf20590420" />
+
+リストを折りたたみできるグループでグループ表示できます。
+
+カテゴリ・レイヤー・グループ・ロックON/OFF・非表示ON/OFFでグループ分けできます。
+
+#### 長さ表示モードオプション
+
+> v1.2.x～
+
+<img width="581" height="107" alt="image" src="https://github.com/user-attachments/assets/7d3e0735-35f8-40c7-9924-b28831bd8415" />
+
+アイテムの「長さ」の表示方法を切り替えます。
+
+- 「フレーム」：フレーム数表示
+- 「秒数」：秒数表示
+- 「スマート」：1秒未満はフレーム数、1秒以上は秒数で表示します
+
+「スマート」にするとこんな感じでフレーム数と秒数が混じります。
+<img width="434" height="252" alt="image" src="https://github.com/user-attachments/assets/947dcb3a-7a12-407a-a82a-b272810c5a33" />
+
+「長さ」列のヘッダーを右クリックでも変更できます。
+<img width="538" height="101" alt="image" src="https://github.com/user-attachments/assets/ad2774d6-d9c6-47c4-9f59-fb277cb5a0c0" />
 
 ## 📋 使い方
 
