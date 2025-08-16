@@ -348,7 +348,7 @@ public class MainViewModel
 					cmd.Execute(null);
 				}
 			}
-			catch (System.Exception ex)
+			catch (Exception ex)
 			{
 				Debug.WriteLine(
 					$"Failed to select item: {item}, {ex.Message}"
@@ -376,6 +376,11 @@ public class MainViewModel
 		"MA0004:Use Task.ConfigureAwait",
 		Justification = "<保留中>"
 	)]
+	[SuppressMessage(
+		"Usage",
+		"SMA0040:Missing Using Statement",
+		Justification = "<保留中>"
+	)]
 	ValueTask OnHostUiReadyAsync(Window mainWindow)
 	{
 		var hasTL = TimelineUtil.TryGetTimeline(
@@ -397,25 +402,49 @@ public class MainViewModel
 		);
 		if (hasSceneVm && timeLineVm is not null)
 		{
+			// RxのSubscribeはバックグラウンドスレッドで発火する場合がある
 			sceneSubscription =
 				timeLineVm.SelectedScene.Subscribe(x =>
 				{
-					var tl = x?.Timeline;
-					if (tl is not null)
-					{
-						UIThread
-							.InvokeAsync(() =>
+					_ = UIThread
+						.InvokeAsync(() =>
+						{
+							try
 							{
+								var tl = x?.Timeline;
+								if (tl is null)
+								{
+									return default;
+								}
 								SubscribeTimeline(
 									tl.RawTimeline
-										as INotifyPropertyChanged,
+										is INotifyPropertyChanged raw
+										? raw
+										: null,
 									tl
 								);
-								return default;
-							})
-							.AsTask()
-							.Wait();
-					}
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(
+									$"Error in SelectedScene.Subscribe: {ex.Message}"
+								);
+							}
+							return default;
+						})
+						.AsTask()
+						.ContinueWith(
+							t =>
+							{
+								if (t.Exception is not null)
+								{
+									Debug.WriteLine(
+										$"Error in SelectedScene.Subscribe: {t.Exception}"
+									);
+								}
+							},
+							TaskScheduler.Default
+						);
 				});
 		}
 		return default;
@@ -745,46 +774,98 @@ public class MainViewModel
 		}
 	}
 
+	[SuppressMessage(
+		"Usage",
+		"VSTHRD002:Avoid problematic synchronous waits",
+		Justification = "<保留中>"
+	)]
+	[SuppressMessage(
+		"Correctness",
+		"SS034:Use await to get the result of an asynchronous operation",
+		Justification = "<保留中>"
+	)]
 	void OnTimelineChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		UIThread
-			.InvokeAsync(() =>
-			{
-				if (
-					!TimelineUtil.TryGetTimeline(
-						out var timeLine
-					) || timeLine is null
-				)
-				{
-					return default;
-				}
-
-				switch (e.PropertyName)
-				{
-					case "Items":
-						UpdateItems(timeLine);
-						break;
-					case nameof(WrapTimeLine.CurrentFrame):
-						CurrentFrame =
-							timeLine.CurrentFrame;
-						break;
-					case nameof(WrapTimeLine.Length):
-					case nameof(WrapTimeLine.Name):
-					case nameof(WrapTimeLine.Id):
-					case nameof(WrapTimeLine.MaxLayer):
-						UpdateSceneInfo(timeLine);
-						break;
-					default:
-						break;
-				}
-
-				return default;
-			})
+		var isBound = UIThread
+			.IsBoundAsync()
 			.AsTask()
-			.Wait();
+			.Result;
+		if (isBound)
+		{
+			// UIスレッドなら直接処理
+			try
+			{
+				HandleTimelineChanged(e);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(
+					$"OnTimelineChanged error: {ex.Message}"
+				);
+			}
+		}
+		else
+		{
+			// UIスレッドで処理を実行
+			try
+			{
+				UIThread
+					.InvokeAsync(() =>
+					{
+						try
+						{
+							HandleTimelineChanged(e);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(
+								$"OnTimelineChanged error: {ex.Message}"
+							);
+						}
+						return default;
+					})
+					.AsTask()
+					.Wait();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(
+					$"OnTimelineChanged error: {ex.Message}"
+				);
+			}
+		}
+	}
+
+	void HandleTimelineChanged(PropertyChangedEventArgs e)
+	{
+		if (
+			!TimelineUtil.TryGetTimeline(out var timeLine)
+			|| timeLine is null
+		)
+		{
+			return;
+		}
+
+		switch (e.PropertyName)
+		{
+			case "Items":
+				UpdateItems(timeLine);
+				break;
+			case nameof(WrapTimeLine.CurrentFrame):
+				CurrentFrame = timeLine.CurrentFrame;
+				break;
+			case nameof(WrapTimeLine.Length):
+			case nameof(WrapTimeLine.Name):
+			case nameof(WrapTimeLine.Id):
+			case nameof(WrapTimeLine.MaxLayer):
+				UpdateSceneInfo(timeLine);
+				break;
+			default:
+				break;
+		}
 	}
 
 	[SuppressMessage(
@@ -1095,127 +1176,185 @@ public class MainViewModel
 		}
 	}
 
+	[SuppressMessage(
+		"Usage",
+		"VSTHRD002:Avoid problematic synchronous waits",
+		Justification = "<保留中>"
+	)]
+	[SuppressMessage(
+		"Correctness",
+		"SS034:Use await to get the result of an asynchronous operation",
+		Justification = "<保留中>"
+	)]
+	[SuppressMessage(
+		"Critical Code Smell",
+		"S5034:\"ValueTask\" should be consumed correctly",
+		Justification = "<保留中>"
+	)]
 	void OnSettingsPropertyChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		UIThread
-			.InvokeAsync(() =>
-			{
-				switch (e.PropertyName)
-				{
-					case nameof(
-						ObjectListSettings.SelectedGroupingType
-					):
-						var groupingType =
-							ObjectListSettings
-								.Default
-								.SelectedGroupingType;
-						SetGroupingFromEnum(groupingType);
-						ApplyGrouping();
-						break;
-
-					// カテゴリフィルターの変更
-					case nameof(
-						ObjectListSettings.IsCategoryFilterVoiceItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterTextItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterVideoItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterAudioItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterImageItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterShapeItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterTachieItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterTachieFaceItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterEffectItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterTransitionItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterSceneItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterFrameBufferItem
-					):
-					case nameof(
-						ObjectListSettings.IsCategoryFilterGroupItem
-					):
-						FilterItems();
-						CheckCategoryFilterEnabled();
-						break;
-
-					case nameof(
-						ObjectListSettings.ShowLengthViewMode
-					):
-						ObjectListItem.ShowLengthViewMode =
-							ObjectListSettings
-								.Default
-								.ShowLengthViewMode;
-						break;
-
-					case nameof(
-						ObjectListSettings.IsShowColumnColor
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnCategory
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnLayer
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnGroup
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnFrame
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnLength
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnLock
-					):
-					case nameof(
-						ObjectListSettings.IsShowColumnHidden
-					):
-					case nameof(
-						ObjectListSettings.IsShowFooter
-					):
-					case nameof(
-						ObjectListSettings.IsShowFooterSceneName
-					):
-					case nameof(
-						ObjectListSettings.IsShowFooterSceneFps
-					):
-					case nameof(
-						ObjectListSettings.IsShowFooterSceneHz
-					):
-					case nameof(
-						ObjectListSettings.IsShowFooterSceneScreenSize
-					):
-					default:
-						break;
-				}
-
-				return default;
-			})
+		var isBound = UIThread
+			.IsBoundAsync()
 			.AsTask()
-			.Wait();
+			.Result;
+		if (isBound)
+		{
+			// UIスレッドなら直接処理
+			try
+			{
+				HandleSettingChanged(e);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(
+					$"OnSettingsPropertyChanged Error: {ex.Message}"
+				);
+			}
+		}
+		else
+		{
+			// UIスレッドで処理を実行
+			try
+			{
+				UIThread
+					.InvokeAsync(() =>
+					{
+						try
+						{
+							HandleSettingChanged(e);
+						}
+						catch (Exception ex)
+						{
+							Console.WriteLine(
+								$"OnSettingsPropertyChanged Error: {ex.Message}"
+							);
+						}
+						return default;
+					})
+					.AsTask()
+					.Wait();
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(
+					$"OnSettingsPropertyChanged Error: {ex.Message}"
+				);
+			}
+		}
+	}
+
+	private void HandleSettingChanged(
+		PropertyChangedEventArgs e
+	)
+	{
+		switch (e.PropertyName)
+		{
+			case nameof(
+				ObjectListSettings.SelectedGroupingType
+			):
+				var groupingType = ObjectListSettings
+					.Default
+					.SelectedGroupingType;
+				SetGroupingFromEnum(groupingType);
+				ApplyGrouping();
+				break;
+
+			// カテゴリフィルターの変更
+			case nameof(
+				ObjectListSettings.IsCategoryFilterVoiceItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterTextItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterVideoItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterAudioItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterImageItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterShapeItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterTachieItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterTachieFaceItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterEffectItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterTransitionItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterSceneItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterFrameBufferItem
+			):
+			case nameof(
+				ObjectListSettings.IsCategoryFilterGroupItem
+			):
+				FilterItems();
+				CheckCategoryFilterEnabled();
+				break;
+
+			case nameof(
+				ObjectListSettings.ShowLengthViewMode
+			):
+				ObjectListItem.ShowLengthViewMode =
+					ObjectListSettings
+						.Default
+						.ShowLengthViewMode;
+				break;
+
+			case nameof(
+				ObjectListSettings.IsShowColumnColor
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnCategory
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnLayer
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnGroup
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnFrame
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnLength
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnLock
+			):
+			case nameof(
+				ObjectListSettings.IsShowColumnHidden
+			):
+			case nameof(ObjectListSettings.IsShowFooter):
+			case nameof(
+				ObjectListSettings.IsShowFooterSceneName
+			):
+			case nameof(
+				ObjectListSettings.IsShowFooterSceneFps
+			):
+			case nameof(
+				ObjectListSettings.IsShowFooterSceneHz
+			):
+			case nameof(
+				ObjectListSettings.IsShowFooterSceneScreenSize
+			):
+			default:
+				break;
+		}
 	}
 
 	/// <summary>
