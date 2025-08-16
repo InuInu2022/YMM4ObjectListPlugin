@@ -130,14 +130,18 @@ YMM4（ゆっくりムービーメーカー4）で作業中のタイムライン
 
 ## 🛠️ インストール方法
 
-1. [Releases](https://github.com/InuInu2022/YMM4ObjectListPlugin/releases)ページから最新版をダウンロード
+1. [Releases](https://github.com/InuInu2022/YMM4ObjectListPlugin/releases)ページから最新版の`Ymm4ObjectListPlugin.v***.ymme`をダウンロード
 2. ダウンロードしたymmeファイルをダブルクリックする または YMM4のプラグインフォルダに配置
 3. YMM4を再起動
 
+アップデートも同じ方法でアプデできます。
+
 ## 📊 システム要件
 
-- ゆっくりムービーメーカー4 v4.41以上
+- ゆっくりムービーメーカー4 v4.41以上 ～ v4.45? or v4.46?
   - もう少し前のバージョンでも動く可能性はありますが確認していません
+  - YMM4本体のドッキング対応バージョンで一度動かなくなると思います
+    - 対応バージョンをその後に対応予定です
 - .NET 9.0 Runtime
   - YMM4と同じです
 
