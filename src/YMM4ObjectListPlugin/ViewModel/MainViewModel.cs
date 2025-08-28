@@ -16,6 +16,8 @@ using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
+
+using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.Theme;
 using YukkuriMovieMaker.ViewModels;
@@ -194,6 +196,7 @@ public class MainViewModel
 
 	static Version Verified { get; } = new(4, 41);
 
+
 	async ValueTask InitializeApplicationAsync()
 	{
 		await UIThread
@@ -229,7 +232,8 @@ public class MainViewModel
 		_ = NotifyManager
 			.CreateMessage()
 			.Accent("#E0A030")
-			.Background("#333")
+			.Foreground(NotifyUtil.DynamicForegroundTextHex)
+			.Background(NotifyUtil.DynamicControlHex)
 			.HasBadge("⚠︎")
 			.HasHeader("プラグインの動作確認ができていません。")
 			.HasMessage(
@@ -279,9 +283,7 @@ public class MainViewModel
 						0,
 						0
 					),
-					BorderBrush = new SolidColorBrush(
-						Color.FromArgb(128, 28, 28, 28)
-					),
+					BorderBrush = NotifyUtil.GetDynamicBrush(SystemColors.ActiveBorderBrushKey),
 					Child = GetBindingCheckBox(),
 				}
 			)
@@ -299,14 +301,7 @@ public class MainViewModel
 				HorizontalAlignment =
 					HorizontalAlignment.Left,
 				Content = "次回からは確認しない",
-				Foreground = new SolidColorBrush(
-					Color.FromArgb(
-						128,
-						255,
-						255,
-						255
-					)
-				),
+				Foreground = NotifyUtil.DynamicForegroundTextBrush,
 			};
 			cb.SetBinding(
 				CheckBox.IsCheckedProperty,

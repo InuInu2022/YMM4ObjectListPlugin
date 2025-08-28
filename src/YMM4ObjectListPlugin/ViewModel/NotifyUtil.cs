@@ -1,13 +1,54 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-
 using Enterwell.Clients.Wpf.Notifications;
+
+using YukkuriMovieMaker.Theme;
 
 namespace ObjectList.ViewModel;
 
 public static class NotifyUtil
 {
+	public static SolidColorBrush DynamicForegroundTextBrush
+	{
+		get => GetDynamicBrush(YMM4Colors.IconBrushKey);
+	}
+	public static string DynamicForegroundTextHex =>
+		GetDynamicHex(
+			DynamicForegroundTextBrush
+		);
+	public static SolidColorBrush DynamicControlBrush
+	{
+		get => GetDynamicBrush(
+			SystemColors.ControlBrushKey
+		);
+	}
+	public static string DynamicControlHex =>
+		GetDynamicHex(DynamicControlBrush);
+
+	public static SolidColorBrush DynamicAccentBrush
+	{
+		get
+		{
+			SolidColorBrush brush;
+			if (ColorConverter.ConvertFromString("#1751C3") is not Color color)
+			{
+				brush = SystemColors.AccentColorBrush;
+				brush.Freeze();
+			}
+			else
+			{
+				brush = new SolidColorBrush(color);
+				brush.Freeze();
+			}
+			return SystemParameters.WindowGlassBrush
+				is SolidColorBrush scb
+				? scb
+				: brush;
+		}
+	}
+	public static string DynamicAccentHex => GetDynamicHex(DynamicAccentBrush);
+
 	/// <summary>
 	/// 警告メッセージ通知（2行）
 	/// </summary>
@@ -24,7 +65,12 @@ public static class NotifyUtil
 		return manager
 			.CreateMessage()
 			.Accent("#E0A030")
-			.Background("#333")
+			.Foreground(
+				DynamicForegroundTextHex
+			)
+			.Background(
+				DynamicControlHex
+			)
 			.HasHeader(header)
 			.HasBadge("Warn")
 			.HasMessage(message)
@@ -50,8 +96,9 @@ public static class NotifyUtil
 	{
 		var b = manager
 			.CreateMessage()
-			.Accent("#1751C3")
-			.Background("#333")
+			.Accent(DynamicAccentBrush)
+			.Foreground(DynamicForegroundTextHex)
+			.Background(DynamicControlHex)
 			.HasHeader(header)
 			.HasBadge("Info")
 			.HasMessage(message)
@@ -60,8 +107,7 @@ public static class NotifyUtil
 			.Dismiss();
 
 		return isDelay
-			? b.WithDelay(TimeSpan.FromSeconds(5))
-				.Queue()
+			? b.WithDelay(TimeSpan.FromSeconds(5)).Queue()
 			: b.WithButton("OK", _ => { }).Queue();
 	}
 
@@ -73,8 +119,9 @@ public static class NotifyUtil
 	{
 		return manager
 			.CreateMessage()
-			.Accent("#1751C3")
-			.Background("#333")
+			.Accent(DynamicAccentBrush)
+			.Foreground(DynamicForegroundTextHex)
+			.Background(DynamicControlHex)
 			.HasHeader(header)
 			.HasMessage(message)
 			.WithOverlay(
@@ -82,22 +129,13 @@ public static class NotifyUtil
 				{
 					VerticalAlignment =
 						VerticalAlignment.Bottom,
-
 					HorizontalAlignment =
 						HorizontalAlignment.Stretch,
-
 					Height = 3,
-
 					BorderThickness = new Thickness(0),
-
-					Foreground = new SolidColorBrush(
-						Color.FromArgb(128, 255, 255, 255)
-					),
-
+					Foreground = DynamicAccentBrush,
 					Background = Brushes.Transparent,
-
 					IsIndeterminate = true,
-
 					IsHitTestVisible = false,
 				}
 			)
@@ -105,4 +143,23 @@ public static class NotifyUtil
 			.AnimationInDuration(0.35)
 			.Queue();
 	}
+
+	public static SolidColorBrush GetDynamicBrush(ResourceKey key)
+	{
+		return
+			Application.Current.FindResource(key)
+				is SolidColorBrush brush
+			? brush
+			: SystemColors.ControlBrush;
+	}
+
+	public static string GetDynamicHex(
+		SolidColorBrush brush
+	) =>
+		brush.Color.ToString(
+			System
+				.Globalization
+				.CultureInfo
+				.InvariantCulture
+		);
 }
