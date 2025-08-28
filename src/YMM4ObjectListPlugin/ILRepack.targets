@@ -24,10 +24,12 @@
       <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" /> -->
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
+
       <!--
       Material.Iconsはdllマージすると表示されない
       <InputAssemblies Include="$(OutputPath)\Material.Icons.dll" Condition="Exists('$(OutputPath)\Material.Icons.dll')" />
       <InputAssemblies Include="$(OutputPath)\Material.Icons.WPF.dll" Condition="Exists('$(OutputPath)\Material.Icons.WPF.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Enterwell.Clients.Wpf.Notifications.dll" />
       -->
 
       <!-- YmmeUtilの依存関係も追加 -->
@@ -82,6 +84,7 @@
 
     <!-- Material.Icons関連を削除 -->
     <!--
+    <Delete Files="$(OutputPath)\Enterwell.Clients.Wpf.Notifications.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Material.Icons.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\Material.Icons.WPF.dll" ContinueOnError="true" />
     -->
