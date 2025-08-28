@@ -1,3 +1,6 @@
 [submodule "libs/YmmeUtil"]
 	path = libs/YmmeUtil
 	url = https://github.com/InuInu2022/YmmeUtil.git
+[submodule "libs/Wpf.Notifications"]
+	path = libs/Wpf.Notifications
+	url = https://github.com/mario-dg/Wpf.Notifications.git

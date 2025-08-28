@@ -8,12 +8,6 @@
         "resolved": "2.7.0",
         "contentHash": "ydBfxgn7cMWywJNIFv4eIXWa08ze2+5o/GnEYLnpo4A+dC6nO0F+UxCbPyG1dYbVwsNO7EASKoo47hdb/0z+Vw=="
       },
-      "Enterwell.Clients.Wpf.Notifications": {
-        "type": "Direct",
-        "requested": "[1.4.2, )",
-        "resolved": "1.4.2",
-        "contentHash": "AiU8YTlWeEo2aK6OjVy1g3xhVk5gNAr7qDRbecNcD4egslWJrsg7diPo+36F58zRNjMcURGuRxp3W9FBLirQ4Q=="
-      },
       "Epoxy.Core.Wpf": {
         "type": "Direct",
         "requested": "[1.16.0, )",
@@ -225,6 +219,9 @@
           "Microsoft.NETCore.Platforms": "1.1.0",
           "Microsoft.NETCore.Targets": "1.1.0"
         }
+      },
+      "enterwell.clients.wpf.notifications": {
+        "type": "Project"
       },
       "ymmeutil.bridge": {
         "type": "Project",
