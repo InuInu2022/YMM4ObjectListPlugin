@@ -229,8 +229,10 @@ public class MainViewModel
 		}
 
 		if (!save.IsSkipAppVersionCheck
-			&& appVer < OlderYetVerified
-			&& appVer >= YetVerified)
+			&&
+			(appVer < OlderYetVerified
+			|| appVer >= YetVerified)
+		)
 		{
 			DisplayVersionWarning(appVer);
 		}
@@ -288,7 +290,7 @@ public class MainViewModel
 				IsPluginEnabled = false;
 				NotifyManager.Info(
 					"プラグインのアプデも確認してください",
-					"対応バージョンがでているかもしれません。\n「メニュー」＞「設定」＞「YMM4オブジェクトリスト」"
+					"対応バージョンがでているかもしれません。\n「ファイル」＞「設定」＞「YMM4オブジェクトリスト」＞「Update check」"
 				);
 			})
 			.WithAdditionalContent(
