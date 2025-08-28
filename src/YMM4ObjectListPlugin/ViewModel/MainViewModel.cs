@@ -128,6 +128,21 @@ public class MainViewModel
 
 		LoadGroupingSettingsFromSettings();
 
+		InitializeCommands();
+
+		SetFilterTimer();
+		SetTimelineMonitorTimer();
+
+		ObjectListSettings.Default.PropertyChanged +=
+			OnSettingsPropertyChanged;
+
+		// 初期化完了 - これ以降は相互排他制御が有効になる
+		_isInitializationComplete = true;
+	}
+
+	[SuppressMessage("Design", "MA0051:Method is too long", Justification = "<保留中>")]
+	private void InitializeCommands()
+	{
 		Ready = Command.Factory.Create(
 			InitializeApplicationAsync
 		);
@@ -188,18 +203,7 @@ public class MainViewModel
 				IsCategoryFilterMenuOpen = true;
 				return default;
 			});
-
-		SetFilterTimer();
-		SetTimelineMonitorTimer();
-
-		ObjectListSettings.Default.PropertyChanged +=
-			OnSettingsPropertyChanged;
-
-		// 初期化完了 - これ以降は相互排他制御が有効になる
-		_isInitializationComplete = true;
 	}
-
-
 
 	async ValueTask InitializeApplicationAsync()
 	{
