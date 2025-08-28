@@ -215,12 +215,20 @@ public class MainViewModel
 			})
 			.ConfigureAwait(true);
 
-		var appVer = YukkuriMovieMaker
-			.Commons
-			.AppVersion
-			.Current;
+		var appVer = AppVersion.Current;
+		var save = ObjectListSettings.Default;
 
-		if (!ObjectListSettings.Default.IsSkipAppVersionCheck
+		var lastVer = save.LastSkippedVersion;
+		if (lastVer.Major != appVer.Major ||
+			lastVer.Minor > appVer.Minor
+		)
+		{
+			//マイナーバージョンが上がっていればスキップをクリア
+			save.IsSkipAppVersionCheck = false;
+			save.LastSkippedVersion = appVer;
+		}
+
+		if (!save.IsSkipAppVersionCheck
 			&& appVer < OlderYetVerified
 			&& appVer >= YetVerified)
 		{
@@ -310,7 +318,7 @@ public class MainViewModel
 				),
 				HorizontalAlignment =
 					HorizontalAlignment.Left,
-				Content = "次回からは確認しない",
+				Content = "次のバージョンまで次回からは確認しない",
 				Foreground = NotifyUtil.DynamicForegroundTextBrush,
 			};
 			cb.SetBinding(

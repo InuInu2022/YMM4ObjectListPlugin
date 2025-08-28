@@ -2,6 +2,7 @@ using System.Reflection;
 
 using ObjectList.ViewModel;
 
+using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin;
 
 namespace ObjectList;
@@ -64,6 +65,7 @@ public class ObjectListSettings
 	private LengthViewMode showLengthViewMode =
 		LengthViewMode.Frame;
 	private bool isSkipAppVersionCheck;
+	private Version _lastSkippedVersion = new(0,0);
 
 	#region footer
 	public bool IsShowFooter
@@ -262,9 +264,23 @@ public class ObjectListSettings
 
 	#region version_check
 
-	public bool IsSkipAppVersionCheck {
+	public bool IsSkipAppVersionCheck
+	{
 		get => isSkipAppVersionCheck;
-		set => Set(ref isSkipAppVersionCheck, value);
+		set
+		{
+			Set(ref isSkipAppVersionCheck, value);
+			if (value)
+			{
+				LastSkippedVersion = AppVersion.Current;
+			}
+		}
+	}
+
+	public Version LastSkippedVersion
+	{
+		get => _lastSkippedVersion;
+		set => Set(ref _lastSkippedVersion, value);
 	}
 
 	#endregion version_check
