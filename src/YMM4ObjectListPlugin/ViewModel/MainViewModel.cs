@@ -7,17 +7,17 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Threading;
-
+using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
-
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
-
 using YukkuriMovieMaker.Controls;
+using YukkuriMovieMaker.Theme;
 using YukkuriMovieMaker.ViewModels;
 
 namespace ObjectList.ViewModel;
@@ -99,6 +99,11 @@ public class MainViewModel
 	public int SceneLength { get; set; } = 100;
 
 	public bool IsReloading { get; set; }
+
+	public INotificationMessageManager NotifyManager { get; set; } =
+		new NotificationMessageManager();
+
+	public bool IsPluginEnabled { get; set; }
 
 	IDisposable? sceneSubscription;
 
@@ -187,6 +192,8 @@ public class MainViewModel
 		_isInitializationComplete = true;
 	}
 
+	static Version Verified { get; } = new(4, 41);
+
 	async ValueTask InitializeApplicationAsync()
 	{
 		await UIThread
@@ -197,18 +204,129 @@ public class MainViewModel
 			})
 			.ConfigureAwait(true);
 
-		// YMM4のUI初期化を待機 - 最大30秒間試行
-		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
+		var appVer = YukkuriMovieMaker
+			.Commons
+			.AppVersion
+			.Current;
 
-		await UIThread.Bind();
+		if (!ObjectListSettings.Default.IsSkipAppVersionCheck && appVer >= Verified)
+		{
+			DisplayVersionWarning(appVer);
+		}
+		else
+		{
+			IsPluginEnabled = true;
+			_ = await AwaitUiReadyAsync()
+				.ConfigureAwait(true);
+		}
+	}
 
-		var foundWin = Application
-			.Current.Windows.OfType<Window>()
-			.FirstOrDefault(window =>
-				IsRealUiWindow(window) && window.IsLoaded
+	[SuppressMessage("Usage", "MA0147:Avoid async void method for delegate")]
+	[SuppressMessage("Concurrency", "PH_S034:Async Lambda Inferred to Async Void")]
+	[SuppressMessage("Usage", "VSTHRD101:Avoid unsupported async delegates", Justification = "<保留中>")]
+	void DisplayVersionWarning(Version appVer)
+	{
+		_ = NotifyManager
+			.CreateMessage()
+			.Accent("#E0A030")
+			.Background("#333")
+			.HasBadge("⚠︎")
+			.HasHeader("プラグインの動作確認ができていません。")
+			.HasMessage(
+				$"このYMM4のバージョン v{appVer} での動作確認が取れていません。\nそれでも使用しますか？"
+			)
+			.Dismiss()
+			.WithButton(
+				"✔ OK",
+				async button =>
+				{
+					button.IsEnabled = false;
+					try
+					{
+						await AwaitUiReadyAsync()
+							.ConfigureAwait(true);
+					}
+					catch (Exception ex)
+					{
+						Debug.WriteLine($"Error in AwaitUiReadyAsync: {ex.Message}");
+						NotifyManager.Info(
+							"Error",
+							$"理由: {ex.Message}"
+						);
+						return;
+					}
+					button.IsEnabled = true;
+
+					IsPluginEnabled = true;
+				}
+			)
+			.Dismiss()
+			.WithButton("✖️ いいえ", button =>
+			{
+				IsPluginEnabled = false;
+				NotifyManager.Info(
+					"プラグインのアプデも確認してください",
+					"対応バージョンがでているかもしれません。\n「メニュー」＞「設定」＞「YMM4オブジェクトリスト」"
+				);
+			})
+			.WithAdditionalContent(
+				ContentLocation.Bottom,
+				new Border
+				{
+					BorderThickness = new Thickness(
+						0,
+						1,
+						0,
+						0
+					),
+					BorderBrush = new SolidColorBrush(
+						Color.FromArgb(128, 28, 28, 28)
+					),
+					Child = GetBindingCheckBox(),
+				}
+			)
+			.Queue();
+
+		static CheckBox GetBindingCheckBox(){
+			var cb = new CheckBox
+			{
+				Margin = new Thickness(
+					12,
+					8,
+					12,
+					8
+				),
+				HorizontalAlignment =
+					HorizontalAlignment.Left,
+				Content = "次回からは確認しない",
+				Foreground = new SolidColorBrush(
+					Color.FromArgb(
+						128,
+						255,
+						255,
+						255
+					)
+				),
+			};
+			cb.SetBinding(
+				CheckBox.IsCheckedProperty,
+				new Binding(nameof(ObjectListSettings.Default.IsSkipAppVersionCheck))
+				{
+					Source = ObjectListSettings.Default,
+					Mode = BindingMode.TwoWay,
+				}
 			);
+			return cb;
+		}
+	}
 
-		await UIThread.Unbind();
+	/// <summary>
+	/// YMM4のUI初期化を待機 - 最大30秒間試行
+	/// </summary>
+	/// <returns></returns>
+	async Task<bool> AwaitUiReadyAsync()
+	{
+		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
 
 		for (
 			int attempt = 0;
@@ -216,6 +334,17 @@ public class MainViewModel
 			attempt++
 		)
 		{
+			await UIThread.Bind();
+
+			var foundWin = Application
+				.Current.Windows.OfType<Window>()
+				.FirstOrDefault(window =>
+					IsRealUiWindow(window)
+					&& window.IsLoaded
+				);
+
+			await UIThread.Unbind();
+
 			if (foundWin is not null)
 			{
 				try
@@ -231,14 +360,13 @@ public class MainViewModel
 						})
 						.ConfigureAwait(true);
 
-					return;
+					return true;
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine(
 						$"Error in OnHostUiReadyAsync: {ex.Message}"
 					);
-					return;
 				}
 			}
 
@@ -248,6 +376,11 @@ public class MainViewModel
 		Debug.WriteLine(
 			"UI window detection timed out after 30 seconds"
 		);
+		NotifyManager.Warn(
+			"UI初期化に失敗しました。",
+			"理由：タイムアウト"
+		);
+		return false;
 	}
 
 	/// <summary>
@@ -1451,6 +1584,7 @@ public class MainViewModel
 	void MonitorTimelineReference()
 	{
 		if (
+			!IsPluginEnabled ||
 			!TimelineUtil.TryGetTimeline(out var timeLine)
 			|| timeLine is null
 		)

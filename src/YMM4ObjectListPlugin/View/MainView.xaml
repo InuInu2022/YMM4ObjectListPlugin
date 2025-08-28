@@ -8,8 +8,10 @@
   xmlns:epoxy="https://github.com/kekyo/Epoxy"
   xmlns:loc="clr-namespace:YukkuriMovieMaker.Resources.Localization;assembly=YukkuriMovieMaker.Plugin"
   xmlns:local="clr-namespace:ObjectList.View"
+  xmlns:conv="clr-namespace:ObjectList.View.Converters"
   xmlns:materialIcons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:notify="clr-namespace:Enterwell.Clients.Wpf.Notifications.Controls;assembly=Enterwell.Clients.Wpf.Notifications"
   xmlns:viewmodels="clr-namespace:ObjectList.ViewModel"
   xmlns:ymmconv="clr-namespace:YukkuriMovieMaker.Views.Converters;assembly=YukkuriMovieMaker.Plugin"
   d:DesignHeight="450"
@@ -28,6 +30,7 @@
       </ResourceDictionary.MergedDictionaries>
 
       <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+      <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
 
       <!--  共通のColumnHeaderStyleを定義  -->
       <Style
@@ -68,80 +71,838 @@
 
   </UserControl.Resources>
 
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="Auto" />
-      <RowDefinition Height="*" />
-      <RowDefinition Height="Auto" />
-    </Grid.RowDefinitions>
+  <Grid x:Name="OverlayGrid">
+
+    <Grid x:Name="mainGrid" IsEnabled="{Binding IsPluginEnabled}">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <DockPanel Grid.Row="0">
+        <!--  リロードボタン  -->
+        <Button
+          Width="24"
+          Height="24"
+          Margin="5,5,5,0"
+          Command="{Binding ReloadCommand}"
+          DockPanel.Dock="Right"
+          IsEnabled="{Binding IsReloading, Converter={ymmconv:BooleanInverterConverter}}"
+          ToolTip="{x:Static loc:Texts.Reload}"
+          >
+          <Image Margin="2" Source="{StaticResource mdiReload}" />
+        </Button>
+
+        <!--  フィルタートグルボタン  -->
+        <ToggleButton
+          x:Name="FilterMenuToggle"
+          Margin="0,5,5,0"
+          HorizontalAlignment="Left"
+          DockPanel.Dock="Right"
+          IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
+          >
+          <ToggleButton.Style>
+            <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+              <Setter Property="Content">
+                <Setter.Value>
+                  <materialIcons:MaterialIconExt Kind="Filter" Size="16" />
+                </Setter.Value>
+              </Setter>
+              <Style.Triggers>
+                <!--  デフォルト以外の設定が有効な場合はFilterCheckアイコンに変更  -->
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding IsAllFilterSelected}" Value="False" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Content">
+                    <Setter.Value>
+                      <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
+                    </Setter.Value>
+                  </Setter>
+                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding IsCategoryFilterEnabled}" Value="True" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Content">
+                    <Setter.Value>
+                      <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
+                    </Setter.Value>
+                  </Setter>
+                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                </MultiDataTrigger>
+              </Style.Triggers>
+            </Style>
+          </ToggleButton.Style>
+        </ToggleButton>
+
+        <!--  ポップアップメニュー  -->
+        <Popup
+          x:Name="FilterPopup"
+          AllowsTransparency="True"
+          IsOpen="{Binding IsFilterMenuOpen, Mode=TwoWay}"
+          Placement="Bottom"
+          PlacementTarget="{Binding ElementName=FilterMenuToggle}"
+          PopupAnimation="Fade"
+          StaysOpen="False"
+          >
+          <Border
+            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+            BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+            BorderThickness="1"
+            CornerRadius="3"
+            >
+            <Border.Effect>
+              <DropShadowEffect
+                BlurRadius="5"
+                Opacity="0.3"
+                ShadowDepth="2"
+                Color="Black"
+                />
+            </Border.Effect>
+            <StackPanel Margin="5">
+
+              <!--  フィルターセクション  -->
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
+                <TextBlock
+                  Margin="5,0,5,5"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                  Text="時間フィルター"
+                  />
+              </StackPanel>
 
 
-    <DockPanel Grid.Row="0">
-      <!--  リロードボタン  -->
-      <Button
-        Width="24"
-        Height="24"
-        Margin="5,5,5,0"
-        Command="{Binding ReloadCommand}"
-        DockPanel.Dock="Right"
-        IsEnabled="{Binding IsReloading, Converter={ymmconv:BooleanInverterConverter}}"
-        ToolTip="{x:Static loc:Texts.Reload}"
+              <RadioButton
+                Margin="10,2"
+                Content="なし"
+                GroupName="FilterOptions"
+                IsChecked="{Binding IsAllFilterSelected}"
+                />
+
+              <RadioButton
+                Margin="10,2"
+                GroupName="FilterOptions"
+                IsChecked="{Binding IsUnderSeekBarFilterSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
+                  <TextBlock Margin="5,0,0,0" Text="シークバーの下" />
+                </StackPanel>
+              </RadioButton>
+
+
+              <RadioButton
+                Margin="10,2"
+                GroupName="FilterOptions"
+                IsChecked="{Binding IsRangeFilterSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />
+                  <TextBlock Margin="5,0,0,0" Text="範囲指定" />
+                </StackPanel>
+              </RadioButton>
+
+              <GroupBox
+                Margin="20,2,10,2"
+                Header="範囲フィルター"
+                Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
+                >
+                <StackPanel>
+                  <RadioButton
+                    x:Name="StrictModeRadio"
+                    Margin="10,2"
+                    GroupName="RangeMode"
+                    IsChecked="{Binding IsRangeFilterStrictMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    >
+                    <StackPanel Orientation="Horizontal">
+                      <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
+                      <TextBlock Margin="5,0,0,0" Text="完全に範囲内" />
+                    </StackPanel>
+                  </RadioButton>
+                  <RadioButton
+                    x:Name="OverlapModeRadio"
+                    Margin="10,2"
+                    GroupName="RangeMode"
+                    IsChecked="{Binding IsRangeFilterOverlapMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    >
+                    <StackPanel Orientation="Horizontal">
+                      <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
+                      <TextBlock Margin="5,0,0,0" Text="範囲と重複" />
+                    </StackPanel>
+                  </RadioButton>
+                </StackPanel>
+              </GroupBox>
+
+              <!--  セパレーター  -->
+              <Separator Margin="0,5" />
+
+              <Expander IsExpanded="False">
+                <Expander.Header>
+                  <StackPanel Orientation="Horizontal">
+                    <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
+                    <TextBlock
+                      Margin="5,0,5,5"
+                      FontWeight="Bold"
+                      Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                      Text="カテゴリーフィルター"
+                      />
+                  </StackPanel>
+                </Expander.Header>
+                <StackPanel Margin="10,0,0,0">
+                  <local:CategoryFilterPanel PanelStyle="Compact" />
+                </StackPanel>
+              </Expander>
+
+              <!--  セパレーター  -->
+              <Separator Margin="0,5" />
+
+              <!--  グルーピングセクション  -->
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="FormatListGroup" Size="16" />
+                <TextBlock
+                  Margin="5,5,5,5"
+                  FontWeight="Bold"
+                  Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                  Text="リストグループ"
+                  />
+              </StackPanel>
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="None"
+                Content="なし"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsNoneGroupingSelected}"
+                />
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="Category"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsCategoryGroupingSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <Image
+                    Width="12"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Source="{StaticResource mdiSitemap}"
+                    />
+                  <TextBlock Text="カテゴリ" />
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="Layer"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsLayerGroupingSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <Image
+                    Width="12"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Source="{StaticResource mdiLayers}"
+                    />
+                  <TextBlock Text="{x:Static loc:Texts.BaseItemLayerName}" />
+                </StackPanel>
+              </RadioButton>
+
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="Group"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsGroupGroupingSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <Image
+                    Width="12"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Source="{StaticResource mdiGroup}"
+                    ToolTip="{x:Static loc:Texts.GroupLabel}"
+                    />
+                  <TextBlock Text="{x:Static loc:Texts.GroupLabel}" />
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="IsLocked"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsLockedGroupingSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <Image
+                    Width="12"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Source="{StaticResource mdiLock}"
+                    ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
+                    />
+                  <TextBlock Text="{x:Static loc:Texts.BaseItemIsLockedName}" />
+                </StackPanel>
+              </RadioButton>
+
+              <RadioButton
+                Margin="10,2"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Command="{Binding SetGroupingCommand}"
+                CommandParameter="IsHidden"
+                GroupName="GroupingOptions"
+                IsChecked="{Binding IsHiddenGroupingSelected}"
+                >
+                <StackPanel Orientation="Horizontal">
+                  <Image
+                    Width="12"
+                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
+                    Source="{StaticResource mdiEyeOffOutline}"
+                    ToolTip="{x:Static loc:Texts.BaseItemIsHiddenName}"
+                    />
+                  <TextBlock VerticalAlignment="Center" Text="{x:Static loc:Texts.BaseItemIsHiddenName}" />
+                </StackPanel>
+              </RadioButton>
+
+            </StackPanel>
+          </Border>
+        </Popup>
+
+
+        <!--  検索テキストボックス  -->
+        <TextBox
+          Margin="5,5,0,0"
+          DockPanel.Dock="Left"
+          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+          >
+          <TextBox.Style>
+            <Style TargetType="TextBox">
+              <Setter Property="Template">
+                <Setter.Value>
+                  <ControlTemplate TargetType="TextBox">
+                    <Border
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      >
+                      <Grid>
+                        <ScrollViewer x:Name="PART_ContentHost" />
+                        <TextBlock
+                          Margin="5,0,0,0"
+                          VerticalAlignment="Center"
+                          Foreground="Gray"
+                          IsHitTestVisible="False"
+                          Text="タイトルで検索..."
+                          >
+                          <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                              <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
+                                  <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                              </Style.Triggers>
+                            </Style>
+                          </TextBlock.Style>
+                        </TextBlock>
+                      </Grid>
+                    </Border>
+                  </ControlTemplate>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </TextBox.Style>
+        </TextBox>
+
+
+
+      </DockPanel>
+
+      <!--  サブオプション領域  -->
+      <StackPanel
+        Name="SubOptionsPanel"
+        Grid.Row="1"
+        Orientation="Horizontal"
         >
-        <Image Margin="2" Source="{StaticResource mdiReload}" />
-      </Button>
+        <StackPanel
+          Name="RangeFilterOptions"
+          Margin="10,2,2,2"
+          Orientation="Horizontal"
+          Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
+          >
 
-      <!--  フィルタートグルボタン  -->
-      <ToggleButton
-        x:Name="FilterMenuToggle"
-        Margin="0,5,5,0"
-        HorizontalAlignment="Left"
-        DockPanel.Dock="Right"
-        IsChecked="{Binding IsFilterMenuOpen, Mode=TwoWay}"
+
+
+          <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
+            <DockPanel>
+              <Button Command="{Binding SetStartRangeCurrentFrameCommand}" DockPanel.Dock="Left">
+                <Label ToolTip="現在のフレームから開始範囲にする">
+                  <materialIcons:MaterialIconExt Kind="ClockStart" Size="16" />
+                </Label>
+              </Button>
+              <c:FrameNumberEditor
+                Name="RangeFilterStart"
+                Width="200"
+                epoxy:Anchor.Pile="{Binding RangeStartPile}"
+                DefaultValue="0"
+                Max="{Binding SceneLength}"
+                Min="0"
+                Value="{Binding RangeStartFrame, Mode=TwoWay}"
+                />
+
+            </DockPanel>
+          </Border>
+
+          <StackPanel
+            Margin="20,5"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            ToolTip="完全に範囲内"
+            Visibility="{Binding IsRangeFilterStrictMode, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <TextBlock Text="～" />
+            <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
+            <TextBlock Text="～" />
+          </StackPanel>
+          <StackPanel
+            Margin="20,5"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal"
+            ToolTip="範囲と重複"
+            Visibility="{Binding IsRangeFilterOverlapMode, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <TextBlock Text="～" />
+            <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
+            <TextBlock Text="～" />
+          </StackPanel>
+
+          <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
+            <DockPanel>
+              <Button Command="{Binding SetEndRangeCurrentFrameCommand}" DockPanel.Dock="Left">
+                <Label ToolTip="現在のフレームまで終了範囲にする">
+                  <materialIcons:MaterialIconExt Kind="ClockEnd" Size="16" />
+                </Label>
+              </Button>
+              <c:FrameNumberEditor
+                Name="RangeFilterEnd"
+                Width="200"
+                epoxy:Anchor.Pile="{Binding RangeEndPile}"
+                DefaultValue="1024"
+                Max="{Binding SceneLength}"
+                Min="0"
+                Value="{Binding RangeEndFrame, Mode=TwoWay}"
+                />
+            </DockPanel>
+          </Border>
+
+          <Label
+            VerticalAlignment="Center"
+            Content="{materialIcons:MaterialIconExt Kind=AlertOctagram,
+                                                    Size=20}"
+            Foreground="Red"
+            Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
+            />
+        </StackPanel>
+      </StackPanel>
+
+      <!--  DataGrid  -->
+      <DataGrid
+        x:Name="CustomerDataGrid"
+        Grid.Row="2"
+        Margin="0,5,0,0"
+        AlternationCount="2"
+        AutoGenerateColumns="False"
+        CanUserAddRows="False"
+        CanUserDeleteRows="True"
+        CanUserReorderColumns="True"
+        HeadersVisibility="Column"
+        ItemsSource="{Binding FilteredItems}"
+        SelectionMode="Extended"
         >
-        <ToggleButton.Style>
-          <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
-            <Setter Property="Content">
-              <Setter.Value>
-                <materialIcons:MaterialIconExt Kind="Filter" Size="16" />
-              </Setter.Value>
-            </Setter>
+        <epoxy:EventBinder.Events>
+          <epoxy:Event Command="{Binding SelectionChangedCommand}" EventName="SelectionChanged" />
+        </epoxy:EventBinder.Events>
+
+        <DataGrid.Resources>
+          <Style TargetType="DataGridCell">
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+          </Style>
+          <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextAlignment" Value="Center" />
+          </Style>
+        </DataGrid.Resources>
+
+        <!--  グルーピング用のGroupStyle修正  -->
+        <DataGrid.GroupStyle>
+          <GroupStyle>
+            <GroupStyle.ContainerStyle>
+              <Style TargetType="{x:Type GroupItem}">
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                      <Expander IsExpanded="True">
+                        <Expander.Header>
+                          <DockPanel>
+                            <TextBlock
+                              Margin="2"
+                              VerticalAlignment="Center"
+                              DockPanel.Dock="Right"
+                              Text="{Binding ItemCount, StringFormat=x{0}}"
+                              />
+                            <TextBlock
+                              Margin="5,2"
+                              VerticalAlignment="Center"
+                              DockPanel.Dock="Left"
+                              FontWeight="Bold"
+                              Text="{Binding Name}"
+                              />
+
+                          </DockPanel>
+                        </Expander.Header>
+                        <ItemsPresenter />
+                      </Expander>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </GroupStyle.ContainerStyle>
+          </GroupStyle>
+        </DataGrid.GroupStyle>
+
+        <!--  DataGridで共通スタイルを使用  -->
+        <DataGrid.ColumnHeaderStyle>
+          <StaticResource ResourceKey="BaseColumnHeaderStyle" />
+        </DataGrid.ColumnHeaderStyle>
+
+
+        <!--  行スタイルを追加  -->
+        <DataGrid.RowStyle>
+          <Style TargetType="DataGridRow">
             <Style.Triggers>
-              <!--  デフォルト以外の設定が有効な場合はFilterCheckアイコンに変更  -->
-              <MultiDataTrigger>
-                <MultiDataTrigger.Conditions>
-                  <Condition Binding="{Binding IsAllFilterSelected}" Value="False" />
-                </MultiDataTrigger.Conditions>
-                <Setter Property="Content">
+              <Trigger Property="AlternationIndex" Value="1">
+                <Setter Property="Background">
                   <Setter.Value>
-                    <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
+                    <SolidColorBrush Opacity="0.1" Color="{DynamicResource {x:Static SystemColors.AccentColorKey}}" />
                   </Setter.Value>
                 </Setter>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-              </MultiDataTrigger>
-              <MultiDataTrigger>
-                <MultiDataTrigger.Conditions>
-                  <Condition Binding="{Binding IsCategoryFilterEnabled}" Value="True" />
-                </MultiDataTrigger.Conditions>
-                <Setter Property="Content">
-                  <Setter.Value>
-                    <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
-                  </Setter.Value>
-                </Setter>
-                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-              </MultiDataTrigger>
+              </Trigger>
             </Style.Triggers>
           </Style>
-        </ToggleButton.Style>
-      </ToggleButton>
+        </DataGrid.RowStyle>
+
+
+        <DataGrid.Columns>
+
+          <DataGridTemplateColumn IsReadOnly="True" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnColor, Converter={StaticResource BoolToVisibilityConverter}}">
+            <DataGridTemplateColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiPaletteOutline}"
+                ToolTip="{x:Static loc:Texts.BaseItemColorName}"
+                />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Rectangle
+                  Width="10"
+                  Height="20"
+                  VerticalAlignment="Center"
+                  Fill="{Binding ColorBrush}"
+                  />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn
+            Width="SizeToCells"
+            MinWidth="100"
+            Binding="{Binding Category}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Category"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnCategory, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTextColumn.HeaderStyle>
+              <StaticResource ResourceKey="CategoryColumnHeaderStyle" />
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.Header>
+              <Grid Margin="0">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Image
+                  Grid.Column="0"
+                  Width="12"
+                  Margin="2,0"
+                  Source="{StaticResource mdiSitemap}"
+                  ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
+                  />
+                <TextBlock
+                  Grid.Column="1"
+                  Margin="2,0"
+                  Text="カテゴリ"
+                  />
+                <Border Grid.Column="2" />
+                <Button
+                  x:Name="CategoryFilterButton"
+                  Grid.Row="0"
+                  Grid.Column="3"
+                  Margin="10,0,0,0"
+                  Padding="5,0"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Stretch"
+                  Command="{Binding DataContext.OpenCategoryFilterMenuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  >
+                  <Button.Style>
+                    <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                      <Setter Property="Content">
+                        <Setter.Value>
+                          <materialIcons:MaterialIconExt Kind="Filter" Size="12" />
+                        </Setter.Value>
+                      </Setter>
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding DataContext.IsCategoryFilterEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                          <Setter Property="Content">
+                            <Setter.Value>
+                              <materialIcons:MaterialIconExt Kind="FilterCheck" Size="12" />
+                            </Setter.Value>
+                          </Setter>
+                          <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </Button.Style>
+
+                </Button>
+              </Grid>
+            </DataGridTextColumn.Header>
+
+          </DataGridTextColumn>
+          <DataGridTextColumn
+            Width="*"
+            MinWidth="100"
+            Binding="{Binding Label}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Label"
+            >
+            <!--  Label列で左寄せスタイルを使用  -->
+            <DataGridTextColumn.HeaderStyle>
+              <StaticResource ResourceKey="LeftAlignColumnHeaderStyle" />
+            </DataGridTextColumn.HeaderStyle>
+            <DataGridTextColumn.Header>
+              <StackPanel Margin="2,0" Orientation="Horizontal">
+                <Image
+                  Width="12"
+                  Margin="2,0"
+                  Source="{StaticResource mdiNameLabel}"
+                  ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
+                  />
+                <TextBlock Margin="2,0" Text="{x:Static loc:Texts.SearchResultItemColumnHeader}" />
+              </StackPanel>
+
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+          <DataGridTextColumn
+            Width="SizeToHeader"
+            MinWidth="30"
+            Binding="{Binding Layer}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Layer"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLayer, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTextColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiLayers}"
+                ToolTip="{x:Static loc:Texts.BaseItemLayerName}"
+                />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+          <DataGridTextColumn
+            Width="SizeToHeader"
+            MinWidth="30"
+            Binding="{Binding Frame}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Frame"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnFrame, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTextColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiTimelineClock}"
+                ToolTip="{x:Static loc:Texts.BaseItemFrameName}"
+                />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+          <DataGridTextColumn
+            Width="SizeToCells"
+            MinWidth="30"
+            Binding="{Binding DisplayLength}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Length"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLength, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTextColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiArrowExpandHorizontal}"
+                ToolTip="{x:Static loc:Texts.BaseItemLengthName}"
+                >
+                <Image.ContextMenu>
+                  <ContextMenu MinWidth="0" Padding="0">
+                    <Grid MinWidth="0" Margin="8,2,8,2">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock
+                        Grid.Column="0"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Text="表示モード"
+                        />
+                      <c:EnumComboBox
+                        Grid.Column="1"
+                        Width="100"
+                        EnumType="{x:Type viewmodels:LengthViewMode}"
+                        Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=ShowLengthViewMode, Mode=TwoWay}"
+                        />
+                    </Grid>
+                  </ContextMenu>
+                </Image.ContextMenu>
+              </Image>
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+          <DataGridTextColumn
+            Width="SizeToHeader"
+            MinWidth="30"
+            Binding="{Binding Group}"
+            CanUserSort="True"
+            IsReadOnly="True"
+            SortDirection="Ascending"
+            SortMemberPath="Group"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnGroup, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTextColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiGroup}"
+                ToolTip="{x:Static loc:Texts.GroupLabel}"
+                />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+          <DataGridTemplateColumn
+            Width="SizeToCells"
+            MinWidth="30"
+            CanUserSort="True"
+            SortMemberPath="IsLocked"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLock, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTemplateColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiLock}"
+                ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
+                />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <c:ToggleSlider
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Value="{Binding IsLocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn
+            Width="SizeToCells"
+            MinWidth="30"
+            CanUserSort="True"
+            SortMemberPath="IsHidden"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnHidden, Converter={StaticResource BoolToVisibilityConverter}}"
+            >
+            <DataGridTemplateColumn.Header>
+              <Image
+                Width="12"
+                Margin="2,0"
+                HorizontalAlignment="Center"
+                Source="{StaticResource mdiEyeOffOutline}"
+                ToolTip="{x:Static loc:Texts.BaseItemIsHiddenDesc}"
+                />
+            </DataGridTemplateColumn.Header>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <c:ToggleSlider
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Value="{Binding IsHidden, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
 
       <!--  ポップアップメニュー  -->
       <Popup
-        x:Name="FilterPopup"
+        x:Name="CategoryFilterPopup"
         AllowsTransparency="True"
-        IsOpen="{Binding IsFilterMenuOpen, Mode=TwoWay}"
-        Placement="Bottom"
-        PlacementTarget="{Binding ElementName=FilterMenuToggle}"
+        IsOpen="{Binding IsCategoryFilterMenuOpen, Mode=TwoWay}"
+        Placement="MousePoint"
         PopupAnimation="Fade"
         StaysOpen="False"
         >
@@ -161,818 +922,73 @@
           </Border.Effect>
           <StackPanel Margin="5">
 
-            <!--  フィルターセクション  -->
+            <!--  カテゴリーフィルターセクション  -->
             <StackPanel Orientation="Horizontal">
               <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
               <TextBlock
                 Margin="5,0,5,5"
                 FontWeight="Bold"
                 Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-                Text="時間フィルター"
+                Text="カテゴリーフィルター"
                 />
             </StackPanel>
 
-
-            <RadioButton
-              Margin="10,2"
-              Content="なし"
-              GroupName="FilterOptions"
-              IsChecked="{Binding IsAllFilterSelected}"
-              />
-
-            <RadioButton
-              Margin="10,2"
-              GroupName="FilterOptions"
-              IsChecked="{Binding IsUnderSeekBarFilterSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
-                <TextBlock Margin="5,0,0,0" Text="シークバーの下" />
-              </StackPanel>
-            </RadioButton>
-
-
-            <RadioButton
-              Margin="10,2"
-              GroupName="FilterOptions"
-              IsChecked="{Binding IsRangeFilterSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />
-                <TextBlock Margin="5,0,0,0" Text="範囲指定" />
-              </StackPanel>
-            </RadioButton>
-
-            <GroupBox
-              Margin="20,2,10,2"
-              Header="範囲フィルター"
-              Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
-              >
-              <StackPanel>
-                <RadioButton
-                  x:Name="StrictModeRadio"
-                  Margin="10,2"
-                  GroupName="RangeMode"
-                  IsChecked="{Binding IsRangeFilterStrictMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  >
-                  <StackPanel Orientation="Horizontal">
-                    <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
-                    <TextBlock Margin="5,0,0,0" Text="完全に範囲内" />
-                  </StackPanel>
-                </RadioButton>
-                <RadioButton
-                  x:Name="OverlapModeRadio"
-                  Margin="10,2"
-                  GroupName="RangeMode"
-                  IsChecked="{Binding IsRangeFilterOverlapMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  >
-                  <StackPanel Orientation="Horizontal">
-                    <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
-                    <TextBlock Margin="5,0,0,0" Text="範囲と重複" />
-                  </StackPanel>
-                </RadioButton>
-              </StackPanel>
-            </GroupBox>
-
-            <!--  セパレーター  -->
-            <Separator Margin="0,5" />
-
-            <Expander IsExpanded="False">
-              <Expander.Header>
-                <StackPanel Orientation="Horizontal">
-                  <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
-                  <TextBlock
-                    Margin="5,0,5,5"
-                    FontWeight="Bold"
-                    Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-                    Text="カテゴリーフィルター"
-                    />
-                </StackPanel>
-              </Expander.Header>
-              <StackPanel Margin="10,0,0,0">
-                <local:CategoryFilterPanel PanelStyle="Compact" />
-              </StackPanel>
-            </Expander>
-
-            <!--  セパレーター  -->
-            <Separator Margin="0,5" />
-
-            <!--  グルーピングセクション  -->
-            <StackPanel Orientation="Horizontal">
-              <materialIcons:MaterialIconExt Kind="FormatListGroup" Size="16" />
-              <TextBlock
-                Margin="5,5,5,5"
-                FontWeight="Bold"
-                Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-                Text="リストグループ"
-                />
+            <StackPanel Margin="5,0,0,0">
+              <local:CategoryFilterPanel PanelStyle="Compact" />
             </StackPanel>
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="None"
-              Content="なし"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsNoneGroupingSelected}"
-              />
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="Category"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsCategoryGroupingSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <Image
-                  Width="12"
-                  Margin="0,0,4,0"
-                  VerticalAlignment="Center"
-                  Source="{StaticResource mdiSitemap}"
-                  />
-                <TextBlock Text="カテゴリ" />
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="Layer"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsLayerGroupingSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <Image
-                  Width="12"
-                  Margin="0,0,4,0"
-                  VerticalAlignment="Center"
-                  Source="{StaticResource mdiLayers}"
-                  />
-                <TextBlock Text="{x:Static loc:Texts.BaseItemLayerName}" />
-              </StackPanel>
-            </RadioButton>
-
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="Group"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsGroupGroupingSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <Image
-                  Width="12"
-                  Margin="0,0,4,0"
-                  VerticalAlignment="Center"
-                  Source="{StaticResource mdiGroup}"
-                  ToolTip="{x:Static loc:Texts.GroupLabel}"
-                  />
-                <TextBlock Text="{x:Static loc:Texts.GroupLabel}" />
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="IsLocked"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsLockedGroupingSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <Image
-                  Width="12"
-                  Margin="0,0,4,0"
-                  VerticalAlignment="Center"
-                  Source="{StaticResource mdiLock}"
-                  ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
-                  />
-                <TextBlock Text="{x:Static loc:Texts.BaseItemIsLockedName}" />
-              </StackPanel>
-            </RadioButton>
-
-            <RadioButton
-              Margin="10,2"
-              VerticalAlignment="Center"
-              VerticalContentAlignment="Center"
-              Command="{Binding SetGroupingCommand}"
-              CommandParameter="IsHidden"
-              GroupName="GroupingOptions"
-              IsChecked="{Binding IsHiddenGroupingSelected}"
-              >
-              <StackPanel Orientation="Horizontal">
-                <Image
-                  Width="12"
-                  Margin="0,0,4,0"
-                  VerticalAlignment="Center"
-                  Source="{StaticResource mdiEyeOffOutline}"
-                  ToolTip="{x:Static loc:Texts.BaseItemIsHiddenName}"
-                  />
-                <TextBlock VerticalAlignment="Center" Text="{x:Static loc:Texts.BaseItemIsHiddenName}" />
-              </StackPanel>
-            </RadioButton>
 
           </StackPanel>
         </Border>
       </Popup>
 
 
-      <!--  検索テキストボックス  -->
-      <TextBox
-        Margin="5,5,0,0"
-        DockPanel.Dock="Left"
-        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-        >
-        <TextBox.Style>
-          <Style TargetType="TextBox">
-            <Setter Property="Template">
-              <Setter.Value>
-                <ControlTemplate TargetType="TextBox">
-                  <Border
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    >
-                    <Grid>
-                      <ScrollViewer x:Name="PART_ContentHost" />
-                      <TextBlock
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Foreground="Gray"
-                        IsHitTestVisible="False"
-                        Text="タイトルで検索..."
-                        >
-                        <TextBlock.Style>
-                          <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                            <Style.Triggers>
-                              <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource TemplatedParent}}" Value="">
-                                <Setter Property="Visibility" Value="Visible" />
-                              </DataTrigger>
-                            </Style.Triggers>
-                          </Style>
-                        </TextBlock.Style>
-                      </TextBlock>
-                    </Grid>
-                  </Border>
-                </ControlTemplate>
-              </Setter.Value>
-            </Setter>
-          </Style>
-        </TextBox.Style>
-      </TextBox>
-
-
-
-    </DockPanel>
-
-    <!--  サブオプション領域  -->
-    <StackPanel
-      Name="SubOptionsPanel"
-      Grid.Row="1"
-      Orientation="Horizontal"
-      >
-      <StackPanel
-        Name="RangeFilterOptions"
-        Margin="10,2,2,2"
-        Orientation="Horizontal"
-        Visibility="{Binding IsRangeFilterSelected, Converter={StaticResource BoolToVisibilityConverter}}"
-        >
-
-
-
-        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
-          <DockPanel>
-            <Button Command="{Binding SetStartRangeCurrentFrameCommand}" DockPanel.Dock="Left">
-              <Label ToolTip="現在のフレームから開始範囲にする">
-                <materialIcons:MaterialIconExt Kind="ClockStart" Size="16" />
-              </Label>
-            </Button>
-            <c:FrameNumberEditor
-              Name="RangeFilterStart"
-              Width="200"
-              epoxy:Anchor.Pile="{Binding RangeStartPile}"
-              DefaultValue="0"
-              Max="{Binding SceneLength}"
-              Min="0"
-              Value="{Binding RangeStartFrame, Mode=TwoWay}"
-              />
-
-          </DockPanel>
-        </Border>
-
-        <StackPanel
-          Margin="20,5"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Center"
-          Orientation="Horizontal"
-          ToolTip="完全に範囲内"
-          Visibility="{Binding IsRangeFilterStrictMode, Converter={StaticResource BoolToVisibilityConverter}}"
+      <!--  Footer  -->
+      <DockPanel Grid.Row="3" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter, Converter={StaticResource BoolToVisibilityConverter}}">
+        <WrapPanel
+          Margin="5,0,5,0"
+          HorizontalAlignment="Right"
+          DockPanel.Dock="Right"
           >
-          <TextBlock Text="～" />
-          <materialIcons:MaterialIconExt Kind="CheckboxIntermediate" Size="14" />
-          <TextBlock Text="～" />
-        </StackPanel>
-        <StackPanel
-          Margin="20,5"
-          HorizontalAlignment="Center"
-          VerticalAlignment="Center"
-          Orientation="Horizontal"
-          ToolTip="範囲と重複"
-          Visibility="{Binding IsRangeFilterOverlapMode, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <TextBlock Text="～" />
-          <materialIcons:MaterialIconExt Kind="CheckboxMultipleBlank" Size="14" />
-          <TextBlock Text="～" />
-        </StackPanel>
-
-        <Border BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1">
-          <DockPanel>
-            <Button Command="{Binding SetEndRangeCurrentFrameCommand}" DockPanel.Dock="Left">
-              <Label ToolTip="現在のフレームまで終了範囲にする">
-                <materialIcons:MaterialIconExt Kind="ClockEnd" Size="16" />
-              </Label>
-            </Button>
-            <c:FrameNumberEditor
-              Name="RangeFilterEnd"
-              Width="200"
-              epoxy:Anchor.Pile="{Binding RangeEndPile}"
-              DefaultValue="1024"
-              Max="{Binding SceneLength}"
-              Min="0"
-              Value="{Binding RangeEndFrame, Mode=TwoWay}"
-              />
-          </DockPanel>
-        </Border>
-
-        <Label
-          VerticalAlignment="Center"
-          Content="{materialIcons:MaterialIconExt Kind=AlertOctagram,
-                                                  Size=20}"
-          Foreground="Red"
-          Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
-          />
-      </StackPanel>
-    </StackPanel>
-
-    <!--  DataGrid  -->
-    <DataGrid
-      x:Name="CustomerDataGrid"
-      Grid.Row="2"
-      Margin="0,5,0,0"
-      AlternationCount="2"
-      AutoGenerateColumns="False"
-      CanUserAddRows="False"
-      CanUserDeleteRows="True"
-      CanUserReorderColumns="True"
-      HeadersVisibility="Column"
-      ItemsSource="{Binding FilteredItems}"
-      SelectionMode="Extended"
-      >
-      <epoxy:EventBinder.Events>
-        <epoxy:Event Command="{Binding SelectionChangedCommand}" EventName="SelectionChanged" />
-      </epoxy:EventBinder.Events>
-
-      <DataGrid.Resources>
-        <Style TargetType="DataGridCell">
-          <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-        <Style TargetType="TextBlock">
-          <Setter Property="VerticalAlignment" Value="Center" />
-          <Setter Property="TextAlignment" Value="Center" />
-        </Style>
-      </DataGrid.Resources>
-
-      <!--  グルーピング用のGroupStyle修正  -->
-      <DataGrid.GroupStyle>
-        <GroupStyle>
-          <GroupStyle.ContainerStyle>
-            <Style TargetType="{x:Type GroupItem}">
-              <Setter Property="Template">
-                <Setter.Value>
-                  <ControlTemplate TargetType="{x:Type GroupItem}">
-                    <Expander IsExpanded="True">
-                      <Expander.Header>
-                        <DockPanel>
-                          <TextBlock
-                            Margin="2"
-                            VerticalAlignment="Center"
-                            DockPanel.Dock="Right"
-                            Text="{Binding ItemCount, StringFormat=x{0}}"
-                            />
-                          <TextBlock
-                            Margin="5,2"
-                            VerticalAlignment="Center"
-                            DockPanel.Dock="Left"
-                            FontWeight="Bold"
-                            Text="{Binding Name}"
-                            />
-
-                        </DockPanel>
-                      </Expander.Header>
-                      <ItemsPresenter />
-                    </Expander>
-                  </ControlTemplate>
-                </Setter.Value>
-              </Setter>
-            </Style>
-          </GroupStyle.ContainerStyle>
-        </GroupStyle>
-      </DataGrid.GroupStyle>
-
-      <!--  DataGridで共通スタイルを使用  -->
-      <DataGrid.ColumnHeaderStyle>
-        <StaticResource ResourceKey="BaseColumnHeaderStyle" />
-      </DataGrid.ColumnHeaderStyle>
-
-
-      <!--  行スタイルを追加  -->
-      <DataGrid.RowStyle>
-        <Style TargetType="DataGridRow">
-          <Style.Triggers>
-            <Trigger Property="AlternationIndex" Value="1">
-              <Setter Property="Background">
-                <Setter.Value>
-                  <SolidColorBrush Opacity="0.1" Color="{DynamicResource {x:Static SystemColors.AccentColorKey}}" />
-                </Setter.Value>
-              </Setter>
-            </Trigger>
-          </Style.Triggers>
-        </Style>
-      </DataGrid.RowStyle>
-
-
-      <DataGrid.Columns>
-
-        <DataGridTemplateColumn IsReadOnly="True" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnColor, Converter={StaticResource BoolToVisibilityConverter}}">
-          <DataGridTemplateColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiPaletteOutline}"
-              ToolTip="{x:Static loc:Texts.BaseItemColorName}"
-              />
-          </DataGridTemplateColumn.Header>
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <Rectangle
-                Width="10"
-                Height="20"
-                VerticalAlignment="Center"
-                Fill="{Binding ColorBrush}"
-                />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-        <DataGridTextColumn
-          Width="SizeToCells"
-          MinWidth="100"
-          Binding="{Binding Category}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Category"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnCategory, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTextColumn.HeaderStyle>
-            <StaticResource ResourceKey="CategoryColumnHeaderStyle" />
-          </DataGridTextColumn.HeaderStyle>
-          <DataGridTextColumn.Header>
-            <Grid Margin="0">
-              <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-              </Grid.RowDefinitions>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-              </Grid.ColumnDefinitions>
-              <Image
-                Grid.Column="0"
-                Width="12"
-                Margin="2,0"
-                Source="{StaticResource mdiSitemap}"
-                ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
-                />
-              <TextBlock
-                Grid.Column="1"
-                Margin="2,0"
-                Text="カテゴリ"
-                />
-              <Border Grid.Column="2" />
-              <Button
-                x:Name="CategoryFilterButton"
-                Grid.Row="0"
-                Grid.Column="3"
-                Margin="10,0,0,0"
-                Padding="5,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Stretch"
-                Command="{Binding DataContext.OpenCategoryFilterMenuCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                >
-                <Button.Style>
-                  <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
-                    <Setter Property="Content">
-                      <Setter.Value>
-                        <materialIcons:MaterialIconExt Kind="Filter" Size="12" />
-                      </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding DataContext.IsCategoryFilterEnabled, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
-                        <Setter Property="Content">
-                          <Setter.Value>
-                            <materialIcons:MaterialIconExt Kind="FilterCheck" Size="12" />
-                          </Setter.Value>
-                        </Setter>
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </Button.Style>
-
-              </Button>
-            </Grid>
-          </DataGridTextColumn.Header>
-
-        </DataGridTextColumn>
-        <DataGridTextColumn
-          Width="*"
-          MinWidth="100"
-          Binding="{Binding Label}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Label"
-          >
-          <!--  Label列で左寄せスタイルを使用  -->
-          <DataGridTextColumn.HeaderStyle>
-            <StaticResource ResourceKey="LeftAlignColumnHeaderStyle" />
-          </DataGridTextColumn.HeaderStyle>
-          <DataGridTextColumn.Header>
-            <StackPanel Margin="2,0" Orientation="Horizontal">
-              <Image
-                Width="12"
-                Margin="2,0"
-                Source="{StaticResource mdiNameLabel}"
-                ToolTip="{x:Static loc:Texts.SearchResultItemColumnHeader}"
-                />
-              <TextBlock Margin="2,0" Text="{x:Static loc:Texts.SearchResultItemColumnHeader}" />
-            </StackPanel>
-
-          </DataGridTextColumn.Header>
-        </DataGridTextColumn>
-        <DataGridTextColumn
-          Width="SizeToHeader"
-          MinWidth="30"
-          Binding="{Binding Layer}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Layer"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLayer, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTextColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiLayers}"
-              ToolTip="{x:Static loc:Texts.BaseItemLayerName}"
-              />
-          </DataGridTextColumn.Header>
-        </DataGridTextColumn>
-        <DataGridTextColumn
-          Width="SizeToHeader"
-          MinWidth="30"
-          Binding="{Binding Frame}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Frame"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnFrame, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTextColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiTimelineClock}"
-              ToolTip="{x:Static loc:Texts.BaseItemFrameName}"
-              />
-          </DataGridTextColumn.Header>
-        </DataGridTextColumn>
-        <DataGridTextColumn
-          Width="SizeToCells"
-          MinWidth="30"
-          Binding="{Binding DisplayLength}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Length"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLength, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTextColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiArrowExpandHorizontal}"
-              ToolTip="{x:Static loc:Texts.BaseItemLengthName}"
-              >
-              <Image.ContextMenu>
-                <ContextMenu MinWidth="0" Padding="0">
-                  <Grid MinWidth="0" Margin="8,2,8,2">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="Auto" />
-                      <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                      Grid.Column="0"
-                      Margin="0,0,8,0"
-                      VerticalAlignment="Center"
-                      Text="表示モード"
-                      />
-                    <c:EnumComboBox
-                      Grid.Column="1"
-                      Width="100"
-                      EnumType="{x:Type viewmodels:LengthViewMode}"
-                      Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=ShowLengthViewMode, Mode=TwoWay}"
-                      />
-                  </Grid>
-                </ContextMenu>
-              </Image.ContextMenu>
-            </Image>
-          </DataGridTextColumn.Header>
-        </DataGridTextColumn>
-        <DataGridTextColumn
-          Width="SizeToHeader"
-          MinWidth="30"
-          Binding="{Binding Group}"
-          CanUserSort="True"
-          IsReadOnly="True"
-          SortDirection="Ascending"
-          SortMemberPath="Group"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnGroup, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTextColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiGroup}"
-              ToolTip="{x:Static loc:Texts.GroupLabel}"
-              />
-          </DataGridTextColumn.Header>
-        </DataGridTextColumn>
-        <DataGridTemplateColumn
-          Width="SizeToCells"
-          MinWidth="30"
-          CanUserSort="True"
-          SortMemberPath="IsLocked"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnLock, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTemplateColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiLock}"
-              ToolTip="{x:Static loc:Texts.BaseItemIsLockedDesc}"
-              />
-          </DataGridTemplateColumn.Header>
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <c:ToggleSlider
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Value="{Binding IsLocked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-        <DataGridTemplateColumn
-          Width="SizeToCells"
-          MinWidth="30"
-          CanUserSort="True"
-          SortMemberPath="IsHidden"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowColumnHidden, Converter={StaticResource BoolToVisibilityConverter}}"
-          >
-          <DataGridTemplateColumn.Header>
-            <Image
-              Width="12"
-              Margin="2,0"
-              HorizontalAlignment="Center"
-              Source="{StaticResource mdiEyeOffOutline}"
-              ToolTip="{x:Static loc:Texts.BaseItemIsHiddenDesc}"
-              />
-          </DataGridTemplateColumn.Header>
-          <DataGridTemplateColumn.CellTemplate>
-            <DataTemplate>
-              <c:ToggleSlider
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Value="{Binding IsHidden, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                />
-            </DataTemplate>
-          </DataGridTemplateColumn.CellTemplate>
-        </DataGridTemplateColumn>
-      </DataGrid.Columns>
-    </DataGrid>
-
-
-    <!--  ポップアップメニュー  -->
-    <Popup
-      x:Name="CategoryFilterPopup"
-      AllowsTransparency="True"
-      IsOpen="{Binding IsCategoryFilterMenuOpen, Mode=TwoWay}"
-      Placement="MousePoint"
-      PopupAnimation="Fade"
-      StaysOpen="False"
-      >
-      <Border
-        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
-        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
-        BorderThickness="1"
-        CornerRadius="3"
-        >
-        <Border.Effect>
-          <DropShadowEffect
-            BlurRadius="5"
-            Opacity="0.3"
-            ShadowDepth="2"
-            Color="Black"
+          <!--  Scene Name  -->
+          <TextBlock Text="{Binding SceneName}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}" />
+          <Border
+            Width="1"
+            Margin="5,2"
+            Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}"
             />
-        </Border.Effect>
-        <StackPanel Margin="5">
+          <!--  Scene Screen Size  -->
+          <TextBlock Text="{Binding SceneScreenSize}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}" />
+          <Border
+            Width="1"
+            Margin="5,2"
+            Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}"
+            />
+          <!--  Scene FPS  -->
+          <TextBlock Text="{Binding SceneFps}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}" />
+          <Border
+            Width="1"
+            Margin="5,2"
+            Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+            Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}"
+            />
+          <!--  Scene Hz  -->
+          <TextBlock Text="{Binding SceneHz}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneHz, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </WrapPanel>
+      </DockPanel>
+    </Grid>
 
-          <!--  カテゴリーフィルターセクション  -->
-          <StackPanel Orientation="Horizontal">
-            <materialIcons:MaterialIconExt Kind="FilterPlus" Size="16" />
-            <TextBlock
-              Margin="5,0,5,5"
-              FontWeight="Bold"
-              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
-              Text="カテゴリーフィルター"
-              />
-          </StackPanel>
 
-          <StackPanel Margin="5,0,0,0">
-            <local:CategoryFilterPanel PanelStyle="Compact" />
-          </StackPanel>
-
-        </StackPanel>
-      </Border>
-    </Popup>
+    <Border Background="#80000000"
+            Visibility="{Binding IsPluginEnabled, Converter={StaticResource InverseBoolToVis}}"/>
 
 
-    <!--  Footer  -->
-    <DockPanel Grid.Row="3" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooter, Converter={StaticResource BoolToVisibilityConverter}}">
-      <WrapPanel
-        Margin="5,0,5,0"
-        HorizontalAlignment="Right"
-        DockPanel.Dock="Right"
-        >
-        <!--  Scene Name  -->
-        <TextBlock Text="{Binding SceneName}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <Border
-          Width="1"
-          Margin="5,2"
-          Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneName, Converter={StaticResource BoolToVisibilityConverter}}"
-          />
-        <!--  Scene Screen Size  -->
-        <TextBlock Text="{Binding SceneScreenSize}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <Border
-          Width="1"
-          Margin="5,2"
-          Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneScreenSize, Converter={StaticResource BoolToVisibilityConverter}}"
-          />
-        <!--  Scene FPS  -->
-        <TextBlock Text="{Binding SceneFps}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}" />
-        <Border
-          Width="1"
-          Margin="5,2"
-          Background="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
-          Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneFps, Converter={StaticResource BoolToVisibilityConverter}}"
-          />
-        <!--  Scene Hz  -->
-        <TextBlock Text="{Binding SceneHz}" Visibility="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsShowFooterSceneHz, Converter={StaticResource BoolToVisibilityConverter}}" />
-      </WrapPanel>
-    </DockPanel>
+    <Border>
+      <notify:NotificationMessageContainer Manager="{Binding NotifyManager}" />
+    </Border>
   </Grid>
+
+
 
 </UserControl>

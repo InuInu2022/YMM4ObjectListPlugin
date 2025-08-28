@@ -293,21 +293,25 @@
             </StackPanel>
           </GroupBox>
 
+          <!--  その他オプション  -->
+          <GroupBox Name="OtherOptions" Margin="5">
+            <GroupBox.Header>
+              <StackPanel Orientation="Horizontal">
+                <materialIcons:MaterialIconExt Kind="Cog" Size="16" />
+                <Label Content="その他" />
+              </StackPanel>
+            </GroupBox.Header>
 
-          <Grid Margin="10">
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <StackPanel Margin="5">
 
+              <DockPanel Margin="0,2">
+                <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsSkipAppVersionCheck}" />
+                <materialIcons:MaterialIconExt Kind="ShieldOff" Size="16" />
+                <Label Content="動作確認バージョンチェックをスキップ" />
+              </DockPanel>
+            </StackPanel>
 
-          </Grid>
+          </GroupBox>
         </StackPanel>
       </Expander>
 

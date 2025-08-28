@@ -63,6 +63,7 @@ public class ObjectListSettings
 	private bool isCategoryFilterGroupItem = true;
 	private LengthViewMode showLengthViewMode =
 		LengthViewMode.Frame;
+	private bool isSkipAppVersionCheck;
 
 	#region footer
 	public bool IsShowFooter
@@ -258,6 +259,15 @@ public class ObjectListSettings
 	}
 
 	#endregion category_filter
+
+	#region version_check
+
+	public bool IsSkipAppVersionCheck {
+		get => isSkipAppVersionCheck;
+		set => Set(ref isSkipAppVersionCheck, value);
+	}
+
+	#endregion version_check
 	public override void Initialize() { }
 }
 
