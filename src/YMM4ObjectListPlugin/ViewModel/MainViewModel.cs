@@ -194,8 +194,7 @@ public class MainViewModel
 		_isInitializationComplete = true;
 	}
 
-	static Version Verified { get; } = new(4, 41);
-
+	static Version Verified { get; } = new(4, 45);	//2025-09 release
 
 	async ValueTask InitializeApplicationAsync()
 	{
