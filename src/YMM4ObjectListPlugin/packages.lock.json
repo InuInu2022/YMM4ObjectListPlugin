@@ -2,6 +2,12 @@
   "version": 1,
   "dependencies": {
     "net9.0-windows10.0.19041": {
+      "ConcurrencyLab.ParallelChecker": {
+        "type": "Direct",
+        "requested": "[2.7.0, )",
+        "resolved": "2.7.0",
+        "contentHash": "ydBfxgn7cMWywJNIFv4eIXWa08ze2+5o/GnEYLnpo4A+dC6nO0F+UxCbPyG1dYbVwsNO7EASKoo47hdb/0z+Vw=="
+      },
       "Epoxy.Core.Wpf": {
         "type": "Direct",
         "requested": "[1.16.0, )",
@@ -33,17 +39,95 @@
           "Material.Icons": "2.4.1"
         }
       },
+      "Meziantou.Analyzer": {
+        "type": "Direct",
+        "requested": "[2.0.210, )",
+        "resolved": "2.0.210",
+        "contentHash": "c5x1jlgL+E6HRJcQQ6zwytR71iijs3cyYSUDT/HlH7k+wr8MxkfarjbodP6RxxfC7YNgqv/J7awnnd/nq0PqjQ=="
+      },
+      "Microsoft.CodeAnalysis.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "fCj+MzjJxN/4iYAz7JPLONGKeTomaZNzx4UgGA0AerTrx4Ou6Rw2J5YF4V51vWW+aSQSCv1nnAkCZUw5Z9+3zw=="
+      },
+      "Microsoft.VisualStudio.Threading.Analyzers": {
+        "type": "Direct",
+        "requested": "[17.14.15, )",
+        "resolved": "17.14.15",
+        "contentHash": "mXQPJsbuUD2ydq4/ffd8h8tSOFCXec+2xJOVNCvXjuMOq/+5EKHq3D2m2MC2+nUaXeFMSt66VS/J4HdKBixgcw=="
+      },
       "MinVer": {
         "type": "Direct",
         "requested": "[6.0.0, )",
         "resolved": "6.0.0",
         "contentHash": "+/SsmiySsXJlvQLCGBqaZKNVt3s/Y/HbAdwtop7Km2CnuZbaScoqkWJEBQ5Cy9ebkn6kCYKrHsXgwrFdTgcb3g=="
       },
+      "NetFabric.Hyperlinq.Analyzer": {
+        "type": "Direct",
+        "requested": "[2.3.0, )",
+        "resolved": "2.3.0",
+        "contentHash": "xckR4WhI4q8Oy2k88sair3UEL+qtI0QbWbMKmItVTHqu23C/oQHcZHR4NFTy07J2KOa8P0ad9T/6vAsm8v/8tA=="
+      },
       "Newtonsoft.Json": {
         "type": "Direct",
         "requested": "[13.0.3, )",
         "resolved": "13.0.3",
         "contentHash": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ=="
+      },
+      "ParallelHelper": {
+        "type": "Direct",
+        "requested": "[3.6.1, )",
+        "resolved": "3.6.1",
+        "contentHash": "MahaWXJPpYGQd6Pptjl3fOVomAelHQsmARv5VVx/gZTxIEuNMjjYoDn1Xp8Ov35Q1sCf8QEC8bN3ML/aaQR29g=="
+      },
+      "Roslynator.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "AEWQMrb1rcmjv9FGzrwYSBb4INhDhsauS+wwTumG0wq8N1Il+CIQHqUZJ7bt0zYJEA1qXSqgpg8Fgwc88WrR/Q=="
+      },
+      "Roslynator.CodeAnalysis.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "iUiC7mfaLWgUxnKyG90sCIwd4fLLrnDtOsVqh1PuAL+drDNi8If+2lG9B+gPjRrP/pYSfcu9TMRYSDMKOEpnoQ=="
+      },
+      "Roslynator.CodeFixes": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "m87fjcYq2hwu+yGD1mfR6vnSYagBjqTxr2vck2duh65LaoygPzlPaPM6P8dyGehBV/IFyQ7AGx9saILmwZ0eiw=="
+      },
+      "Roslynator.Formatting.Analyzers": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "qGxeOq3qYZQo3nxCPqcU+QX82k2iPnStoE4mwIU1nMlOiN8yciOrGKfU4v7UgBv66GRi6Sqoc0/UDXoSdP+e1Q=="
+      },
+      "Roslynator.Refactorings": {
+        "type": "Direct",
+        "requested": "[4.14.0, )",
+        "resolved": "4.14.0",
+        "contentHash": "82xOoSTlmd8CvkALPfqca7H/qz+J8yF7WWexxeEiAVQdUtZUgHGcY9EoJOikMZo5Xao8oJ/P2q/pi/3NQLYm3Q=="
+      },
+      "SatorImaging.StaticMemberAnalyzer": {
+        "type": "Direct",
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "Hr9dYFT/KtNrbQJE5UTYj2ZTDCCwyXyRlZyGgODO2S3wZsZm+cyg6ygF01SrHQWFShgA1rimWEfVxGnswnGpeQ=="
+      },
+      "SharpSource": {
+        "type": "Direct",
+        "requested": "[1.27.1, )",
+        "resolved": "1.27.1",
+        "contentHash": "nKlI61IieDkVx0SDBnSAv/GX/zlr2DjKnRiZybUYT6M9G3YI7ff1cunDJvZ0iLlNwAlBLsGhZwzZop3GAWcGRQ=="
+      },
+      "SonarAnalyzer.CSharp": {
+        "type": "Direct",
+        "requested": "[9.16.0.82469, )",
+        "resolved": "9.16.0.82469",
+        "contentHash": "Lt8Ogx+O3fowiELb9Km/5LRW0GjgIccompIv8gOK8PDdAgh2ycWTfe/9RORmym2dsqmFNR3GqcB42vx7lLaqJg=="
       },
       "BigHelp.Http": {
         "type": "Transitive",

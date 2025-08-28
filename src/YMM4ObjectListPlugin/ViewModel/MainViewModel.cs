@@ -116,6 +116,11 @@ public class MainViewModel
 	DispatcherTimer? _timelineMonitorTimer;
 	INotifyPropertyChanged? _lastRawTimeline;
 
+	static Version OlderYetVerified { get; }
+		= AppUtil.IsDebug ? new(3, 0) : new(4, 40);
+	static Version YetVerified { get; } =
+		AppUtil.IsDebug ? new(4, 0) : new(4, 45); //2025-09 release
+
 	public MainViewModel()
 	{
 		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
@@ -194,7 +199,7 @@ public class MainViewModel
 		_isInitializationComplete = true;
 	}
 
-	static Version Verified { get; } = new(4, 45);	//2025-09 release
+
 
 	async ValueTask InitializeApplicationAsync()
 	{
@@ -211,7 +216,9 @@ public class MainViewModel
 			.AppVersion
 			.Current;
 
-		if (!ObjectListSettings.Default.IsSkipAppVersionCheck && appVer >= Verified)
+		if (!ObjectListSettings.Default.IsSkipAppVersionCheck
+			&& appVer < OlderYetVerified
+			&& appVer >= YetVerified)
 		{
 			DisplayVersionWarning(appVer);
 		}
