@@ -9,3 +9,7 @@ using System.Runtime.CompilerServices;
 // YmmeUtil.Ymm4の主要な型も転送
 [assembly: TypeForwardedTo(typeof(YmmeUtil.Ymm4.TaskbarUtil))]
 [assembly: TypeForwardedTo(typeof(YmmeUtil.Ymm4.WindowUtil))]
+
+[assembly: TypeForwardedTo(
+	typeof(Enterwell.Clients.Wpf.Notifications.Controls.NotificationMessage)
+)]

@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/libs/" />
+  <Folder Name="/libs/Wpf.Notifications/">
+    <Project Path="libs/Wpf.Notifications/Enterwell.Clients.Wpf.Notifications/Enterwell.Clients.Wpf.Notifications.csproj" />
+  </Folder>
   <Folder Name="/libs/YmmeUtil/" />
   <Folder Name="/libs/YmmeUtil/src/">
     <Project Path="libs/YmmeUtil/src/YmmeUtil.Bridge/YmmeUtil.Bridge.csproj" />

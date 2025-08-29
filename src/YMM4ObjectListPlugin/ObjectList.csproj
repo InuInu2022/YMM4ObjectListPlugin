@@ -57,5 +57,9 @@
     <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Bridge\YmmeUtil.Bridge.csproj" />
     <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Ymm4\YmmeUtil.Ymm4.csproj" />
     <ProjectReference Include="..\..\libs\YmmeUtil\src\YmmeUtil.Common\YmmeUtil.Common.csproj" />
+    <ProjectReference Include="..\..\libs\Wpf.Notifications\Enterwell.Clients.Wpf.Notifications\Enterwell.Clients.Wpf.Notifications.csproj">
+      <Private>true</Private>
+      <CopyLocal>true</CopyLocal>
+    </ProjectReference>
   </ItemGroup>
 </Project>

@@ -220,6 +220,9 @@
           "Microsoft.NETCore.Targets": "1.1.0"
         }
       },
+      "enterwell.clients.wpf.notifications": {
+        "type": "Project"
+      },
       "ymmeutil.bridge": {
         "type": "Project",
         "dependencies": {
