@@ -143,7 +143,7 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
-		EnsureFilterType();
+		EnsureFilterTypeAsync();
 
 		// 初期化完了 - これ以降は相互排他制御が有効になる
 		_isInitializationComplete = true;
@@ -420,7 +420,7 @@ public class MainViewModel
 									foundWin
 								)
 								.ConfigureAwait(false);
-							EnsureFilterType();
+							EnsureFilterTypeAsync();
 							EnsureRangeFilterDefaults();
 						})
 						.ConfigureAwait(true);
@@ -448,7 +448,7 @@ public class MainViewModel
 		return false;
 	}
 
-	void EnsureFilterType()
+	async Task EnsureFilterTypeAsync()
 	{
 		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
@@ -461,30 +461,45 @@ public class MainViewModel
 			save.Save();
 		}
 
-		//force reset
-		IsAllFilterSelected = false;
-		IsUnderSeekBarFilterSelected = false;
-		IsRangeFilterSelected = false;
+		// 初期化中は変更通知を無効化
+		var wasInitialized = _isInitializationComplete;
+		_isInitializationComplete = false;
 
-		switch (type)
+		try
 		{
-			case FilterType.All:
-				IsAllFilterSelected = true;
-				IsUnderSeekBarFilterSelected = false;
-				IsRangeFilterSelected = false;
-				break;
-			case FilterType.UnderSeekBar:
-				IsUnderSeekBarFilterSelected = true;
-				IsAllFilterSelected = false;
-				IsRangeFilterSelected = false;
-				break;
-			case FilterType.Range:
-				IsRangeFilterSelected = true;
-				IsAllFilterSelected = false;
-				IsUnderSeekBarFilterSelected = false;
-				break;
-			default:
-				break;
+			// 1回目: 全てfalseに設定して状態をクリア
+			IsAllFilterSelected = false;
+			IsUnderSeekBarFilterSelected = false;
+			IsRangeFilterSelected = false;
+
+			// UIの更新を待つ
+			await UIThread.InvokeAsync(async () =>
+			{
+				await Task.Delay(50).ConfigureAwait(true); // UIの更新を確実に待つ
+
+				// 2回目: 正しい値を設定
+				switch (type)
+				{
+					case FilterType.All:
+						IsAllFilterSelected = true;
+						break;
+					case FilterType.UnderSeekBar:
+						IsUnderSeekBarFilterSelected = true;
+						break;
+					case FilterType.Range:
+						IsRangeFilterSelected = true;
+						EnsureRangeFilterDefaults();
+						break;
+					default:
+						IsAllFilterSelected = true;
+						break;
+				}
+			}).ConfigureAwait(true);
+		}
+		finally
+		{
+			// 初期化完了フラグを復元
+			_isInitializationComplete = wasInitialized;
 		}
 	}
 
@@ -1131,7 +1146,7 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
-		EnsureFilterType();
+		EnsureFilterTypeAsync();
 	}
 
 	[PropertyChanged(nameof(SearchText))]
@@ -1234,7 +1249,7 @@ public class MainViewModel
 			await RangeEndPile.RentAsync(editor =>
 			{
 				editor.SetEditorInfo(itemEditor.EditorInfo);
-				return ValueTask.CompletedTask;
+			 return ValueTask.CompletedTask;
 			});
 
 			// ラジオボタンの排他制御: 両方falseの状態を防ぐ

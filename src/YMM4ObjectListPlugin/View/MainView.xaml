@@ -181,13 +181,13 @@
                 Margin="10,2"
                 Content="なし"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsAllFilterSelected, Mode=TwoWay}"
+                IsChecked="{Binding IsAllFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 />
 
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsUnderSeekBarFilterSelected}"
+                IsChecked="{Binding IsUnderSeekBarFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
@@ -199,7 +199,7 @@
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsRangeFilterSelected}"
+                IsChecked="{Binding IsRangeFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />
