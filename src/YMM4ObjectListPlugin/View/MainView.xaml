@@ -181,7 +181,7 @@
                 Margin="10,2"
                 Content="なし"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsAllFilterSelected}"
+                IsChecked="{Binding IsAllFilterSelected, Mode=TwoWay}"
                 />
 
               <RadioButton

@@ -16,6 +16,7 @@ using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
+using YmmeUtil.Ymm4;
 
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
@@ -107,6 +108,8 @@ public class MainViewModel
 
 	public bool IsPluginEnabled { get; set; }
 
+	public bool IsPluginWindowInitialized { get; set; }
+
 	IDisposable? sceneSubscription;
 
 	// パフォーマンス最適化: フィルタリングを間引いて実行するためのタイマー
@@ -116,13 +119,17 @@ public class MainViewModel
 	DispatcherTimer? _timelineMonitorTimer;
 	INotifyPropertyChanged? _lastRawTimeline;
 
+	bool isRangeFilterChanging;
+
 	static Version OlderYetVerified { get; }
 		= AppUtil.IsDebug ? new(3, 0) : new(4, 40);
 	static Version YetVerified { get; } =
-		AppUtil.IsDebug ? new(4, 0) : new(4, 45); //2025-09 release
+		AppUtil.IsDebug ? new(4, 0) : new(4, 46); //2025-09 release
 
 	public MainViewModel()
 	{
+		if (IsPluginWindowInitialized) return;
+
 		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
 		_isInitializationComplete = false;
 
@@ -207,6 +214,7 @@ public class MainViewModel
 
 	async ValueTask InitializeApplicationAsync()
 	{
+		if (IsPluginWindowInitialized) return;
 		await UIThread
 			.InvokeAsync(() =>
 			{
@@ -242,6 +250,8 @@ public class MainViewModel
 			_ = await AwaitUiReadyAsync()
 				.ConfigureAwait(true);
 		}
+
+		IsPluginWindowInitialized = true;
 	}
 
 	[SuppressMessage("Usage", "MA0147:Avoid async void method for delegate")]
@@ -343,6 +353,8 @@ public class MainViewModel
 	{
 		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
 
+		await Task.Delay(500).ConfigureAwait(false);
+
 		for (
 			int attempt = 0;
 			attempt < maxAttempts;
@@ -358,9 +370,13 @@ public class MainViewModel
 					&& window.IsLoaded
 				);
 
+			var hasMainVM = foundWin?.DataContext is IMainViewModel;
+
 			await UIThread.Unbind();
 
-			if (foundWin is not null)
+			if (foundWin is not null
+				&& hasMainVM
+			)
 			{
 				try
 				{
@@ -371,6 +387,7 @@ public class MainViewModel
 									foundWin
 								)
 								.ConfigureAwait(false);
+							EnsureFilterType();
 							EnsureRangeFilterDefaults();
 						})
 						.ConfigureAwait(true);
@@ -398,6 +415,32 @@ public class MainViewModel
 		return false;
 	}
 
+	void EnsureFilterType()
+	{
+		var save = ObjectListSettings.Default;
+		var type = save.SelectedFilterType;
+		switch (type)
+		{
+			case FilterType.All:
+				IsAllFilterSelected = true;
+				IsUnderSeekBarFilterSelected = false;
+				IsRangeFilterSelected = false;
+				break;
+			case FilterType.UnderSeekBar:
+				IsUnderSeekBarFilterSelected = true;
+				IsAllFilterSelected = false;
+				IsRangeFilterSelected = false;
+				break;
+			case FilterType.Range:
+				IsRangeFilterSelected = true;
+				IsAllFilterSelected = false;
+				IsUnderSeekBarFilterSelected = false;
+				break;
+			default:
+				break;
+		}
+	}
+
 	/// <summary>
 	/// 範囲フィルターのラジオボタン初期化
 	/// ViewModelインスタンス再利用時のUIバインディング更新用
@@ -408,25 +451,13 @@ public class MainViewModel
 			$"EnsureRangeFilterDefaults - Before: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
 
-		// ViewModelインスタンス再利用時: 既存の正しい値をそのまま使用
-		// Epoxyに対してPropertyChanged通知を強制発生させるため、一時的に異なる値に設定してから戻す
-		var originalStrictMode = IsRangeFilterStrictMode;
-		var originalOverlapMode = IsRangeFilterOverlapMode;
-
-		// 相互排他処理を一時的に無効化
 		var wasInitialized = _isInitializationComplete;
 		_isInitializationComplete = false;
 
-		// 強制的にPropertyChanged通知を発生させる
-		// 既存の値と明確に異なる値に設定してから元に戻す
-		IsRangeFilterStrictMode = !originalStrictMode;
-		IsRangeFilterOverlapMode = !originalOverlapMode;
+		// 初期値は必ずどちらか一方のみtrue
+		IsRangeFilterStrictMode = true;
+		IsRangeFilterOverlapMode = false;
 
-		// 元の正しい値に戻す（これでUIに確実に反映される）
-		IsRangeFilterStrictMode = originalStrictMode;
-		IsRangeFilterOverlapMode = originalOverlapMode;
-
-		// 相互排他処理を復活
 		_isInitializationComplete = wasInitialized;
 
 		Debug.WriteLine(
@@ -548,7 +579,7 @@ public class MainViewModel
 		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
 			out var timeLineVm
 		);
-		if (hasSceneVm && timeLineVm is not null)
+		if (!Ymm4Version.HasDocked && hasSceneVm && timeLineVm is not null)
 		{
 			// RxのSubscribeはバックグラウンドスレッドで発火する場合がある
 			sceneSubscription =
@@ -1149,17 +1180,15 @@ public class MainViewModel
 
 	[PropertyChanged(nameof(IsRangeFilterStrictMode))]
 	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterStrictModeChangedAsync(
-		bool value
-	)
+	private ValueTask IsRangeFilterStrictModeChangedAsync(bool value)
 	{
-		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
-		if (!_isInitializationComplete)
+		if (!_isInitializationComplete || isRangeFilterChanging)
 		{
 			return default;
 		}
 
-		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
+		isRangeFilterChanging = true;
+
 		if (value)
 		{
 			IsRangeFilterOverlapMode = false;
@@ -1169,23 +1198,23 @@ public class MainViewModel
 			IsRangeFilterOverlapMode = true;
 		}
 
+		isRangeFilterChanging = false;
+
 		FilterItems();
 		return default;
 	}
 
 	[PropertyChanged(nameof(IsRangeFilterOverlapMode))]
 	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterOverlapModeChangedAsync(
-		bool value
-	)
+	private ValueTask IsRangeFilterOverlapModeChangedAsync(bool value)
 	{
-		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
-		if (!_isInitializationComplete)
+		if (!_isInitializationComplete || isRangeFilterChanging)
 		{
 			return default;
 		}
 
-		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
+		isRangeFilterChanging = true;
+
 		if (value)
 		{
 			IsRangeFilterStrictMode = false;
@@ -1194,6 +1223,8 @@ public class MainViewModel
 		{
 			IsRangeFilterStrictMode = true;
 		}
+
+		isRangeFilterChanging = false;
 
 		FilterItems();
 		return default;
