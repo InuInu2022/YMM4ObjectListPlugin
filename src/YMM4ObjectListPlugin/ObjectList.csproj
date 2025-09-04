@@ -28,6 +28,7 @@
       <Private>true</Private>
       <CopyLocal>true</CopyLocal>
     </PackageReference>
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.3" />
     <Reference Include="$(YMM4_PATH)\ReactiveProperty.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
@@ -49,6 +50,10 @@
       <CopyLocal>false</CopyLocal>
     </Reference>
     <Reference Include="$(YMM4_PATH)\YukkuriMovieMaker.Plugin.dll">
+      <Private>false</Private>
+      <CopyLocal>false</CopyLocal>
+    </Reference>
+    <Reference Include="$(YMM4_PATH)\Microsoft.Extensions.Logging.Abstractions.dll">
       <Private>false</Private>
       <CopyLocal>false</CopyLocal>
     </Reference>
