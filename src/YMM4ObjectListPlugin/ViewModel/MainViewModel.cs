@@ -17,7 +17,6 @@ using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
 using YmmeUtil.Ymm4;
-
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.Theme;
@@ -121,14 +120,15 @@ public class MainViewModel
 
 	bool isRangeFilterChanging;
 
-	static Version OlderYetVerified { get; }
-		= AppUtil.IsDebug ? new(3, 0) : new(4, 40);
+	static Version OlderYetVerified { get; } =
+		AppUtil.IsDebug ? new(3, 0) : new(4, 40);
 	static Version YetVerified { get; } =
 		AppUtil.IsDebug ? new(4, 0) : new(4, 46); //2025-09 release
 
 	public MainViewModel()
 	{
-		if (IsPluginWindowInitialized) return;
+		if (IsPluginWindowInitialized)
+			return;
 
 		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
 		_isInitializationComplete = false;
@@ -143,11 +143,17 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
+		EnsureFilterType();
+
 		// 初期化完了 - これ以降は相互排他制御が有効になる
 		_isInitializationComplete = true;
 	}
 
-	[SuppressMessage("Design", "MA0051:Method is too long", Justification = "<保留中>")]
+	[SuppressMessage(
+		"Design",
+		"MA0051:Method is too long",
+		Justification = "<保留中>"
+	)]
 	private void InitializeCommands()
 	{
 		Ready = Command.Factory.Create(
@@ -214,7 +220,8 @@ public class MainViewModel
 
 	async ValueTask InitializeApplicationAsync()
 	{
-		if (IsPluginWindowInitialized) return;
+		if (IsPluginWindowInitialized)
+			return;
 		await UIThread
 			.InvokeAsync(() =>
 			{
@@ -227,8 +234,9 @@ public class MainViewModel
 		var save = ObjectListSettings.Default;
 
 		var lastVer = save.LastSkippedVersion;
-		if (lastVer.Major != appVer.Major ||
-			lastVer.Minor > appVer.Minor
+		if (
+			lastVer.Major != appVer.Major
+			|| lastVer.Minor > appVer.Minor
 		)
 		{
 			//マイナーバージョンが上がっていればスキップをクリア
@@ -236,10 +244,12 @@ public class MainViewModel
 			save.LastSkippedVersion = appVer;
 		}
 
-		if (!save.IsSkipAppVersionCheck
-			&&
-			(appVer < OlderYetVerified
-			|| appVer >= YetVerified)
+		if (
+			!save.IsSkipAppVersionCheck
+			&& (
+				appVer < OlderYetVerified
+				|| appVer >= YetVerified
+			)
 		)
 		{
 			DisplayVersionWarning(appVer);
@@ -254,9 +264,19 @@ public class MainViewModel
 		IsPluginWindowInitialized = true;
 	}
 
-	[SuppressMessage("Usage", "MA0147:Avoid async void method for delegate")]
-	[SuppressMessage("Concurrency", "PH_S034:Async Lambda Inferred to Async Void")]
-	[SuppressMessage("Usage", "VSTHRD101:Avoid unsupported async delegates", Justification = "<保留中>")]
+	[SuppressMessage(
+		"Usage",
+		"MA0147:Avoid async void method for delegate"
+	)]
+	[SuppressMessage(
+		"Concurrency",
+		"PH_S034:Async Lambda Inferred to Async Void"
+	)]
+	[SuppressMessage(
+		"Usage",
+		"VSTHRD101:Avoid unsupported async delegates",
+		Justification = "<保留中>"
+	)]
 	void DisplayVersionWarning(Version appVer)
 	{
 		_ = NotifyManager
@@ -265,7 +285,9 @@ public class MainViewModel
 			.Foreground(NotifyUtil.DynamicForegroundTextHex)
 			.Background(NotifyUtil.DynamicControlHex)
 			.HasBadge("⚠︎")
-			.HasHeader("プラグインの動作確認ができていません。")
+			.HasHeader(
+				"プラグインの動作確認ができていません。"
+			)
 			.HasMessage(
 				$"このYMM4のバージョン v{appVer} での動作確認が取れていません。\nそれでも使用しますか？"
 			)
@@ -282,7 +304,9 @@ public class MainViewModel
 					}
 					catch (Exception ex)
 					{
-						Debug.WriteLine($"Error in AwaitUiReadyAsync: {ex.Message}");
+						Debug.WriteLine(
+							$"Error in AwaitUiReadyAsync: {ex.Message}"
+						);
 						NotifyManager.Info(
 							"Error",
 							$"理由: {ex.Message}"
@@ -295,14 +319,17 @@ public class MainViewModel
 				}
 			)
 			.Dismiss()
-			.WithButton("✖️ いいえ", button =>
-			{
-				IsPluginEnabled = false;
-				NotifyManager.Info(
-					"プラグインのアプデも確認してください",
-					"対応バージョンがでているかもしれません。\n「ファイル」＞「設定」＞「YMM4オブジェクトリスト」＞「Update check」"
-				);
-			})
+			.WithButton(
+				"✖️ いいえ",
+				button =>
+				{
+					IsPluginEnabled = false;
+					NotifyManager.Info(
+						"プラグインのアプデも確認してください",
+						"対応バージョンがでているかもしれません。\n「ファイル」＞「設定」＞「YMM4オブジェクトリスト」＞「Update check」"
+					);
+				}
+			)
 			.WithAdditionalContent(
 				ContentLocation.Bottom,
 				new Border
@@ -313,29 +340,36 @@ public class MainViewModel
 						0,
 						0
 					),
-					BorderBrush = NotifyUtil.GetDynamicBrush(SystemColors.ActiveBorderBrushKey),
+					BorderBrush =
+						NotifyUtil.GetDynamicBrush(
+							SystemColors.ActiveBorderBrushKey
+						),
 					Child = GetBindingCheckBox(),
 				}
 			)
 			.Queue();
 
-		static CheckBox GetBindingCheckBox(){
+		static CheckBox GetBindingCheckBox()
+		{
 			var cb = new CheckBox
 			{
-				Margin = new Thickness(
-					12,
-					8,
-					12,
-					8
-				),
+				Margin = new Thickness(12, 8, 12, 8),
 				HorizontalAlignment =
 					HorizontalAlignment.Left,
-				Content = "次のバージョンまで次回からは確認しない",
-				Foreground = NotifyUtil.DynamicForegroundTextBrush,
+				Content =
+					"次のバージョンまで次回からは確認しない",
+				Foreground =
+					NotifyUtil.DynamicForegroundTextBrush,
 			};
 			cb.SetBinding(
 				CheckBox.IsCheckedProperty,
-				new Binding(nameof(ObjectListSettings.Default.IsSkipAppVersionCheck))
+				new Binding(
+					nameof(
+						ObjectListSettings
+							.Default
+							.IsSkipAppVersionCheck
+					)
+				)
 				{
 					Source = ObjectListSettings.Default,
 					Mode = BindingMode.TwoWay,
@@ -370,13 +404,12 @@ public class MainViewModel
 					&& window.IsLoaded
 				);
 
-			var hasMainVM = foundWin?.DataContext is IMainViewModel;
+			var hasMainVM =
+				foundWin?.DataContext is IMainViewModel;
 
 			await UIThread.Unbind();
 
-			if (foundWin is not null
-				&& hasMainVM
-			)
+			if (foundWin is not null && hasMainVM)
 			{
 				try
 				{
@@ -419,6 +452,20 @@ public class MainViewModel
 	{
 		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
+
+		// 不正値の場合はFilterType.Allに初期化
+		if (!Enum.IsDefined(typeof(FilterType), type))
+		{
+			type = FilterType.All;
+			save.SelectedFilterType = type;
+			save.Save();
+		}
+
+		//force reset
+		IsAllFilterSelected = false;
+		IsUnderSeekBarFilterSelected = false;
+		IsRangeFilterSelected = false;
+
 		switch (type)
 		{
 			case FilterType.All:
@@ -579,7 +626,11 @@ public class MainViewModel
 		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
 			out var timeLineVm
 		);
-		if (!Ymm4Version.HasDocked && hasSceneVm && timeLineVm is not null)
+		if (
+			!Ymm4Version.HasDocked
+			&& hasSceneVm
+			&& timeLineVm is not null
+		)
 		{
 			// RxのSubscribeはバックグラウンドスレッドで発火する場合がある
 			sceneSubscription =
@@ -1080,6 +1131,7 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
+		EnsureFilterType();
 	}
 
 	[PropertyChanged(nameof(SearchText))]
@@ -1106,6 +1158,19 @@ public class MainViewModel
 		return default;
 	}
 
+	[PropertyChanged(nameof(IsAllFilterSelected))]
+	[SuppressMessage("", "IDE0051")]
+	ValueTask IsAllFilterSelectedChangedAsync(bool value)
+	{
+		if (_isInitializationComplete && value)
+		{
+			ObjectListSettings.Default.SelectedFilterType =
+				FilterType.All;
+			ObjectListSettings.Default.Save();
+		}
+		return default;
+	}
+
 	[PropertyChanged(nameof(IsUnderSeekBarFilterSelected))]
 	[SuppressMessage("", "IDE0051")]
 	private ValueTask IsUnderSeekBarFilterSelectedChangedAsync(
@@ -1128,6 +1193,13 @@ public class MainViewModel
 			CurrentFrame = timeLine.CurrentFrame;
 			FilterItems();
 			_needsFilterUpdate = false;
+		}
+
+		if (_isInitializationComplete && value)
+		{
+			ObjectListSettings.Default.SelectedFilterType =
+				FilterType.UnderSeekBar;
+			ObjectListSettings.Default.Save();
 		}
 
 		return default;
@@ -1173,6 +1245,12 @@ public class MainViewModel
 			{
 				IsRangeFilterStrictMode = true;
 			}
+
+			if (_isInitializationComplete)
+			{
+				ObjectListSettings.Default.SelectedFilterType = FilterType.Range;
+				ObjectListSettings.Default.Save();
+			}
 		}
 
 		FilterItems();
@@ -1180,9 +1258,14 @@ public class MainViewModel
 
 	[PropertyChanged(nameof(IsRangeFilterStrictMode))]
 	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterStrictModeChangedAsync(bool value)
+	private ValueTask IsRangeFilterStrictModeChangedAsync(
+		bool value
+	)
 	{
-		if (!_isInitializationComplete || isRangeFilterChanging)
+		if (
+			!_isInitializationComplete
+			|| isRangeFilterChanging
+		)
 		{
 			return default;
 		}
@@ -1206,9 +1289,14 @@ public class MainViewModel
 
 	[PropertyChanged(nameof(IsRangeFilterOverlapMode))]
 	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterOverlapModeChangedAsync(bool value)
+	private ValueTask IsRangeFilterOverlapModeChangedAsync(
+		bool value
+	)
 	{
-		if (!_isInitializationComplete || isRangeFilterChanging)
+		if (
+			!_isInitializationComplete
+			|| isRangeFilterChanging
+		)
 		{
 			return default;
 		}
@@ -1630,8 +1718,10 @@ public class MainViewModel
 	void MonitorTimelineReference()
 	{
 		if (
-			!IsPluginEnabled ||
-			!TimelineUtil.TryGetTimeline(out var timeLine)
+			!IsPluginEnabled
+			|| !TimelineUtil.TryGetTimeline(
+				out var timeLine
+			)
 			|| timeLine is null
 		)
 		{
