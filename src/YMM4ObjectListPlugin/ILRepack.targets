@@ -24,6 +24,8 @@
       <InputAssemblies Include="$(OutputPath)\Epoxy.Wpf.dll" Condition="Exists('$(OutputPath)\Epoxy.Wpf.dll')" />
       <InputAssemblies Include="$(OutputPath)\Dynamitey.dll" Condition="Exists('$(OutputPath)\Dynamitey.dll')" />
       <InputAssemblies Include="$(OutputPath)\ImpromptuInterface.dll" Condition="Exists('$(OutputPath)\ImpromptuInterface.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Nlog.dll" Condition="Exists('$(OutputPath)\Nlog.dll')" />
+      <InputAssemblies Include="$(OutputPath)\Nlog.Extensions.Logging.dll" Condition="Exists('$(OutputPath)\Nlog.Extensions.Logging.dll')" />
 
       <!--
       Material.Iconsはdllマージすると表示されない
@@ -82,6 +84,9 @@
 
     <Delete Files="$(OutputPath)\Dynamitey.dll" ContinueOnError="true" />
     <Delete Files="$(OutputPath)\ImpromptuInterface.dll" ContinueOnError="true" />
+
+    <Delete Files="$(OutputPath)\NLog.dll" ContinueOnError="true" />
+    <Delete Files="$(OutputPath)\NLog.Extensions.Logging.dll" ContinueOnError="true" />
 
     <!-- Material.Icons関連を削除 -->
     <!--
