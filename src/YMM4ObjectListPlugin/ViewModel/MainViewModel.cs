@@ -143,7 +143,7 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
-		EnsureFilterTypeAsync();
+		EnsureFilterType(); // asyncを削除
 
 		// 初期化完了 - これ以降は相互排他制御が有効になる
 		_isInitializationComplete = true;
@@ -420,7 +420,7 @@ public class MainViewModel
 									foundWin
 								)
 								.ConfigureAwait(false);
-							EnsureFilterTypeAsync();
+							EnsureFilterType();
 							EnsureRangeFilterDefaults();
 						})
 						.ConfigureAwait(true);
@@ -448,7 +448,7 @@ public class MainViewModel
 		return false;
 	}
 
-	async Task EnsureFilterTypeAsync()
+	void EnsureFilterType()
 	{
 		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
@@ -467,34 +467,28 @@ public class MainViewModel
 
 		try
 		{
-			// 1回目: 全てfalseに設定して状態をクリア
+			// 全てfalseに設定して状態をクリア
 			IsAllFilterSelected = false;
 			IsUnderSeekBarFilterSelected = false;
 			IsRangeFilterSelected = false;
 
-			// UIの更新を待つ
-			await UIThread.InvokeAsync(async () =>
+			// 正しい値を設定
+			switch (type)
 			{
-				await Task.Delay(50).ConfigureAwait(true); // UIの更新を確実に待つ
-
-				// 2回目: 正しい値を設定
-				switch (type)
-				{
-					case FilterType.All:
-						IsAllFilterSelected = true;
-						break;
-					case FilterType.UnderSeekBar:
-						IsUnderSeekBarFilterSelected = true;
-						break;
-					case FilterType.Range:
-						IsRangeFilterSelected = true;
-						EnsureRangeFilterDefaults();
-						break;
-					default:
-						IsAllFilterSelected = true;
-						break;
-				}
-			}).ConfigureAwait(true);
+				case FilterType.All:
+					IsAllFilterSelected = true;
+					break;
+				case FilterType.UnderSeekBar:
+					IsUnderSeekBarFilterSelected = true;
+					break;
+				case FilterType.Range:
+					IsRangeFilterSelected = true;
+					EnsureRangeFilterDefaults();
+					break;
+				default:
+					IsAllFilterSelected = true;
+					break;
+			}
 		}
 		finally
 		{
@@ -1146,7 +1140,7 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
-		EnsureFilterTypeAsync();
+		EnsureFilterType();
 	}
 
 	[PropertyChanged(nameof(SearchText))]
