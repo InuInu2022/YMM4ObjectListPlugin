@@ -143,7 +143,7 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
-		EnsureFilterTypeAsync();
+		EnsureFilterType();
 
 		// 初期化完了 - これ以降は相互排他制御が有効になる
 		_isInitializationComplete = true;
@@ -420,7 +420,7 @@ public class MainViewModel
 									foundWin
 								)
 								.ConfigureAwait(false);
-							EnsureFilterTypeAsync();
+							EnsureFilterType();
 							EnsureRangeFilterDefaults();
 						})
 						.ConfigureAwait(true);
@@ -448,7 +448,7 @@ public class MainViewModel
 		return false;
 	}
 
-	async Task EnsureFilterTypeAsync()
+	void EnsureFilterType()
 	{
 		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
@@ -473,7 +473,7 @@ public class MainViewModel
 			IsRangeFilterSelected = false;
 
 			// UIの更新を待つ
-			await UIThread.InvokeAsync(async () =>
+			UIThread.InvokeAsync(async () =>
 			{
 				await Task.Delay(50).ConfigureAwait(true); // UIの更新を確実に待つ
 
@@ -494,7 +494,7 @@ public class MainViewModel
 						IsAllFilterSelected = true;
 						break;
 				}
-			}).ConfigureAwait(true);
+			}).AsTask().Wait();
 		}
 		finally
 		{
@@ -1146,7 +1146,7 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
-		EnsureFilterTypeAsync();
+		EnsureFilterType();
 	}
 
 	[PropertyChanged(nameof(SearchText))]
