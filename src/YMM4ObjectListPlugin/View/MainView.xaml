@@ -442,12 +442,11 @@
       </DockPanel>
 
       <!--  サブオプション領域  -->
-      <StackPanel
+      <DockPanel
         Name="SubOptionsPanel"
         Grid.Row="1"
-        Orientation="Horizontal"
         >
-        <StackPanel
+        <WrapPanel
           Name="RangeFilterOptions"
           Margin="10,2,2,2"
           Orientation="Horizontal"
@@ -527,8 +526,8 @@
             Foreground="Red"
             Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
             />
-        </StackPanel>
-      </StackPanel>
+        </WrapPanel>
+      </DockPanel>
 
       <!--  DataGrid  -->
       <DataGrid
