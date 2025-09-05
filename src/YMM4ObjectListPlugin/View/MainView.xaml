@@ -31,6 +31,7 @@
 
       <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
       <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+      <conv:FilterTypeRadioConverter x:Key="FilterTypeRadioConverter" />
 
       <!--  共通のColumnHeaderStyleを定義  -->
       <Style
@@ -181,13 +182,13 @@
                 Margin="10,2"
                 Content="なし"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsAllFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=All}"
                 />
 
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsUnderSeekBarFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=UnderSeekBar}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
@@ -199,7 +200,7 @@
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsRangeFilterSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=Range}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +28,6 @@ namespace ObjectList.ViewModel;
 [ViewModel]
 public class MainViewModel
 {
-	// Epoxyの自動プロパティ変更通知の循環を防ぐため、初期化中は相互排他処理をスキップ
 	private bool _isInitializationComplete = false;
 
 	public Command? Ready { get; set; }
@@ -61,6 +61,40 @@ public class MainViewModel
 	public bool IsAllFilterSelected { get; set; } = true;
 	public bool IsUnderSeekBarFilterSelected { get; set; }
 	public bool IsRangeFilterSelected { get; set; }
+
+	[IgnoreInject]
+	public FilterType CurrentFilterType
+	{
+		get => _currentFilterType;
+		set
+		{
+			if (_currentFilterType == value)
+				return;
+
+			_currentFilterType = value;
+
+			_isSyncingFilterType = true;
+			// 既存 bool を従属させる（旧XAML互換用）
+			IsAllFilterSelected = value == FilterType.All;
+			IsUnderSeekBarFilterSelected =
+				value == FilterType.UnderSeekBar;
+			IsRangeFilterSelected =
+				value == FilterType.Range;
+			if (value == FilterType.Range)
+				EnsureRangeFilterDefaults();
+			_isSyncingFilterType = false;
+
+			if (_isInitializationComplete)
+			{
+				ObjectListSettings
+					.Default
+					.SelectedFilterType = value;
+				ObjectListSettings.Default.Save();
+			}
+
+			FilterItems();
+		}
+	}
 
 	// 範囲フィルターは排他制御が必要 - ラジオボタンの仕様上、必ずどちらか一方が選択されている状態を保持
 	public bool IsRangeFilterStrictMode { get; set; } =
@@ -120,6 +154,9 @@ public class MainViewModel
 
 	bool isRangeFilterChanging;
 
+	FilterType _currentFilterType = FilterType.All;
+	bool _isSyncingFilterType; // ループ抑止
+
 	static Version OlderYetVerified { get; } =
 		AppUtil.IsDebug ? new(3, 0) : new(4, 40);
 	static Version YetVerified { get; } =
@@ -130,7 +167,6 @@ public class MainViewModel
 		if (IsPluginWindowInitialized)
 			return;
 
-		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
 		_isInitializationComplete = false;
 
 		LoadGroupingSettingsFromSettings();
@@ -143,9 +179,35 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
-		EnsureFilterType(); // asyncを削除
+		// 同期的にフィルター設定を初期化
+		var save = ObjectListSettings.Default;
+		var type = save.SelectedFilterType;
 
-		// 初期化完了 - これ以降は相互排他制御が有効になる
+		if (!Enum.IsDefined<FilterType>(type))
+		{
+			type = FilterType.All;
+			save.SelectedFilterType = type;
+			save.Save();
+		}
+
+		// プロパティの初期値を設定に合わせて変更
+		switch (type)
+		{
+			case FilterType.All:
+				// 既に初期値がtrueなので何もしない
+				break;
+			case FilterType.UnderSeekBar:
+				IsAllFilterSelected = false;
+				IsUnderSeekBarFilterSelected = true;
+				break;
+			case FilterType.Range:
+				IsAllFilterSelected = false;
+				IsRangeFilterSelected = true;
+				EnsureRangeFilterDefaults();
+				break;
+		}
+
+		// 初期化完了
 		_isInitializationComplete = true;
 	}
 
@@ -420,7 +482,6 @@ public class MainViewModel
 									foundWin
 								)
 								.ConfigureAwait(false);
-							EnsureFilterType();
 							EnsureRangeFilterDefaults();
 						})
 						.ConfigureAwait(true);
@@ -450,52 +511,25 @@ public class MainViewModel
 
 	void EnsureFilterType()
 	{
-		var save = ObjectListSettings.Default;
+        var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
-
-		// 不正値の場合はFilterType.Allに初期化
-		if (!Enum.IsDefined(typeof(FilterType), type))
+		if (!Enum.IsDefined<FilterType>(type))
 		{
 			type = FilterType.All;
 			save.SelectedFilterType = type;
 			save.Save();
 		}
 
-		// 初期化中は変更通知を無効化
-		var wasInitialized = _isInitializationComplete;
+		// Enum → UI 同期（boolは CurrentFilterType セッター内で追従）
+		var was = _isInitializationComplete;
 		_isInitializationComplete = false;
+		CurrentFilterType = type;
+		_isInitializationComplete = was;
 
-		try
-		{
-			// 全てfalseに設定して状態をクリア
-			IsAllFilterSelected = false;
-			IsUnderSeekBarFilterSelected = false;
-			IsRangeFilterSelected = false;
-
-			// 正しい値を設定
-			switch (type)
-			{
-				case FilterType.All:
-					IsAllFilterSelected = true;
-					break;
-				case FilterType.UnderSeekBar:
-					IsUnderSeekBarFilterSelected = true;
-					break;
-				case FilterType.Range:
-					IsRangeFilterSelected = true;
-					EnsureRangeFilterDefaults();
-					break;
-				default:
-					IsAllFilterSelected = true;
-					break;
-			}
-		}
-		finally
-		{
-			// 初期化完了フラグを復元
-			_isInitializationComplete = wasInitialized;
-		}
-	}
+		Debug.WriteLine(
+			$"EnsureFilterType: Enum={CurrentFilterType}"
+		);
+    }
 
 	/// <summary>
 	/// 範囲フィルターのラジオボタン初期化
@@ -1140,6 +1174,8 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
+
+		// プロジェクト読み込み時にフィルター設定を再確認
 		EnsureFilterType();
 	}
 
@@ -1171,12 +1207,29 @@ public class MainViewModel
 	[SuppressMessage("", "IDE0051")]
 	ValueTask IsAllFilterSelectedChangedAsync(bool value)
 	{
-		if (_isInitializationComplete && value)
+		var st = new StackTrace();
+		// より詳細なスタックトレースを出力
+		Debug.WriteLine(
+			$"=== IsAllFilterSelected変更: {value} ==="
+		);
+		for (
+			int i = 0;
+			i < Math.Min(10, st.FrameCount);
+			i++
+		)
 		{
-			ObjectListSettings.Default.SelectedFilterType =
-				FilterType.All;
-			ObjectListSettings.Default.Save();
+			var frame = st.GetFrame(i);
+			var method = frame?.GetMethod();
+			Debug.WriteLine(
+				$"Frame {i}: {method?.DeclaringType?.FullName}.{method?.Name}"
+			);
 		}
+		Debug.WriteLine("=== スタックトレース終了 ===");
+
+		if (_isSyncingFilterType)
+			return default;
+		if (value)
+			CurrentFilterType = FilterType.All;
 		return default;
 	}
 
@@ -1204,13 +1257,10 @@ public class MainViewModel
 			_needsFilterUpdate = false;
 		}
 
-		if (_isInitializationComplete && value)
-		{
-			ObjectListSettings.Default.SelectedFilterType =
-				FilterType.UnderSeekBar;
-			ObjectListSettings.Default.Save();
-		}
-
+		if (_isSyncingFilterType)
+			return default;
+		if (value)
+			CurrentFilterType = FilterType.UnderSeekBar;
 		return default;
 	}
 
@@ -1255,11 +1305,9 @@ public class MainViewModel
 				IsRangeFilterStrictMode = true;
 			}
 
-			if (_isInitializationComplete)
-			{
-				ObjectListSettings.Default.SelectedFilterType = FilterType.Range;
-				ObjectListSettings.Default.Save();
-			}
+			if (_isSyncingFilterType)
+				return;
+			CurrentFilterType = FilterType.Range;
 		}
 
 		FilterItems();
