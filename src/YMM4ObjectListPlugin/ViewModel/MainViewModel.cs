@@ -929,45 +929,7 @@ public partial class MainViewModel
 
 	void SetGrouping(string groupingType)
 	{
-		// すべてのグルーピング選択をリセット
-		IsNoneGroupingSelected = false;
-		IsCategoryGroupingSelected = false;
-		IsLayerGroupingSelected = false;
-		IsGroupGroupingSelected = false;
-		IsLockedGroupingSelected = false;
-		IsHiddenGroupingSelected = false;
-
-		// 選択されたグルーピングを設定
-		switch (groupingType)
-		{
-			case "None":
-				IsNoneGroupingSelected = true;
-				break;
-			case "Category":
-				IsCategoryGroupingSelected = true;
-				break;
-			case "Layer":
-				IsLayerGroupingSelected = true;
-				break;
-			case "Group":
-				IsGroupGroupingSelected = true;
-				break;
-			case "IsLocked":
-				IsLockedGroupingSelected = true;
-				break;
-			case "IsHidden":
-				IsHiddenGroupingSelected = true;
-				break;
-			default:
-				IsNoneGroupingSelected = true;
-				Debug.Assert(
-					true,
-					$"Unknown grouping type: {groupingType}"
-				);
-				break;
-		}
-
-		// 設定を保存
+		// 文字列からenumへ変換
 		var enumValue = groupingType switch
 		{
 			"None" => GroupingType.None,
@@ -979,11 +941,13 @@ public partial class MainViewModel
 			_ => GroupingType.None,
 		};
 
+		// 設定を保存
 		ObjectListSettings.Default.SelectedGroupingType =
 			enumValue;
 		ObjectListSettings.Default.Save();
 
-		ApplyGrouping();
+		// UI状態同期・ApplyGroupingは共通化
+		SetGroupingFromEnum(enumValue);
 	}
 
 	void ApplyGrouping()
