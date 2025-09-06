@@ -138,7 +138,9 @@ public partial class MainViewModel
 	public MainViewModel()
 	{
 		if (IsPluginWindowInitialized)
+		{
 			return;
+		}
 
 		_isInitializationComplete = false;
 
@@ -197,6 +199,13 @@ public partial class MainViewModel
 
 		Unload = Command.Factory.Create(() =>
 		{
+			//カテゴリフィルターが反映されない対策
+			if (Ymm4Version.HasDocked)
+			{
+				//何もしない
+				return default;
+			}
+			//旧バージョンむけはそのまま
 			ObjectListSettings.Default.PropertyChanged -=
 				OnSettingsPropertyChanged;
 			return default;
@@ -525,28 +534,6 @@ public partial class MainViewModel
 		Debug.WriteLine(
 			$"EnsureRangeFilterDefaults - After: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
-	}
-
-	void EnsureGroupingType()
-	{
-		var was = _isInitializationComplete;
-		_isInitializationComplete = false;
-
-		// 既存 bool 群から復元 (全部 false の場合は None)
-		if (IsCategoryGroupingSelected)
-			CurrentGroupingType = GroupingType.Category;
-		else if (IsLayerGroupingSelected)
-			CurrentGroupingType = GroupingType.Layer;
-		else if (IsGroupGroupingSelected)
-			CurrentGroupingType = GroupingType.Group;
-		else if (IsLockedGroupingSelected)
-			CurrentGroupingType = GroupingType.IsLocked;
-		else if (IsHiddenGroupingSelected)
-			CurrentGroupingType = GroupingType.IsHidden;
-		else
-			CurrentGroupingType = GroupingType.None;
-
-		_isInitializationComplete = was;
 	}
 
 	void UpdateFilterHighlight()
