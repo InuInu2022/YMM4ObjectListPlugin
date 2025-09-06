@@ -3,30 +3,26 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
-using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
 using YmmeUtil.Ymm4;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
-using YukkuriMovieMaker.Theme;
 using YukkuriMovieMaker.ViewModels;
 
 namespace ObjectList.ViewModel;
 
 [ViewModel]
-public class MainViewModel
+public partial class MainViewModel
 {
 	private bool _isInitializationComplete = false;
 
@@ -62,40 +58,6 @@ public class MainViewModel
 	public bool IsUnderSeekBarFilterSelected { get; set; }
 	public bool IsRangeFilterSelected { get; set; }
 
-	[IgnoreInject]
-	public FilterType CurrentFilterType
-	{
-		get => _currentFilterType;
-		set
-		{
-			if (_currentFilterType == value)
-				return;
-
-			_currentFilterType = value;
-
-			_isSyncingFilterType = true;
-			// 既存 bool を従属させる（旧XAML互換用）
-			IsAllFilterSelected = value == FilterType.All;
-			IsUnderSeekBarFilterSelected =
-				value == FilterType.UnderSeekBar;
-			IsRangeFilterSelected =
-				value == FilterType.Range;
-			if (value == FilterType.Range)
-				EnsureRangeFilterDefaults();
-			_isSyncingFilterType = false;
-
-			if (_isInitializationComplete)
-			{
-				ObjectListSettings
-					.Default
-					.SelectedFilterType = value;
-				ObjectListSettings.Default.Save();
-			}
-
-			FilterItems();
-		}
-	}
-
 	// 範囲フィルターは排他制御が必要 - ラジオボタンの仕様上、必ずどちらか一方が選択されている状態を保持
 	public bool IsRangeFilterStrictMode { get; set; } =
 		true; // デフォルトは完全に範囲内
@@ -104,6 +66,8 @@ public class MainViewModel
 	public bool IsCategoryFilterMenuOpen { get; set; }
 
 	public bool IsCategoryFilterEnabled { get; set; }
+
+	public bool IsFilterHighlightActive { get; set; }
 
 	#region grouping_option
 
@@ -114,41 +78,13 @@ public class MainViewModel
 	public bool IsLockedGroupingSelected { get; set; }
 	public bool IsHiddenGroupingSelected { get; set; }
 
-	[IgnoreInject]
-	public GroupingType CurrentGroupingType
-	{
-		get => _currentGroupingType;
-		set
-		{
-			if (_currentGroupingType == value)
-				return;
-			_currentGroupingType = value;
+	public FilterType CurrentFilterType { get; set; } =
+		FilterType.All;
 
-			_isSyncingGroupingType = true;
-			// 既存 bool プロパティを従属 (存在しないものは削らないでそのまま)
-			IsNoneGroupingSelected =
-				value == GroupingType.None;
-			IsCategoryGroupingSelected =
-				value == GroupingType.Category;
-			IsLayerGroupingSelected =
-				value == GroupingType.Layer;
-			IsGroupGroupingSelected =
-				value == GroupingType.Group;
-			IsLockedGroupingSelected =
-				value == GroupingType.IsLocked;
-			IsHiddenGroupingSelected =
-				value == GroupingType.IsHidden;
-			_isSyncingGroupingType = false;
+	public GroupingType CurrentGroupingType { get; set; } =
+		GroupingType.None;
 
-			// 設定保存があるならここで:
-			// ObjectListSettings.Default.SelectedGroupingType = value;
-			// ObjectListSettings.Default.Save();
 
-			ApplyGrouping(); // 既存のグルーピング再構築メソッドに置き換え
-		}
-	}
-	GroupingType _currentGroupingType = GroupingType.None;
-	bool _isSyncingGroupingType;
 
 	#endregion grouping_option
 
@@ -189,9 +125,10 @@ public class MainViewModel
 	INotifyPropertyChanged? _lastRawTimeline;
 
 	bool isRangeFilterChanging;
-
-	FilterType _currentFilterType = FilterType.All;
 	bool _isSyncingFilterType; // ループ抑止
+
+	// グルーピングタイプの同期フラグ（フィルタータイプと同様のパターン）
+	bool _isSyncingGroupingType;
 
 	static Version OlderYetVerified { get; } =
 		AppUtil.IsDebug ? new(3, 0) : new(4, 40);
@@ -547,9 +484,8 @@ public class MainViewModel
 
 	void EnsureFilterType()
 	{
-        var save = ObjectListSettings.Default;
+		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
-		if (!Enum.IsDefined<FilterType>(type))
 		{
 			type = FilterType.All;
 			save.SelectedFilterType = type;
@@ -565,7 +501,7 @@ public class MainViewModel
 		Debug.WriteLine(
 			$"EnsureFilterType: Enum={CurrentFilterType}"
 		);
-    }
+	}
 
 	/// <summary>
 	/// 範囲フィルターのラジオボタン初期化
@@ -611,6 +547,15 @@ public class MainViewModel
 			CurrentGroupingType = GroupingType.None;
 
 		_isInitializationComplete = was;
+	}
+
+	void UpdateFilterHighlight()
+	{
+		// 時間フィルター、カテゴリフィルター、グルーピングのいずれかが有効な場合にハイライト
+		IsFilterHighlightActive =
+			(CurrentFilterType != FilterType.All)
+			|| IsCategoryFilterEnabled
+			|| (CurrentGroupingType != GroupingType.None);
 	}
 
 	static void SetWindowTitle()
@@ -1237,278 +1182,6 @@ public class MainViewModel
 		EnsureFilterType();
 	}
 
-	[PropertyChanged(nameof(SearchText))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask SearchTextChangedAsync(string value)
-	{
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(CurrentFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask CurrentFrameChangedAsync(int value)
-	{
-		// シークバーフィルター有効時のパフォーマンス最適化: フィルタリングを間引き処理
-		if (IsUnderSeekBarFilterSelected)
-		{
-			_needsFilterUpdate = true;
-			if (_filterTimer?.IsEnabled != true)
-			{
-				_filterTimer?.Start();
-			}
-		}
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsAllFilterSelected))]
-	[SuppressMessage("", "IDE0051")]
-	ValueTask IsAllFilterSelectedChangedAsync(bool value)
-	{
-		var st = new StackTrace();
-		// より詳細なスタックトレースを出力
-		Debug.WriteLine(
-			$"=== IsAllFilterSelected変更: {value} ==="
-		);
-		for (
-			int i = 0;
-			i < Math.Min(10, st.FrameCount);
-			i++
-		)
-		{
-			var frame = st.GetFrame(i);
-			var method = frame?.GetMethod();
-			Debug.WriteLine(
-				$"Frame {i}: {method?.DeclaringType?.FullName}.{method?.Name}"
-			);
-		}
-		Debug.WriteLine("=== スタックトレース終了 ===");
-
-		if (_isSyncingFilterType)
-			return default;
-		if (value)
-			CurrentFilterType = FilterType.All;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsUnderSeekBarFilterSelected))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsUnderSeekBarFilterSelectedChangedAsync(
-		bool value
-	)
-	{
-		_needsFilterUpdate = true;
-		if (_filterTimer?.IsEnabled != true)
-		{
-			_filterTimer?.Start();
-		}
-
-		// 即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
-		if (
-			value
-			&& TimelineUtil.TryGetTimeline(out var timeLine)
-			&& timeLine is not null
-		)
-		{
-			CurrentFrame = timeLine.CurrentFrame;
-			FilterItems();
-			_needsFilterUpdate = false;
-		}
-
-		if (_isSyncingFilterType)
-			return default;
-		if (value)
-			CurrentFilterType = FilterType.UnderSeekBar;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterSelected))]
-	[SuppressMessage("", "IDE0051")]
-	[SuppressMessage(
-		"Usage",
-		"MA0004:Use Task.ConfigureAwait",
-		Justification = "<保留中>"
-	)]
-	private async ValueTask IsRangeFilterSelectedChangedAsync(
-		bool value
-	)
-	{
-		if (value)
-		{
-			// 範囲指定用のフレーム番号エディターを初期化
-			var isSuccess = ItemEditorUtil.TryGetItemEditor(
-				out var itemEditor
-			);
-			if (!isSuccess || itemEditor is null)
-			{
-				return;
-			}
-			await RangeStartPile.RentAsync(editor =>
-			{
-				editor.SetEditorInfo(itemEditor.EditorInfo);
-				return ValueTask.CompletedTask;
-			});
-			await RangeEndPile.RentAsync(editor =>
-			{
-				editor.SetEditorInfo(itemEditor.EditorInfo);
-			 return ValueTask.CompletedTask;
-			});
-
-			// ラジオボタンの排他制御: 両方falseの状態を防ぐ
-			if (
-				!IsRangeFilterStrictMode
-				&& !IsRangeFilterOverlapMode
-			)
-			{
-				IsRangeFilterStrictMode = true;
-			}
-
-			if (_isSyncingFilterType)
-				return;
-			CurrentFilterType = FilterType.Range;
-		}
-
-		FilterItems();
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterStrictMode))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterStrictModeChangedAsync(
-		bool value
-	)
-	{
-		if (
-			!_isInitializationComplete
-			|| isRangeFilterChanging
-		)
-		{
-			return default;
-		}
-
-		isRangeFilterChanging = true;
-
-		if (value)
-		{
-			IsRangeFilterOverlapMode = false;
-		}
-		else if (!IsRangeFilterOverlapMode)
-		{
-			IsRangeFilterOverlapMode = true;
-		}
-
-		isRangeFilterChanging = false;
-
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterOverlapMode))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterOverlapModeChangedAsync(
-		bool value
-	)
-	{
-		if (
-			!_isInitializationComplete
-			|| isRangeFilterChanging
-		)
-		{
-			return default;
-		}
-
-		isRangeFilterChanging = true;
-
-		if (value)
-		{
-			IsRangeFilterStrictMode = false;
-		}
-		else if (!IsRangeFilterStrictMode)
-		{
-			IsRangeFilterStrictMode = true;
-		}
-
-		isRangeFilterChanging = false;
-
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(RangeStartFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask RangeStartFrameChangedAsync(int value)
-	{
-		ValidateRange();
-		return default;
-	}
-
-	[PropertyChanged(nameof(RangeEndFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask RangeEndFrameChangedAsync(int value)
-	{
-		ValidateRange();
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsNoneGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsNoneGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.None;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsCategoryGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsCategoryGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.Category;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsLayerGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsLayerGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.Layer;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsGroupGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsGroupGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.Group;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsLockedGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsLockedGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.IsLocked;
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsHiddenGroupingSelected))]
-	System.Threading.Tasks.ValueTask IsHiddenGroupingSelectedChangedAsync(
-		bool v
-	)
-	{
-		if (!_isSyncingGroupingType && v)
-			CurrentGroupingType = GroupingType.IsHidden;
-		return default;
-	}
-
 	void ValidateRange()
 	{
 		IsRangeInvalid = RangeStartFrame >= RangeEndFrame;
@@ -1846,6 +1519,9 @@ public class MainViewModel
 			|| !ObjectListSettings
 				.Default
 				.IsCategoryFilterGroupItem;
+
+		// 追加: 集約プロパティ更新
+		UpdateFilterHighlight();
 	}
 
 	// パフォーマンス最適化用タイマー設定

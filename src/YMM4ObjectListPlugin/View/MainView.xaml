@@ -33,6 +33,7 @@
       <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
       <conv:FilterTypeRadioConverter x:Key="FilterTypeRadioConverter" />
       <conv:GroupingTypeRadioConverter x:Key="GroupingTypeRadioConverter" />
+      <conv:FilterTypeIsNotAllConverter x:Key="FilterTypeIsNotAllConverter" />
 
       <!--  共通のColumnHeaderStyleを定義  -->
       <Style
@@ -113,29 +114,15 @@
                 </Setter.Value>
               </Setter>
               <Style.Triggers>
-                <!--  デフォルト以外の設定が有効な場合はFilterCheckアイコンに変更  -->
-                <MultiDataTrigger>
-                  <MultiDataTrigger.Conditions>
-                    <Condition Binding="{Binding IsAllFilterSelected}" Value="False" />
-                  </MultiDataTrigger.Conditions>
+                <!-- 単一トリガー: 集約状態 -->
+                <DataTrigger Binding="{Binding IsFilterHighlightActive}" Value="True">
                   <Setter Property="Content">
                     <Setter.Value>
                       <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
                     </Setter.Value>
                   </Setter>
                   <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                </MultiDataTrigger>
-                <MultiDataTrigger>
-                  <MultiDataTrigger.Conditions>
-                    <Condition Binding="{Binding IsCategoryFilterEnabled}" Value="True" />
-                  </MultiDataTrigger.Conditions>
-                  <Setter Property="Content">
-                    <Setter.Value>
-                      <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
-                    </Setter.Value>
-                  </Setter>
-                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                </MultiDataTrigger>
+                </DataTrigger>
               </Style.Triggers>
             </Style>
           </ToggleButton.Style>
