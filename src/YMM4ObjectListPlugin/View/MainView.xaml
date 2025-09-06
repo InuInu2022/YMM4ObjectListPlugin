@@ -32,6 +32,7 @@
       <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
       <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
       <conv:FilterTypeRadioConverter x:Key="FilterTypeRadioConverter" />
+      <conv:GroupingTypeRadioConverter x:Key="GroupingTypeRadioConverter" />
 
       <!--  共通のColumnHeaderStyleを定義  -->
       <Style
@@ -281,7 +282,7 @@
                 CommandParameter="None"
                 Content="なし"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsNoneGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=None}"
                 />
 
               <RadioButton
@@ -291,7 +292,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Category"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsCategoryGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Category}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -311,7 +312,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Layer"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsLayerGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Layer}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -332,7 +333,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Group"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsGroupGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Group}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -353,7 +354,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="IsLocked"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsLockedGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=IsLocked}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -374,7 +375,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="IsHidden"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsHiddenGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=IsHidden}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image

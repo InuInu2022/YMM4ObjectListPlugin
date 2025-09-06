@@ -114,6 +114,42 @@ public class MainViewModel
 	public bool IsLockedGroupingSelected { get; set; }
 	public bool IsHiddenGroupingSelected { get; set; }
 
+	[IgnoreInject]
+	public GroupingType CurrentGroupingType
+	{
+		get => _currentGroupingType;
+		set
+		{
+			if (_currentGroupingType == value)
+				return;
+			_currentGroupingType = value;
+
+			_isSyncingGroupingType = true;
+			// 既存 bool プロパティを従属 (存在しないものは削らないでそのまま)
+			IsNoneGroupingSelected =
+				value == GroupingType.None;
+			IsCategoryGroupingSelected =
+				value == GroupingType.Category;
+			IsLayerGroupingSelected =
+				value == GroupingType.Layer;
+			IsGroupGroupingSelected =
+				value == GroupingType.Group;
+			IsLockedGroupingSelected =
+				value == GroupingType.IsLocked;
+			IsHiddenGroupingSelected =
+				value == GroupingType.IsHidden;
+			_isSyncingGroupingType = false;
+
+			// 設定保存があるならここで:
+			// ObjectListSettings.Default.SelectedGroupingType = value;
+			// ObjectListSettings.Default.Save();
+
+			ApplyGrouping(); // 既存のグルーピング再構築メソッドに置き換え
+		}
+	}
+	GroupingType _currentGroupingType = GroupingType.None;
+	bool _isSyncingGroupingType;
+
 	#endregion grouping_option
 
 	public int CurrentFrame { get; set; }
@@ -553,6 +589,28 @@ public class MainViewModel
 		Debug.WriteLine(
 			$"EnsureRangeFilterDefaults - After: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
+	}
+
+	void EnsureGroupingType()
+	{
+		var was = _isInitializationComplete;
+		_isInitializationComplete = false;
+
+		// 既存 bool 群から復元 (全部 false の場合は None)
+		if (IsCategoryGroupingSelected)
+			CurrentGroupingType = GroupingType.Category;
+		else if (IsLayerGroupingSelected)
+			CurrentGroupingType = GroupingType.Layer;
+		else if (IsGroupGroupingSelected)
+			CurrentGroupingType = GroupingType.Group;
+		else if (IsLockedGroupingSelected)
+			CurrentGroupingType = GroupingType.IsLocked;
+		else if (IsHiddenGroupingSelected)
+			CurrentGroupingType = GroupingType.IsHidden;
+		else
+			CurrentGroupingType = GroupingType.None;
+
+		_isInitializationComplete = was;
 	}
 
 	static void SetWindowTitle()
@@ -1388,6 +1446,66 @@ public class MainViewModel
 	private ValueTask RangeEndFrameChangedAsync(int value)
 	{
 		ValidateRange();
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsNoneGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsNoneGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.None;
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsCategoryGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsCategoryGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.Category;
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsLayerGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsLayerGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.Layer;
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsGroupGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsGroupGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.Group;
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsLockedGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsLockedGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.IsLocked;
+		return default;
+	}
+
+	[PropertyChanged(nameof(IsHiddenGroupingSelected))]
+	System.Threading.Tasks.ValueTask IsHiddenGroupingSelectedChangedAsync(
+		bool v
+	)
+	{
+		if (!_isSyncingGroupingType && v)
+			CurrentGroupingType = GroupingType.IsHidden;
 		return default;
 	}
 
