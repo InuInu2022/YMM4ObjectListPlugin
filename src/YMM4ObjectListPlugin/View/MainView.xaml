@@ -18,6 +18,7 @@
   d:DesignHeight="450"
   d:DesignWidth="800"
   mc:Ignorable="d"
+  epoxy:Anchor.Pile="{Binding MainViewPile}"
   >
   <epoxy:EventBinder.Events>
     <epoxy:Event Command="{Binding Ready}" EventName="Loaded" />

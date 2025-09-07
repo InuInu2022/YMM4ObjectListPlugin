@@ -61,8 +61,9 @@ public partial class MainViewModel
 		// 即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
 		if (
 			value
-			&& TimelineUtil.TryGetTimeline(out var timeLine)
-			&& timeLine is not null
+			&& TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex)
 		)
 		{
 			CurrentFrame = timeLine.CurrentFrame;
@@ -92,7 +93,8 @@ public partial class MainViewModel
 		{
 			// 範囲指定用のフレーム番号エディターを初期化
 			var isSuccess = ItemEditorUtil.TryGetItemEditor(
-				out var itemEditor
+				out var itemEditor,
+				CurrentMainWindowIndex
 			);
 			if (!isSuccess || itemEditor is null)
 			{

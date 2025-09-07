@@ -94,6 +94,9 @@ public partial class MainViewModel
 	public int RangeEndFrame { get; set; }
 	public bool IsRangeInvalid { get; set; } = true;
 
+	public Pile<UserControl> MainViewPile { get; } =
+		Pile.Factory.Create<UserControl>();
+
 	public Pile<FrameNumberEditor> RangeStartPile { get; } =
 		Pile.Factory.Create<FrameNumberEditor>();
 	public Pile<FrameNumberEditor> RangeEndPile { get; } =
@@ -115,6 +118,8 @@ public partial class MainViewModel
 	public bool IsPluginEnabled { get; set; }
 
 	public bool IsPluginWindowInitialized { get; set; }
+
+	public int CurrentMainWindowIndex { get; set; }
 
 	IDisposable? sceneSubscription;
 
@@ -217,8 +222,9 @@ public partial class MainViewModel
 			IsReloading = true;
 			if (
 				TimelineUtil.TryGetTimeline(
-					out var timeLine
-				) && timeLine is not null
+					out var timeLine,
+					CurrentMainWindowIndex
+				)
 			)
 			{
 				UpdateItems(timeLine);
@@ -496,6 +502,7 @@ public partial class MainViewModel
 	{
 		var save = ObjectListSettings.Default;
 		var type = save.SelectedFilterType;
+		if (!Enum.IsDefined<FilterType>(type))
 		{
 			type = FilterType.All;
 			save.SelectedFilterType = type;
@@ -507,10 +514,6 @@ public partial class MainViewModel
 		_isInitializationComplete = false;
 		CurrentFilterType = type;
 		_isInitializationComplete = was;
-
-		Debug.WriteLine(
-			$"EnsureFilterType: Enum={CurrentFilterType}"
-		);
 	}
 
 	/// <summary>
@@ -571,13 +574,14 @@ public partial class MainViewModel
 		}
 	}
 
-	static ValueTask SelectionUpdateAsync(
+	ValueTask SelectionUpdateAsync(
 		SelectionChangedEventArgs e
 	)
 	{
 		if (
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex)
 		)
 		{
 			return default;
@@ -641,14 +645,23 @@ public partial class MainViewModel
 		"SMA0040:Missing Using Statement",
 		Justification = "<保留中>"
 	)]
-	ValueTask OnHostUiReadyAsync(Window mainWindow)
+	async ValueTask OnHostUiReadyAsync(Window mainWindow)
 	{
-		var hasTL = TimelineUtil.TryGetTimeline(
-			out var timeLine
-		);
+		await MainViewPile.RentAsync(view =>
+		{
+			CurrentMainWindowIndex =
+				ViewModelUtil.GetParentViewModel(view)?.Index ?? 0;
+			return ValueTask.CompletedTask;
+		});
 
-		if (!hasTL || timeLine is null)
-			return default;
+
+		if (!TimelineUtil.TryGetTimeline(
+			out var timeLine,
+			CurrentMainWindowIndex
+		))
+		{
+			return;
+		}
 
 		var raw =
 			timeLine.RawTimeline as INotifyPropertyChanged;
@@ -657,13 +670,12 @@ public partial class MainViewModel
 		SubscribeTimeline(raw, timeLine);
 
 		// シーン切り替えも監視
-		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
-			out var timeLineVm
-		);
 		if (
 			!Ymm4Version.HasDocked
-			&& hasSceneVm
-			&& timeLineVm is not null
+			&& TimelineUtil.TryGetTimelineVmValue(
+				out var timeLineVm,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			// RxのSubscribeはバックグラウンドスレッドで発火する場合がある
@@ -711,7 +723,7 @@ public partial class MainViewModel
 						);
 				});
 		}
-		return default;
+		return;
 	}
 
 	/// <summary>
@@ -1070,8 +1082,9 @@ public partial class MainViewModel
 	void HandleTimelineChanged(PropertyChangedEventArgs e)
 	{
 		if (
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex)
 		)
 		{
 			return;
@@ -1105,8 +1118,9 @@ public partial class MainViewModel
 	{
 		if (
 			!TimelineUtil.TryGetItemViewModels(
-				out var itemViewModels
-			) || itemViewModels is null
+				out var itemViewModels,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return;
@@ -1517,9 +1531,9 @@ public partial class MainViewModel
 		if (
 			!IsPluginEnabled
 			|| !TimelineUtil.TryGetTimeline(
-				out var timeLine
+				out var timeLine,
+				CurrentMainWindowIndex
 			)
-			|| timeLine is null
 		)
 		{
 			// プロジェクト未読込など
