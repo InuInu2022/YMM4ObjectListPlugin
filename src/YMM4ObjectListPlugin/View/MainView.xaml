@@ -13,6 +13,7 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:notify="clr-namespace:Enterwell.Clients.Wpf.Notifications.Controls;assembly=Enterwell.Clients.Wpf.Notifications"
   xmlns:viewmodels="clr-namespace:ObjectList.ViewModel"
+  xmlns:enums="clr-namespace:ObjectList.Enums"
   xmlns:ymmconv="clr-namespace:YukkuriMovieMaker.Views.Converters;assembly=YukkuriMovieMaker.Plugin"
   d:DesignHeight="450"
   d:DesignWidth="800"
@@ -800,7 +801,7 @@
                       <c:EnumComboBox
                         Grid.Column="1"
                         Width="100"
-                        EnumType="{x:Type viewmodels:LengthViewMode}"
+                        EnumType="{x:Type enums:LengthViewMode}"
                         Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=ShowLengthViewMode, Mode=TwoWay}"
                         />
                     </Grid>
