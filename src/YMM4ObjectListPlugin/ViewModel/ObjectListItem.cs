@@ -6,6 +6,7 @@ using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YukkuriMovieMaker.Resources.Localization;
 using System.Runtime.InteropServices;
+using ObjectList.Enums;
 
 namespace ObjectList.ViewModel;
 

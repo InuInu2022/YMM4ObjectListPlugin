@@ -1,6 +1,4 @@
-using System.Reflection;
-
-using ObjectList.ViewModel;
+using ObjectList.Enums;
 
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin;
@@ -285,21 +283,4 @@ public class ObjectListSettings
 
 	#endregion version_check
 	public override void Initialize() { }
-}
-
-[Obfuscation(Exclude = true, ApplyToMembers = true)]
-public enum ColumLayerType
-{
-	Number = 0,
-	Name = 1,
-
-	None = 99,
-}
-
-[Obfuscation(Exclude = true, ApplyToMembers = true)]
-public enum FilterType
-{
-	All = 0,
-	UnderSeekBar = 1,
-	Range = 2,
 }

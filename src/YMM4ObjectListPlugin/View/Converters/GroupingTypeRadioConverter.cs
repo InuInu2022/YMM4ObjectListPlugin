@@ -1,7 +1,8 @@
 using System;
 using System.Globalization;
 using System.Windows.Data;
-using ObjectList.ViewModel;
+
+using ObjectList.Enums;
 
 namespace ObjectList.View.Converters;
 

@@ -10,6 +10,9 @@ using System.Windows.Data;
 using System.Windows.Threading;
 using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
+
+using ObjectList.Enums;
+
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.ViewModels;
@@ -83,8 +86,6 @@ public partial class MainViewModel
 
 	public GroupingType CurrentGroupingType { get; set; } =
 		GroupingType.None;
-
-
 
 	#endregion grouping_option
 
@@ -1242,73 +1243,67 @@ public partial class MainViewModel
 		}
 	}
 
-	[SuppressMessage(
-		"Usage",
-		"VSTHRD002:Avoid problematic synchronous waits",
-		Justification = "<保留中>"
-	)]
-	[SuppressMessage(
-		"Correctness",
-		"SS034:Use await to get the result of an asynchronous operation",
-		Justification = "<保留中>"
-	)]
-	[SuppressMessage(
-		"Critical Code Smell",
-		"S5034:\"ValueTask\" should be consumed correctly",
-		Justification = "<保留中>"
-	)]
-	void OnSettingsPropertyChanged(
+	[SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "<保留中>")]
+	async void OnSettingsPropertyChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		var isBound = UIThread
-			.IsBoundAsync()
-			.AsTask()
-			.Result;
-		if (isBound)
+		try
 		{
-			// UIスレッドなら直接処理
-			try
+			var isBound = await UIThread
+				.IsBoundAsync()
+				.ConfigureAwait(true);
+
+			if (isBound)
 			{
-				HandleSettingChanged(e);
+				// UIスレッドなら直接処理
+				try
+				{
+					HandleSettingChanged(e);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnSettingsPropertyChanged Error: {ex.Message}"
+					);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				Console.WriteLine(
-					$"OnSettingsPropertyChanged Error: {ex.Message}"
-				);
+				// UIスレッドで処理を実行
+				try
+				{
+					await UIThread
+						.InvokeAsync(() =>
+						{
+							try
+							{
+								HandleSettingChanged(e);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(
+									$"OnSettingsPropertyChanged Error: {ex.Message}"
+								);
+							}
+							return default;
+						})
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnSettingsPropertyChanged Error: {ex.Message}"
+					);
+				}
 			}
 		}
-		else
+		catch (Exception ex)
 		{
-			// UIスレッドで処理を実行
-			try
-			{
-				UIThread
-					.InvokeAsync(() =>
-					{
-						try
-						{
-							HandleSettingChanged(e);
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(
-								$"OnSettingsPropertyChanged Error: {ex.Message}"
-							);
-						}
-						return default;
-					})
-					.AsTask()
-					.Wait();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(
-					$"OnSettingsPropertyChanged Error: {ex.Message}"
-				);
-			}
+			Debug.WriteLine(
+				$"OnSettingsPropertyChanged Error: UIThread.IsBoundAsync failed, {ex.Message}"
+			);
 		}
 	}
 

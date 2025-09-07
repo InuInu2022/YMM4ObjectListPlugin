@@ -2,6 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Epoxy;
 
+using ObjectList.Enums;
+
 using YmmeUtil.Bridge;
 
 namespace ObjectList.ViewModel;

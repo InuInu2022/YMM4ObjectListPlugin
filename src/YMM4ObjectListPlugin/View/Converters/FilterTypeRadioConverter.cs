@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Windows.Data;
 
+using ObjectList.Enums;
+
 namespace ObjectList.View.Converters;
 
 // RadioButton の IsChecked ⇄ FilterType を相互変換

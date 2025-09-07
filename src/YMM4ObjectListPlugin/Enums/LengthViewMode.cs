@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace ObjectList.ViewModel;
+namespace ObjectList.Enums;
 
 [Obfuscation(Exclude = true, ApplyToMembers = true)]
 public enum LengthViewMode
