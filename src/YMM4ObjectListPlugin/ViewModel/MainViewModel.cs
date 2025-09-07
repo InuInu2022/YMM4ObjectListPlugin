@@ -149,6 +149,7 @@ public partial class MainViewModel
 		_isInitializationComplete = false;
 
 		LoadGroupingSettingsFromSettings();
+		EnsureGroupingTypeDefaults();
 
 		InitializeCommands();
 
@@ -536,6 +537,15 @@ public partial class MainViewModel
 		Debug.WriteLine(
 			$"EnsureRangeFilterDefaults - After: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
+	}
+
+	private void EnsureGroupingTypeDefaults()
+	{
+		// 無効値やnullの場合は必ずNoneにする
+		if (!Enum.IsDefined(typeof(GroupingType), CurrentGroupingType))
+		{
+			CurrentGroupingType = GroupingType.None;
+		}
 	}
 
 	void UpdateFilterHighlight()
@@ -1148,6 +1158,7 @@ public partial class MainViewModel
 
 		// プロジェクト読み込み時にフィルター設定を再確認
 		EnsureFilterType();
+		EnsureGroupingTypeDefaults();
 	}
 
 	void ValidateRange()
@@ -1339,7 +1350,18 @@ public partial class MainViewModel
 				var groupingType = ObjectListSettings
 					.Default
 					.SelectedGroupingType;
+				if (
+					!Enum.IsDefined(
+						typeof(GroupingType),
+						groupingType
+					)
+				)
+				{
+					groupingType = GroupingType.None;
+				}
+
 				SetGroupingFromEnum(groupingType);
+				EnsureGroupingTypeDefaults();
 				ApplyGrouping();
 				break;
 

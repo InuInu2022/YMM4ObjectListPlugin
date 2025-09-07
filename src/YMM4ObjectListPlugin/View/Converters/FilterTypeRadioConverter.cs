@@ -16,12 +16,29 @@ public class FilterTypeRadioConverter : IValueConverter
 		CultureInfo culture
 	)
 	{
-		return value is FilterType ft
-			&& parameter is string p
-			&& Enum.TryParse<FilterType>(
-				p,
-				out var param
-			) && ft == param;
+		if(value is null || parameter is null)
+		{
+			return false;
+		}
+
+		if (!Enum.IsDefined(typeof(FilterType), value))
+		{
+			value = FilterType.All; // デフォルト値にフォールバック
+		}
+
+		var paramStr = parameter.ToString();
+		if (
+			Enum.TryParse(
+				typeof(FilterType),
+				paramStr,
+				out var paramEnum
+			)
+		)
+		{
+			return value.Equals(paramEnum);
+		}
+
+		return false;
 	}
 
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "SMA0025:Enum System Method", Justification = "<保留中>")]
