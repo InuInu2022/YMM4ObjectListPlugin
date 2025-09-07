@@ -10,9 +10,7 @@ using System.Windows.Data;
 using System.Windows.Threading;
 using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
-
 using ObjectList.Enums;
-
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
 using YmmeUtil.Bridge.Wrap.ViewModels;
@@ -581,7 +579,8 @@ public partial class MainViewModel
 		if (
 			!TimelineUtil.TryGetTimeline(
 				out var timeLine,
-				CurrentMainWindowIndex)
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return default;
@@ -650,15 +649,18 @@ public partial class MainViewModel
 		await MainViewPile.RentAsync(view =>
 		{
 			CurrentMainWindowIndex =
-				ViewModelUtil.GetParentViewModel(view)?.Index ?? 0;
+				ViewModelUtil
+					.GetParentViewModel(view)
+					?.Index ?? 0;
 			return ValueTask.CompletedTask;
 		});
 
-
-		if (!TimelineUtil.TryGetTimeline(
-			out var timeLine,
-			CurrentMainWindowIndex
-		))
+		if (
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex
+			)
+		)
 		{
 			return;
 		}
@@ -1014,68 +1016,67 @@ public partial class MainViewModel
 		}
 	}
 
-	[SuppressMessage(
-		"Usage",
-		"VSTHRD002:Avoid problematic synchronous waits",
-		Justification = "<保留中>"
-	)]
-	[SuppressMessage(
-		"Correctness",
-		"SS034:Use await to get the result of an asynchronous operation",
-		Justification = "<保留中>"
-	)]
-	void OnTimelineChanged(
+	[SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "<保留中>")]
+	async void OnTimelineChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		var isBound = UIThread
-			.IsBoundAsync()
-			.AsTask()
-			.Result;
-		if (isBound)
+		try
 		{
-			// UIスレッドなら直接処理
-			try
+			var isBound = await UIThread
+				.IsBoundAsync()
+				.ConfigureAwait(true);
+
+			if (isBound)
 			{
-				HandleTimelineChanged(e);
+				// UIスレッドなら直接処理
+				try
+				{
+					HandleTimelineChanged(e);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnTimelineChanged error: {ex.Message}"
+					);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				Console.WriteLine(
-					$"OnTimelineChanged error: {ex.Message}"
-				);
+				// UIスレッドで処理を実行
+				try
+				{
+					await UIThread
+						.InvokeAsync(() =>
+						{
+							try
+							{
+								HandleTimelineChanged(e);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(
+									$"OnTimelineChanged error: {ex.Message}"
+								);
+							}
+							return default;
+						})
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnTimelineChanged error: {ex.Message}"
+					);
+				}
 			}
 		}
-		else
+		catch (System.Exception ex)
 		{
-			// UIスレッドで処理を実行
-			try
-			{
-				UIThread
-					.InvokeAsync(() =>
-					{
-						try
-						{
-							HandleTimelineChanged(e);
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(
-								$"OnTimelineChanged error: {ex.Message}"
-							);
-						}
-						return default;
-					})
-					.AsTask()
-					.Wait();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(
-					$"OnTimelineChanged error: {ex.Message}"
-				);
-			}
+			Debug.WriteLine(
+				"OnTimelineChanged: Failed to check UI thread status: " + ex.Message
+			);
 		}
 	}
 
@@ -1084,7 +1085,8 @@ public partial class MainViewModel
 		if (
 			!TimelineUtil.TryGetTimeline(
 				out var timeLine,
-				CurrentMainWindowIndex)
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return;
@@ -1257,7 +1259,11 @@ public partial class MainViewModel
 		}
 	}
 
-	[SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "<保留中>")]
+	[SuppressMessage(
+		"Usage",
+		"VSTHRD100:Avoid async void methods",
+		Justification = "<保留中>"
+	)]
 	async void OnSettingsPropertyChanged(
 		object? sender,
 		PropertyChangedEventArgs e
