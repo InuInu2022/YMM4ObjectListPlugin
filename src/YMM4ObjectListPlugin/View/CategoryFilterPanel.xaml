@@ -65,7 +65,7 @@
   <StackPanel>
     <StackPanel>
       <DockPanel VerticalAlignment="Center" Style="{StaticResource DockPanelStyle}">
-        <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterVoiceItem}" Style="{StaticResource ToggleStyle}" />
+        <c:ToggleSlider DockPanel.Dock="Right" Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=IsCategoryFilterVoiceItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ToggleStyle}" />
         <StackPanel Orientation="Horizontal" Style="{StaticResource CategoryItemStackPanelStyle}">
           <Border Style="{StaticResource IconWrapperStyle}">
             <materialIcons:MaterialIconExt Kind="MessageTextOutline" />

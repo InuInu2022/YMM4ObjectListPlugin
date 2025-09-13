@@ -7,27 +7,24 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 using System.Windows.Threading;
 using Enterwell.Clients.Wpf.Notifications;
 using Epoxy;
+using ObjectList.Enums;
 using YmmeUtil.Bridge;
 using YmmeUtil.Bridge.Wrap;
-using YmmeUtil.Bridge.Wrap.Items;
 using YmmeUtil.Bridge.Wrap.ViewModels;
 using YmmeUtil.Common;
-
+using YmmeUtil.Ymm4;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
-using YukkuriMovieMaker.Theme;
 using YukkuriMovieMaker.ViewModels;
 
 namespace ObjectList.ViewModel;
 
 [ViewModel]
-public class MainViewModel
+public partial class MainViewModel
 {
-	// Epoxyの自動プロパティ変更通知の循環を防ぐため、初期化中は相互排他処理をスキップ
 	private bool _isInitializationComplete = false;
 
 	public Command? Ready { get; set; }
@@ -71,6 +68,8 @@ public class MainViewModel
 
 	public bool IsCategoryFilterEnabled { get; set; }
 
+	public bool IsFilterHighlightActive { get; set; }
+
 	#region grouping_option
 
 	public bool IsNoneGroupingSelected { get; set; } = true;
@@ -80,12 +79,21 @@ public class MainViewModel
 	public bool IsLockedGroupingSelected { get; set; }
 	public bool IsHiddenGroupingSelected { get; set; }
 
+	public FilterType CurrentFilterType { get; set; } =
+		FilterType.All;
+
+	public GroupingType CurrentGroupingType { get; set; } =
+		GroupingType.None;
+
 	#endregion grouping_option
 
 	public int CurrentFrame { get; set; }
 	public int RangeStartFrame { get; set; }
 	public int RangeEndFrame { get; set; }
 	public bool IsRangeInvalid { get; set; } = true;
+
+	public Pile<UserControl> MainViewPile { get; } =
+		Pile.Factory.Create<UserControl>();
 
 	public Pile<FrameNumberEditor> RangeStartPile { get; } =
 		Pile.Factory.Create<FrameNumberEditor>();
@@ -107,6 +115,10 @@ public class MainViewModel
 
 	public bool IsPluginEnabled { get; set; }
 
+	public bool IsPluginWindowInitialized { get; set; }
+
+	public int CurrentMainWindowIndex { get; set; }
+
 	IDisposable? sceneSubscription;
 
 	// パフォーマンス最適化: フィルタリングを間引いて実行するためのタイマー
@@ -116,17 +128,28 @@ public class MainViewModel
 	DispatcherTimer? _timelineMonitorTimer;
 	INotifyPropertyChanged? _lastRawTimeline;
 
-	static Version OlderYetVerified { get; }
-		= AppUtil.IsDebug ? new(3, 0) : new(4, 40);
+	bool isRangeFilterChanging;
+	bool _isSyncingFilterType; // ループ抑止
+
+	// グルーピングタイプの同期フラグ（フィルタータイプと同様のパターン）
+	bool _isSyncingGroupingType;
+
+	static Version OlderYetVerified { get; } =
+		AppUtil.IsDebug ? new(3, 0) : new(4, 40);
 	static Version YetVerified { get; } =
-		AppUtil.IsDebug ? new(4, 0) : new(4, 45); //2025-09 release
+		AppUtil.IsDebug ? new(4, 0) : new(4, 46); //2025-09 release
 
 	public MainViewModel()
 	{
-		// Epoxyの自動プロパティ変更通知の循環を防ぐため初期化中は相互排他処理をスキップ
+		if (IsPluginWindowInitialized)
+		{
+			return;
+		}
+
 		_isInitializationComplete = false;
 
 		LoadGroupingSettingsFromSettings();
+		EnsureGroupingTypeDefaults();
 
 		InitializeCommands();
 
@@ -136,11 +159,43 @@ public class MainViewModel
 		ObjectListSettings.Default.PropertyChanged +=
 			OnSettingsPropertyChanged;
 
-		// 初期化完了 - これ以降は相互排他制御が有効になる
+		// 同期的にフィルター設定を初期化
+		var save = ObjectListSettings.Default;
+		var type = save.SelectedFilterType;
+
+		if (!Enum.IsDefined<FilterType>(type))
+		{
+			type = FilterType.All;
+			save.SelectedFilterType = type;
+			save.Save();
+		}
+
+		// プロパティの初期値を設定に合わせて変更
+		switch (type)
+		{
+			case FilterType.All:
+				// 既に初期値がtrueなので何もしない
+				break;
+			case FilterType.UnderSeekBar:
+				IsAllFilterSelected = false;
+				IsUnderSeekBarFilterSelected = true;
+				break;
+			case FilterType.Range:
+				IsAllFilterSelected = false;
+				IsRangeFilterSelected = true;
+				EnsureRangeFilterDefaults();
+				break;
+		}
+
+		// 初期化完了
 		_isInitializationComplete = true;
 	}
 
-	[SuppressMessage("Design", "MA0051:Method is too long", Justification = "<保留中>")]
+	[SuppressMessage(
+		"Design",
+		"MA0051:Method is too long",
+		Justification = "<保留中>"
+	)]
 	private void InitializeCommands()
 	{
 		Ready = Command.Factory.Create(
@@ -149,6 +204,13 @@ public class MainViewModel
 
 		Unload = Command.Factory.Create(() =>
 		{
+			//カテゴリフィルターが反映されない対策
+			if (Ymm4Version.HasDocked)
+			{
+				//何もしない
+				return default;
+			}
+			//旧バージョンむけはそのまま
 			ObjectListSettings.Default.PropertyChanged -=
 				OnSettingsPropertyChanged;
 			return default;
@@ -159,8 +221,9 @@ public class MainViewModel
 			IsReloading = true;
 			if (
 				TimelineUtil.TryGetTimeline(
-					out var timeLine
-				) && timeLine is not null
+					out var timeLine,
+					CurrentMainWindowIndex
+				)
 			)
 			{
 				UpdateItems(timeLine);
@@ -207,6 +270,8 @@ public class MainViewModel
 
 	async ValueTask InitializeApplicationAsync()
 	{
+		if (IsPluginWindowInitialized)
+			return;
 		await UIThread
 			.InvokeAsync(() =>
 			{
@@ -219,8 +284,9 @@ public class MainViewModel
 		var save = ObjectListSettings.Default;
 
 		var lastVer = save.LastSkippedVersion;
-		if (lastVer.Major != appVer.Major ||
-			lastVer.Minor > appVer.Minor
+		if (
+			lastVer.Major != appVer.Major
+			|| lastVer.Minor > appVer.Minor
 		)
 		{
 			//マイナーバージョンが上がっていればスキップをクリア
@@ -228,10 +294,12 @@ public class MainViewModel
 			save.LastSkippedVersion = appVer;
 		}
 
-		if (!save.IsSkipAppVersionCheck
-			&&
-			(appVer < OlderYetVerified
-			|| appVer >= YetVerified)
+		if (
+			!save.IsSkipAppVersionCheck
+			&& (
+				appVer < OlderYetVerified
+				|| appVer >= YetVerified
+			)
 		)
 		{
 			DisplayVersionWarning(appVer);
@@ -242,11 +310,23 @@ public class MainViewModel
 			_ = await AwaitUiReadyAsync()
 				.ConfigureAwait(true);
 		}
+
+		IsPluginWindowInitialized = true;
 	}
 
-	[SuppressMessage("Usage", "MA0147:Avoid async void method for delegate")]
-	[SuppressMessage("Concurrency", "PH_S034:Async Lambda Inferred to Async Void")]
-	[SuppressMessage("Usage", "VSTHRD101:Avoid unsupported async delegates", Justification = "<保留中>")]
+	[SuppressMessage(
+		"Usage",
+		"MA0147:Avoid async void method for delegate"
+	)]
+	[SuppressMessage(
+		"Concurrency",
+		"PH_S034:Async Lambda Inferred to Async Void"
+	)]
+	[SuppressMessage(
+		"Usage",
+		"VSTHRD101:Avoid unsupported async delegates",
+		Justification = "<保留中>"
+	)]
 	void DisplayVersionWarning(Version appVer)
 	{
 		_ = NotifyManager
@@ -255,7 +335,9 @@ public class MainViewModel
 			.Foreground(NotifyUtil.DynamicForegroundTextHex)
 			.Background(NotifyUtil.DynamicControlHex)
 			.HasBadge("⚠︎")
-			.HasHeader("プラグインの動作確認ができていません。")
+			.HasHeader(
+				"プラグインの動作確認ができていません。"
+			)
 			.HasMessage(
 				$"このYMM4のバージョン v{appVer} での動作確認が取れていません。\nそれでも使用しますか？"
 			)
@@ -272,7 +354,9 @@ public class MainViewModel
 					}
 					catch (Exception ex)
 					{
-						Debug.WriteLine($"Error in AwaitUiReadyAsync: {ex.Message}");
+						Debug.WriteLine(
+							$"Error in AwaitUiReadyAsync: {ex.Message}"
+						);
 						NotifyManager.Info(
 							"Error",
 							$"理由: {ex.Message}"
@@ -285,14 +369,17 @@ public class MainViewModel
 				}
 			)
 			.Dismiss()
-			.WithButton("✖️ いいえ", button =>
-			{
-				IsPluginEnabled = false;
-				NotifyManager.Info(
-					"プラグインのアプデも確認してください",
-					"対応バージョンがでているかもしれません。\n「ファイル」＞「設定」＞「YMM4オブジェクトリスト」＞「Update check」"
-				);
-			})
+			.WithButton(
+				"✖️ いいえ",
+				button =>
+				{
+					IsPluginEnabled = false;
+					NotifyManager.Info(
+						"プラグインのアプデも確認してください",
+						"対応バージョンがでているかもしれません。\n「ファイル」＞「設定」＞「YMM4オブジェクトリスト」＞「Update check」"
+					);
+				}
+			)
 			.WithAdditionalContent(
 				ContentLocation.Bottom,
 				new Border
@@ -303,29 +390,36 @@ public class MainViewModel
 						0,
 						0
 					),
-					BorderBrush = NotifyUtil.GetDynamicBrush(SystemColors.ActiveBorderBrushKey),
+					BorderBrush =
+						NotifyUtil.GetDynamicBrush(
+							SystemColors.ActiveBorderBrushKey
+						),
 					Child = GetBindingCheckBox(),
 				}
 			)
 			.Queue();
 
-		static CheckBox GetBindingCheckBox(){
+		static CheckBox GetBindingCheckBox()
+		{
 			var cb = new CheckBox
 			{
-				Margin = new Thickness(
-					12,
-					8,
-					12,
-					8
-				),
+				Margin = new Thickness(12, 8, 12, 8),
 				HorizontalAlignment =
 					HorizontalAlignment.Left,
-				Content = "次のバージョンまで次回からは確認しない",
-				Foreground = NotifyUtil.DynamicForegroundTextBrush,
+				Content =
+					"次のバージョンまで次回からは確認しない",
+				Foreground =
+					NotifyUtil.DynamicForegroundTextBrush,
 			};
 			cb.SetBinding(
 				CheckBox.IsCheckedProperty,
-				new Binding(nameof(ObjectListSettings.Default.IsSkipAppVersionCheck))
+				new Binding(
+					nameof(
+						ObjectListSettings
+							.Default
+							.IsSkipAppVersionCheck
+					)
+				)
 				{
 					Source = ObjectListSettings.Default,
 					Mode = BindingMode.TwoWay,
@@ -343,6 +437,8 @@ public class MainViewModel
 	{
 		const int maxAttempts = 60; // 30秒間試行（500ms × 60回）
 
+		await Task.Delay(500).ConfigureAwait(false);
+
 		for (
 			int attempt = 0;
 			attempt < maxAttempts;
@@ -358,9 +454,12 @@ public class MainViewModel
 					&& window.IsLoaded
 				);
 
+			var hasMainVM =
+				foundWin?.DataContext is IMainViewModel;
+
 			await UIThread.Unbind();
 
-			if (foundWin is not null)
+			if (foundWin is not null && hasMainVM)
 			{
 				try
 				{
@@ -398,6 +497,24 @@ public class MainViewModel
 		return false;
 	}
 
+	void EnsureFilterType()
+	{
+		var save = ObjectListSettings.Default;
+		var type = save.SelectedFilterType;
+		if (!Enum.IsDefined<FilterType>(type))
+		{
+			type = FilterType.All;
+			save.SelectedFilterType = type;
+			save.Save();
+		}
+
+		// Enum → UI 同期（boolは CurrentFilterType セッター内で追従）
+		var was = _isInitializationComplete;
+		_isInitializationComplete = false;
+		CurrentFilterType = type;
+		_isInitializationComplete = was;
+	}
+
 	/// <summary>
 	/// 範囲フィルターのラジオボタン初期化
 	/// ViewModelインスタンス再利用時のUIバインディング更新用
@@ -408,30 +525,36 @@ public class MainViewModel
 			$"EnsureRangeFilterDefaults - Before: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
 
-		// ViewModelインスタンス再利用時: 既存の正しい値をそのまま使用
-		// Epoxyに対してPropertyChanged通知を強制発生させるため、一時的に異なる値に設定してから戻す
-		var originalStrictMode = IsRangeFilterStrictMode;
-		var originalOverlapMode = IsRangeFilterOverlapMode;
-
-		// 相互排他処理を一時的に無効化
 		var wasInitialized = _isInitializationComplete;
 		_isInitializationComplete = false;
 
-		// 強制的にPropertyChanged通知を発生させる
-		// 既存の値と明確に異なる値に設定してから元に戻す
-		IsRangeFilterStrictMode = !originalStrictMode;
-		IsRangeFilterOverlapMode = !originalOverlapMode;
+		// 初期値は必ずどちらか一方のみtrue
+		IsRangeFilterStrictMode = true;
+		IsRangeFilterOverlapMode = false;
 
-		// 元の正しい値に戻す（これでUIに確実に反映される）
-		IsRangeFilterStrictMode = originalStrictMode;
-		IsRangeFilterOverlapMode = originalOverlapMode;
-
-		// 相互排他処理を復活
 		_isInitializationComplete = wasInitialized;
 
 		Debug.WriteLine(
 			$"EnsureRangeFilterDefaults - After: StrictMode={IsRangeFilterStrictMode}, OverlapMode={IsRangeFilterOverlapMode}"
 		);
+	}
+
+	private void EnsureGroupingTypeDefaults()
+	{
+		// 無効値やnullの場合は必ずNoneにする
+		if (!Enum.IsDefined(typeof(GroupingType), CurrentGroupingType))
+		{
+			CurrentGroupingType = GroupingType.None;
+		}
+	}
+
+	void UpdateFilterHighlight()
+	{
+		// 時間フィルター、カテゴリフィルター、グルーピングのいずれかが有効な場合にハイライト
+		IsFilterHighlightActive =
+			(CurrentFilterType != FilterType.All)
+			|| IsCategoryFilterEnabled
+			|| (CurrentGroupingType != GroupingType.None);
 	}
 
 	static void SetWindowTitle()
@@ -459,13 +582,15 @@ public class MainViewModel
 		}
 	}
 
-	static ValueTask SelectionUpdateAsync(
+	ValueTask SelectionUpdateAsync(
 		SelectionChangedEventArgs e
 	)
 	{
 		if (
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return default;
@@ -529,14 +654,26 @@ public class MainViewModel
 		"SMA0040:Missing Using Statement",
 		Justification = "<保留中>"
 	)]
-	ValueTask OnHostUiReadyAsync(Window mainWindow)
+	async ValueTask OnHostUiReadyAsync(Window mainWindow)
 	{
-		var hasTL = TimelineUtil.TryGetTimeline(
-			out var timeLine
-		);
+		await MainViewPile.RentAsync(view =>
+		{
+			CurrentMainWindowIndex =
+				ViewModelUtil
+					.GetParentViewModel(view)
+					?.Index ?? 0;
+			return ValueTask.CompletedTask;
+		});
 
-		if (!hasTL || timeLine is null)
-			return default;
+		if (
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex
+			)
+		)
+		{
+			return;
+		}
 
 		var raw =
 			timeLine.RawTimeline as INotifyPropertyChanged;
@@ -545,10 +682,13 @@ public class MainViewModel
 		SubscribeTimeline(raw, timeLine);
 
 		// シーン切り替えも監視
-		var hasSceneVm = TimelineUtil.TryGetTimelineVmValue(
-			out var timeLineVm
-		);
-		if (hasSceneVm && timeLineVm is not null)
+		if (
+			!Ymm4Version.HasDocked
+			&& TimelineUtil.TryGetTimelineVmValue(
+				out var timeLineVm,
+				CurrentMainWindowIndex
+			)
+		)
 		{
 			// RxのSubscribeはバックグラウンドスレッドで発火する場合がある
 			sceneSubscription =
@@ -595,7 +735,7 @@ public class MainViewModel
 						);
 				});
 		}
-		return default;
+		return;
 	}
 
 	/// <summary>
@@ -814,45 +954,7 @@ public class MainViewModel
 
 	void SetGrouping(string groupingType)
 	{
-		// すべてのグルーピング選択をリセット
-		IsNoneGroupingSelected = false;
-		IsCategoryGroupingSelected = false;
-		IsLayerGroupingSelected = false;
-		IsGroupGroupingSelected = false;
-		IsLockedGroupingSelected = false;
-		IsHiddenGroupingSelected = false;
-
-		// 選択されたグルーピングを設定
-		switch (groupingType)
-		{
-			case "None":
-				IsNoneGroupingSelected = true;
-				break;
-			case "Category":
-				IsCategoryGroupingSelected = true;
-				break;
-			case "Layer":
-				IsLayerGroupingSelected = true;
-				break;
-			case "Group":
-				IsGroupGroupingSelected = true;
-				break;
-			case "IsLocked":
-				IsLockedGroupingSelected = true;
-				break;
-			case "IsHidden":
-				IsHiddenGroupingSelected = true;
-				break;
-			default:
-				IsNoneGroupingSelected = true;
-				Debug.Assert(
-					true,
-					$"Unknown grouping type: {groupingType}"
-				);
-				break;
-		}
-
-		// 設定を保存
+		// 文字列からenumへ変換
 		var enumValue = groupingType switch
 		{
 			"None" => GroupingType.None,
@@ -864,11 +966,13 @@ public class MainViewModel
 			_ => GroupingType.None,
 		};
 
+		// 設定を保存
 		ObjectListSettings.Default.SelectedGroupingType =
 			enumValue;
 		ObjectListSettings.Default.Save();
 
-		ApplyGrouping();
+		// UI状態同期・ApplyGroupingは共通化
+		SetGroupingFromEnum(enumValue);
 	}
 
 	void ApplyGrouping()
@@ -922,76 +1026,77 @@ public class MainViewModel
 		}
 	}
 
-	[SuppressMessage(
-		"Usage",
-		"VSTHRD002:Avoid problematic synchronous waits",
-		Justification = "<保留中>"
-	)]
-	[SuppressMessage(
-		"Correctness",
-		"SS034:Use await to get the result of an asynchronous operation",
-		Justification = "<保留中>"
-	)]
-	void OnTimelineChanged(
+	[SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "<保留中>")]
+	async void OnTimelineChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		var isBound = UIThread
-			.IsBoundAsync()
-			.AsTask()
-			.Result;
-		if (isBound)
+		try
 		{
-			// UIスレッドなら直接処理
-			try
+			var isBound = await UIThread
+				.IsBoundAsync()
+				.ConfigureAwait(true);
+
+			if (isBound)
 			{
-				HandleTimelineChanged(e);
+				// UIスレッドなら直接処理
+				try
+				{
+					HandleTimelineChanged(e);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnTimelineChanged error: {ex.Message}"
+					);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				Console.WriteLine(
-					$"OnTimelineChanged error: {ex.Message}"
-				);
+				// UIスレッドで処理を実行
+				try
+				{
+					await UIThread
+						.InvokeAsync(() =>
+						{
+							try
+							{
+								HandleTimelineChanged(e);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(
+									$"OnTimelineChanged error: {ex.Message}"
+								);
+							}
+							return default;
+						})
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnTimelineChanged error: {ex.Message}"
+					);
+				}
 			}
 		}
-		else
+		catch (System.Exception ex)
 		{
-			// UIスレッドで処理を実行
-			try
-			{
-				UIThread
-					.InvokeAsync(() =>
-					{
-						try
-						{
-							HandleTimelineChanged(e);
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(
-								$"OnTimelineChanged error: {ex.Message}"
-							);
-						}
-						return default;
-					})
-					.AsTask()
-					.Wait();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(
-					$"OnTimelineChanged error: {ex.Message}"
-				);
-			}
+			Debug.WriteLine(
+				"OnTimelineChanged: Failed to check UI thread status: " + ex.Message
+			);
 		}
 	}
 
 	void HandleTimelineChanged(PropertyChangedEventArgs e)
 	{
 		if (
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
+			!TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return;
@@ -1025,8 +1130,9 @@ public class MainViewModel
 	{
 		if (
 			!TimelineUtil.TryGetItemViewModels(
-				out var itemViewModels
-			) || itemViewModels is null
+				out var itemViewModels,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			return;
@@ -1049,170 +1155,10 @@ public class MainViewModel
 			)
 		);
 		OnItemsChanged();
-	}
 
-	[PropertyChanged(nameof(SearchText))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask SearchTextChangedAsync(string value)
-	{
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(CurrentFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask CurrentFrameChangedAsync(int value)
-	{
-		// シークバーフィルター有効時のパフォーマンス最適化: フィルタリングを間引き処理
-		if (IsUnderSeekBarFilterSelected)
-		{
-			_needsFilterUpdate = true;
-			if (_filterTimer?.IsEnabled != true)
-			{
-				_filterTimer?.Start();
-			}
-		}
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsUnderSeekBarFilterSelected))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsUnderSeekBarFilterSelectedChangedAsync(
-		bool value
-	)
-	{
-		_needsFilterUpdate = true;
-		if (_filterTimer?.IsEnabled != true)
-		{
-			_filterTimer?.Start();
-		}
-
-		// 即座にも実行（二重実行防止のためタイマー内で_needsFilterUpdateをチェック）
-		if (
-			value
-			&& TimelineUtil.TryGetTimeline(out var timeLine)
-			&& timeLine is not null
-		)
-		{
-			CurrentFrame = timeLine.CurrentFrame;
-			FilterItems();
-			_needsFilterUpdate = false;
-		}
-
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterSelected))]
-	[SuppressMessage("", "IDE0051")]
-	[SuppressMessage(
-		"Usage",
-		"MA0004:Use Task.ConfigureAwait",
-		Justification = "<保留中>"
-	)]
-	private async ValueTask IsRangeFilterSelectedChangedAsync(
-		bool value
-	)
-	{
-		if (value)
-		{
-			// 範囲指定用のフレーム番号エディターを初期化
-			var isSuccess = ItemEditorUtil.TryGetItemEditor(
-				out var itemEditor
-			);
-			if (!isSuccess || itemEditor is null)
-			{
-				return;
-			}
-			await RangeStartPile.RentAsync(editor =>
-			{
-				editor.SetEditorInfo(itemEditor.EditorInfo);
-				return ValueTask.CompletedTask;
-			});
-			await RangeEndPile.RentAsync(editor =>
-			{
-				editor.SetEditorInfo(itemEditor.EditorInfo);
-				return ValueTask.CompletedTask;
-			});
-
-			// ラジオボタンの排他制御: 両方falseの状態を防ぐ
-			if (
-				!IsRangeFilterStrictMode
-				&& !IsRangeFilterOverlapMode
-			)
-			{
-				IsRangeFilterStrictMode = true;
-			}
-		}
-
-		FilterItems();
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterStrictMode))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterStrictModeChangedAsync(
-		bool value
-	)
-	{
-		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
-		if (!_isInitializationComplete)
-		{
-			return default;
-		}
-
-		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
-		if (value)
-		{
-			IsRangeFilterOverlapMode = false;
-		}
-		else if (!IsRangeFilterOverlapMode)
-		{
-			IsRangeFilterOverlapMode = true;
-		}
-
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(IsRangeFilterOverlapMode))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask IsRangeFilterOverlapModeChangedAsync(
-		bool value
-	)
-	{
-		// 初期化中は相互排他処理をスキップ（Epoxyの循環参照防止）
-		if (!_isInitializationComplete)
-		{
-			return default;
-		}
-
-		// ラジオボタンの排他制御: 必ずどちらか一方が選択された状態を保持
-		if (value)
-		{
-			IsRangeFilterStrictMode = false;
-		}
-		else if (!IsRangeFilterStrictMode)
-		{
-			IsRangeFilterStrictMode = true;
-		}
-
-		FilterItems();
-		return default;
-	}
-
-	[PropertyChanged(nameof(RangeStartFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask RangeStartFrameChangedAsync(int value)
-	{
-		ValidateRange();
-		return default;
-	}
-
-	[PropertyChanged(nameof(RangeEndFrame))]
-	[SuppressMessage("", "IDE0051")]
-	private ValueTask RangeEndFrameChangedAsync(int value)
-	{
-		ValidateRange();
-		return default;
+		// プロジェクト読み込み時にフィルター設定を再確認
+		EnsureFilterType();
+		EnsureGroupingTypeDefaults();
 	}
 
 	void ValidateRange()
@@ -1326,71 +1272,69 @@ public class MainViewModel
 
 	[SuppressMessage(
 		"Usage",
-		"VSTHRD002:Avoid problematic synchronous waits",
+		"VSTHRD100:Avoid async void methods",
 		Justification = "<保留中>"
 	)]
-	[SuppressMessage(
-		"Correctness",
-		"SS034:Use await to get the result of an asynchronous operation",
-		Justification = "<保留中>"
-	)]
-	[SuppressMessage(
-		"Critical Code Smell",
-		"S5034:\"ValueTask\" should be consumed correctly",
-		Justification = "<保留中>"
-	)]
-	void OnSettingsPropertyChanged(
+	async void OnSettingsPropertyChanged(
 		object? sender,
 		PropertyChangedEventArgs e
 	)
 	{
-		var isBound = UIThread
-			.IsBoundAsync()
-			.AsTask()
-			.Result;
-		if (isBound)
+		try
 		{
-			// UIスレッドなら直接処理
-			try
+			var isBound = await UIThread
+				.IsBoundAsync()
+				.ConfigureAwait(true);
+
+			if (isBound)
 			{
-				HandleSettingChanged(e);
+				// UIスレッドなら直接処理
+				try
+				{
+					HandleSettingChanged(e);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnSettingsPropertyChanged Error: {ex.Message}"
+					);
+				}
 			}
-			catch (Exception ex)
+			else
 			{
-				Console.WriteLine(
-					$"OnSettingsPropertyChanged Error: {ex.Message}"
-				);
+				// UIスレッドで処理を実行
+				try
+				{
+					await UIThread
+						.InvokeAsync(() =>
+						{
+							try
+							{
+								HandleSettingChanged(e);
+							}
+							catch (Exception ex)
+							{
+								Console.WriteLine(
+									$"OnSettingsPropertyChanged Error: {ex.Message}"
+								);
+							}
+							return default;
+						})
+						.ConfigureAwait(true);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(
+						$"OnSettingsPropertyChanged Error: {ex.Message}"
+					);
+				}
 			}
 		}
-		else
+		catch (Exception ex)
 		{
-			// UIスレッドで処理を実行
-			try
-			{
-				UIThread
-					.InvokeAsync(() =>
-					{
-						try
-						{
-							HandleSettingChanged(e);
-						}
-						catch (Exception ex)
-						{
-							Console.WriteLine(
-								$"OnSettingsPropertyChanged Error: {ex.Message}"
-							);
-						}
-						return default;
-					})
-					.AsTask()
-					.Wait();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(
-					$"OnSettingsPropertyChanged Error: {ex.Message}"
-				);
-			}
+			Debug.WriteLine(
+				$"OnSettingsPropertyChanged Error: UIThread.IsBoundAsync failed, {ex.Message}"
+			);
 		}
 	}
 
@@ -1406,7 +1350,18 @@ public class MainViewModel
 				var groupingType = ObjectListSettings
 					.Default
 					.SelectedGroupingType;
+				if (
+					!Enum.IsDefined(
+						typeof(GroupingType),
+						groupingType
+					)
+				)
+				{
+					groupingType = GroupingType.None;
+				}
+
 				SetGroupingFromEnum(groupingType);
+				EnsureGroupingTypeDefaults();
 				ApplyGrouping();
 				break;
 
@@ -1552,6 +1507,9 @@ public class MainViewModel
 			|| !ObjectListSettings
 				.Default
 				.IsCategoryFilterGroupItem;
+
+		// 追加: 集約プロパティ更新
+		UpdateFilterHighlight();
 	}
 
 	// パフォーマンス最適化用タイマー設定
@@ -1599,9 +1557,11 @@ public class MainViewModel
 	void MonitorTimelineReference()
 	{
 		if (
-			!IsPluginEnabled ||
-			!TimelineUtil.TryGetTimeline(out var timeLine)
-			|| timeLine is null
+			!IsPluginEnabled
+			|| !TimelineUtil.TryGetTimeline(
+				out var timeLine,
+				CurrentMainWindowIndex
+			)
 		)
 		{
 			// プロジェクト未読込など

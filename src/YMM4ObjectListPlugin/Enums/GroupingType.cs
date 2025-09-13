@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+
 using YukkuriMovieMaker.Resources.Localization;
 
-namespace ObjectList.ViewModel;
+namespace ObjectList.Enums;
 
 /// <summary>
 /// Specifies the available grouping types for objects in the plugin.

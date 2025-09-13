@@ -13,10 +13,12 @@
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:notify="clr-namespace:Enterwell.Clients.Wpf.Notifications.Controls;assembly=Enterwell.Clients.Wpf.Notifications"
   xmlns:viewmodels="clr-namespace:ObjectList.ViewModel"
+  xmlns:enums="clr-namespace:ObjectList.Enums"
   xmlns:ymmconv="clr-namespace:YukkuriMovieMaker.Views.Converters;assembly=YukkuriMovieMaker.Plugin"
   d:DesignHeight="450"
   d:DesignWidth="800"
   mc:Ignorable="d"
+  epoxy:Anchor.Pile="{Binding MainViewPile}"
   >
   <epoxy:EventBinder.Events>
     <epoxy:Event Command="{Binding Ready}" EventName="Loaded" />
@@ -31,6 +33,9 @@
 
       <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
       <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
+      <conv:FilterTypeRadioConverter x:Key="FilterTypeRadioConverter" />
+      <conv:GroupingTypeRadioConverter x:Key="GroupingTypeRadioConverter" />
+      <conv:FilterTypeIsNotAllConverter x:Key="FilterTypeIsNotAllConverter" />
 
       <!--  共通のColumnHeaderStyleを定義  -->
       <Style
@@ -111,29 +116,15 @@
                 </Setter.Value>
               </Setter>
               <Style.Triggers>
-                <!--  デフォルト以外の設定が有効な場合はFilterCheckアイコンに変更  -->
-                <MultiDataTrigger>
-                  <MultiDataTrigger.Conditions>
-                    <Condition Binding="{Binding IsAllFilterSelected}" Value="False" />
-                  </MultiDataTrigger.Conditions>
+                <!-- 単一トリガー: 集約状態 -->
+                <DataTrigger Binding="{Binding IsFilterHighlightActive}" Value="True">
                   <Setter Property="Content">
                     <Setter.Value>
                       <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
                     </Setter.Value>
                   </Setter>
                   <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                </MultiDataTrigger>
-                <MultiDataTrigger>
-                  <MultiDataTrigger.Conditions>
-                    <Condition Binding="{Binding IsCategoryFilterEnabled}" Value="True" />
-                  </MultiDataTrigger.Conditions>
-                  <Setter Property="Content">
-                    <Setter.Value>
-                      <materialIcons:MaterialIconExt Kind="FilterCheck" Size="16" />
-                    </Setter.Value>
-                  </Setter>
-                  <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                </MultiDataTrigger>
+                </DataTrigger>
               </Style.Triggers>
             </Style>
           </ToggleButton.Style>
@@ -181,13 +172,13 @@
                 Margin="10,2"
                 Content="なし"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsAllFilterSelected}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=All}"
                 />
 
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsUnderSeekBarFilterSelected}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=UnderSeekBar}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="TimelineClockOutline" Size="14" />
@@ -199,7 +190,7 @@
               <RadioButton
                 Margin="10,2"
                 GroupName="FilterOptions"
-                IsChecked="{Binding IsRangeFilterSelected}"
+                IsChecked="{Binding CurrentFilterType, Mode=TwoWay, Converter={StaticResource FilterTypeRadioConverter}, ConverterParameter=Range}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <materialIcons:MaterialIconExt Kind="ClockStart" Size="14" />
@@ -280,7 +271,7 @@
                 CommandParameter="None"
                 Content="なし"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsNoneGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=None}"
                 />
 
               <RadioButton
@@ -290,7 +281,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Category"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsCategoryGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Category}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -310,7 +301,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Layer"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsLayerGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Layer}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -331,7 +322,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="Group"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsGroupGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=Group}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -352,7 +343,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="IsLocked"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsLockedGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=IsLocked}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -373,7 +364,7 @@
                 Command="{Binding SetGroupingCommand}"
                 CommandParameter="IsHidden"
                 GroupName="GroupingOptions"
-                IsChecked="{Binding IsHiddenGroupingSelected}"
+                IsChecked="{Binding CurrentGroupingType, Mode=TwoWay, Converter={StaticResource GroupingTypeRadioConverter}, ConverterParameter=IsHidden}"
                 >
                 <StackPanel Orientation="Horizontal">
                   <Image
@@ -442,12 +433,11 @@
       </DockPanel>
 
       <!--  サブオプション領域  -->
-      <StackPanel
+      <DockPanel
         Name="SubOptionsPanel"
         Grid.Row="1"
-        Orientation="Horizontal"
         >
-        <StackPanel
+        <WrapPanel
           Name="RangeFilterOptions"
           Margin="10,2,2,2"
           Orientation="Horizontal"
@@ -527,8 +517,8 @@
             Foreground="Red"
             Visibility="{Binding IsRangeInvalid, Converter={StaticResource BoolToVisibilityConverter}}"
             />
-        </StackPanel>
-      </StackPanel>
+        </WrapPanel>
+      </DockPanel>
 
       <!--  DataGrid  -->
       <DataGrid
@@ -812,7 +802,7 @@
                       <c:EnumComboBox
                         Grid.Column="1"
                         Width="100"
-                        EnumType="{x:Type viewmodels:LengthViewMode}"
+                        EnumType="{x:Type enums:LengthViewMode}"
                         Value="{Binding Source={x:Static core:ObjectListSettings.Default}, Path=ShowLengthViewMode, Mode=TwoWay}"
                         />
                     </Grid>
